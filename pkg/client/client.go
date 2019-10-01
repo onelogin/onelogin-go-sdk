@@ -41,8 +41,14 @@ type ApiClientConfig struct {
 // New takes in params needed for the new api client, and
 // return the new api client with services.
 func New(cfg *ApiClientConfig) *ApiClient {
+	timeout := cfg.TimeoutInSeconds
+
+	if cfg.TimeoutInSeconds == 0 {
+		timeout = 5
+	}
+
 	httpClient := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * time.Duration(timeout),
 	}
 
 	baseUrl := setBaseUrl(cfg.Region)
@@ -54,7 +60,10 @@ func New(cfg *ApiClientConfig) *ApiClient {
 		baseUrl:      baseUrl,
 		client:       httpClient,
 		Services: &Services{
-			AppsV1: services.NewAppsV1(baseUrl, httpClient),
+			AppsV1: services.NewAppsV1(&services.AppsV1Config{
+				BaseUrl: baseUrl,
+				Client:  httpClient,
+			}),
 		},
 	}
 }

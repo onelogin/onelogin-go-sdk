@@ -10,9 +10,14 @@ type AppsV1 struct {
 	client *http.Client
 }
 
-func NewAppsV1(baseUrl string, client *http.Client) *AppsV1 {
+type AppsV1Config struct {
+	BaseUrl string
+	Client  *http.Client
+}
+
+func NewAppsV1(cfg *AppsV1Config) *AppsV1 {
 	return &AppsV1{
-		Url:    fmt.Sprintf("%s/api", baseUrl),
-		client: client,
+		Url:    fmt.Sprintf("%s/api", cfg.BaseUrl),
+		client: cfg.Client,
 	}
 }

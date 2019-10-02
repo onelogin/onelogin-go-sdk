@@ -38,8 +38,8 @@ type ApiClientConfig struct {
 	Region           string
 }
 
-// New takes in params needed for the new api client, and
-// return the new api client with services.
+// New uses the config to generate the api client with services attached, and returns
+// the new api client.
 func New(cfg *ApiClientConfig) *ApiClient {
 	timeout := cfg.TimeoutInSeconds
 
@@ -68,8 +68,8 @@ func New(cfg *ApiClientConfig) *ApiClient {
 	}
 }
 
-// setBaseUrl takes in a region to set the proper url,
-// and returns the url for the provided region, with "us" by default.
+// setBaseUrl generates the proper base url based on region, if supported,and returns
+// the base url for the provided region, or 'us' by default.
 func setBaseUrl(region string) string {
 	regionToUse := strings.ToLower(region)
 

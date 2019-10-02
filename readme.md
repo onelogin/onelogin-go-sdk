@@ -1,7 +1,7 @@
 # Onelogin-Go-SDK
 
-# Installation
+## Installation
 
-# Configuration
+## Configuration
 
-# Examples
+## Examples

@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	US_REGION = "us"
-	EU_REGION = "eu"
+	US_REGION       = "us"
+	EU_REGION       = "eu"
+	DEFAULT_TIMEOUT = 5
 )
 
 type ApiClient struct {
@@ -29,6 +30,7 @@ type ApiClient struct {
 
 type Services struct {
 	AppsV1 *services.AppsV1
+	AuthV2 *services.AuthV2
 }
 
 type ApiClientConfig struct {
@@ -44,7 +46,7 @@ func New(cfg *ApiClientConfig) *ApiClient {
 	timeout := cfg.TimeoutInSeconds
 
 	if cfg.TimeoutInSeconds == 0 {
-		timeout = 5
+		timeout = DEFAULT_TIMEOUT
 	}
 
 	httpClient := &http.Client{

@@ -8,19 +8,15 @@
   0. Make sure you have [Go](https://golang.org/doc/install) installed.
 
   1. Install the package:
-
     ```
     go get -u "github.com/onelogin/onelogin-go-sdk/pkg/client"
     ```
-
   2. Import:
-
     ```
     import (
       "github.com/onelogin/onelogin-go-sdk/pkg/client"
     )
     ```
-
 ## Examples
 
   - Starting up the client:

@@ -5,7 +5,7 @@
     - Auth (v2)
 
 ## Installation
-  0. Make sure you have [Go](https://golang.org/doc/install) installed.
+  **Make sure you have [Go](https://golang.org/doc/install) installed.**
 
   1. Install the package:
     ```

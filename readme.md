@@ -13,13 +13,17 @@
     ```
   2. Import:
     ```
-    import "github.com/onelogin/onelogin-go-sdk/pkg/client"
+    import (
+      "github.com/onelogin/onelogin-go-sdk/pkg/client"
+    )
     ```
 ## Examples
 
   - Starting up the client:
     ```
-    import "github.com/onelogin/onelogin-go-sdk/pkg/client"
+    import (
+      "github.com/onelogin/onelogin-go-sdk/pkg/client"
+    )
 
     client.New(&client.ApiClientConfig{
       TimeoutInSeconds: 5,

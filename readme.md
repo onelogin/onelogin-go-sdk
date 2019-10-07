@@ -12,6 +12,7 @@
     go get -u "github.com/onelogin/onelogin-go-sdk/pkg/client"
     ```
   2. Import:
+
     ```go
     import (
       "github.com/onelogin/onelogin-go-sdk/pkg/client"

@@ -32,7 +32,7 @@
       Region: "us",
     })
 
-    resp, app, err := sdkClient.Services.AppsV1.GetAppById(11111)
+    resp, app, err := sdkClient.Services.AppsV2.GetAppById(11111)
 
     if err != nil {
       // handle error

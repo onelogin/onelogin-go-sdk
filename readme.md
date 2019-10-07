@@ -25,7 +25,7 @@
       "github.com/onelogin/onelogin-go-sdk/pkg/client"
     )
 
-    client.New(&client.ApiClientConfig{
+    sdkClient := client.New(&client.ApiClientConfig{
       TimeoutInSeconds: 5,
       ClientId: "your_onelogin_developer_client_id",
       ClientSecret: "your_onelogin_developer_client_secret",

@@ -29,7 +29,7 @@ type ApiClient struct {
 }
 
 type Services struct {
-	AppsV1 *services.AppsV1
+	AppsV2 *services.AppsV2
 	AuthV2 *services.AuthV2
 }
 
@@ -55,6 +55,19 @@ func New(cfg *ApiClientConfig) *ApiClient {
 
 	baseUrl := setBaseUrl(cfg.Region)
 
+	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
+		ClientId:     cfg.ClientId,
+		ClientSecret: cfg.ClientSecret,
+		BaseUrl:      baseUrl,
+		Client:       httpClient,
+	})
+
+	appv2Service := services.NewAppsV2(&services.AppsV2Config{
+		BaseUrl: baseUrl,
+		Client:  httpClient,
+		Auth:    authV2Service,
+	})
+
 	return &ApiClient{
 		clientId:     cfg.ClientId,
 		clientSecret: cfg.ClientSecret,
@@ -62,10 +75,8 @@ func New(cfg *ApiClientConfig) *ApiClient {
 		baseUrl:      baseUrl,
 		client:       httpClient,
 		Services: &Services{
-			AppsV1: services.NewAppsV1(&services.AppsV1Config{
-				BaseUrl: baseUrl,
-				Client:  httpClient,
-			}),
+			AppsV2: appv2Service,
+			AuthV2: authV2Service,
 		},
 	}
 }

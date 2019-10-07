@@ -15,7 +15,7 @@ const (
 )
 
 type Authenticator interface {
-	Authenticate() (*models.AuthResp, error)
+	Authenticate() (*http.Response, *models.AuthResp, error)
 }
 
 type AuthV2 struct {
@@ -65,11 +65,13 @@ func (auth *AuthV2) Authenticate() (*http.Response, *models.AuthResp, error) {
 
 	resp, err := auth.client.Do(req)
 
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+
 	if err != nil {
 		return resp, nil, err
 	}
-
-	defer resp.Body.Close()
 
 	if resp.StatusCode > http.StatusOK {
 		return resp, nil, errors.New(fmt.Sprintf("Auth responded with status code of [ %d ]", resp.StatusCode))
@@ -90,6 +92,6 @@ func (auth *AuthV2) Authenticate() (*http.Response, *models.AuthResp, error) {
 	return resp, &output, nil
 }
 
-func Authenticate(auth Authenticator) (*models.AuthResp, error) {
+func Authenticate(auth Authenticator) (*http.Response, *models.AuthResp, error) {
 	return auth.Authenticate()
 }

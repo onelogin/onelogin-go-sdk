@@ -4,8 +4,8 @@ import "fmt"
 
 // OneloginError used for any errors.
 type OneloginError struct {
-	Context string
-	Err     error
+	context string
+	err     error
 }
 
 // OneloginErrorWrapper creates a new OneloginError and returns, if an error is passed in,
@@ -16,15 +16,15 @@ func OneloginErrorWrapper(context string, err error) error {
 	}
 
 	return &OneloginError{
-		Context: context,
-		Err:     err,
+		context: context,
+		err:     err,
 	}
 }
 
-func (err *OneloginError) Error() string {
+func (olError *OneloginError) Error() string {
 	errMsg := ""
-	if err.Err != nil {
-		errMsg = err.Err.Error()
+	if olError.err != nil {
+		errMsg = olError.err.Error()
 	}
-	return fmt.Sprintf("error: context: [%s], error_message: [%s]", err.Context, errMsg)
+	return fmt.Sprintf("error: context: [%s], error_message: [%s]", olError.context, errMsg)
 }

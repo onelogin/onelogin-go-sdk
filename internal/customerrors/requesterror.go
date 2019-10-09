@@ -8,9 +8,9 @@ import (
 
 // RequestError used for http request errors.
 type RequestError struct {
-	Context    string
-	StatusCode int
-	Err        error
+	context    string
+	statusCode int
+	err        error
 }
 
 // ReqErrorWrapper creates a new Request error and returns,
@@ -32,16 +32,16 @@ func ReqErrorWrapper(resp *http.Response, err error, context string) error {
 	}
 
 	return &RequestError{
-		StatusCode: code,
-		Err:        errToUse,
-		Context:    context,
+		statusCode: code,
+		err:        errToUse,
+		context:    context,
 	}
 }
 
-func (err *RequestError) Error() string {
+func (errReq *RequestError) Error() string {
 	errMsg := ""
-	if err.Err != nil {
-		errMsg = err.Err.Error()
+	if errReq.err != nil {
+		errMsg = errReq.err.Error()
 	}
-	return fmt.Sprintf("request error: context: %s, status_code: [%d], error_message: %s", err.Context, err.StatusCode, errMsg)
+	return fmt.Sprintf("request error: context: %s, status_code: [%d], error_message: %s", errReq.context, errReq.statusCode, errMsg)
 }

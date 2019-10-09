@@ -15,7 +15,7 @@ type RequestError struct {
 
 // ReqErrorWrapper creates a new Request error and returns,
 // the pointer to the request error.
-func ReqErrorWrapper(resp *http.Response, err error, context string) *RequestError {
+func ReqErrorWrapper(resp *http.Response, err error, context string) error {
 	code := 0
 	errToUse := err
 

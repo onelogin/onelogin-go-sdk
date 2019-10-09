@@ -10,7 +10,7 @@ type OneloginError struct {
 
 // OneloginErrorWrapper creates a new OneloginError and returns, if an error is passed in,
 // the pointer to the error struct.
-func OneloginErrorWrapper(context string, err error) *OneloginError {
+func OneloginErrorWrapper(context string, err error) error {
 	if err == nil {
 		return nil
 	}

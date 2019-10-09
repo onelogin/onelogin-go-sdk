@@ -3,19 +3,20 @@ package services
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 )
 
 const (
-	CLIENT_CREDENTIALS_TEXT = "client_credentials"
+	ClientCredentialsText = "client_credentials"
+	ErrorContext          = "auth service"
 )
 
 type Authenticator interface {
-	Authenticate() (*http.Response, *models.AuthResp, error)
+	Authorize() (*http.Response, *models.AuthResp, error)
 }
 
 type AuthV2 struct {
@@ -43,25 +44,29 @@ func NewAuthV2(cfg *AuthConfigV2) *AuthV2 {
 	}
 }
 
-// Authenticate authenticates the credentials for the ClientId and ClientSecret, and returns, if successfull,
+// Authorize authorizes the credentials for the ClientId and ClientSecret, and returns, if successfull,
 // the http response and the auth response.
-func (auth *AuthV2) Authenticate() (*http.Response, *models.AuthResp, error) {
+func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 	reqBody, err := json.Marshal(models.AuthBody{
-		GrantType: CLIENT_CREDENTIALS_TEXT,
+		GrantType: ClientCredentialsText,
 	})
 
-	if err != nil {
-		return nil, nil, err
+	oneloginErr := customerrors.OneloginErrorWrapper(ErrorContext, err)
+
+	if oneloginErr != nil {
+		return nil, nil, oneloginErr
 	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseUrl), bytes.NewBuffer(reqBody))
 
+	oneloginErr = customerrors.OneloginErrorWrapper(ErrorContext, err)
+
+	if oneloginErr != nil {
+		return nil, nil, oneloginErr
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(auth.ClientId, auth.ClientSecret)
-
-	if err != nil {
-		return nil, nil, err
-	}
 
 	resp, err := auth.client.Do(req)
 
@@ -69,29 +74,25 @@ func (auth *AuthV2) Authenticate() (*http.Response, *models.AuthResp, error) {
 		defer resp.Body.Close()
 	}
 
-	if err != nil {
-		return resp, nil, err
-	}
+	respErr := customerrors.ReqErrorWrapper(resp, err, ErrorContext)
 
-	if resp.StatusCode > http.StatusOK {
-		return resp, nil, errors.New(fmt.Sprintf("Auth responded with status code of [ %d ]", resp.StatusCode))
-	}
-
-	if err != nil {
-		return resp, nil, err
+	if respErr != nil {
+		return resp, nil, respErr
 	}
 
 	var output models.AuthResp
 
 	err = json.NewDecoder(resp.Body).Decode(&output)
 
-	if err != nil {
-		return resp, nil, err
+	oneloginErr = customerrors.OneloginErrorWrapper(ErrorContext, err)
+
+	if oneloginErr != nil {
+		return resp, nil, oneloginErr
 	}
 
 	return resp, &output, nil
 }
 
-func Authenticate(auth Authenticator) (*http.Response, *models.AuthResp, error) {
-	return auth.Authenticate()
+func Authorize(auth Authenticator) (*http.Response, *models.AuthResp, error) {
+	return auth.Authorize()
 }

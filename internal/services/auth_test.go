@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAuthenticateWhenAccessTokenIsReturned(t *testing.T) {
+func TestAuthorizeWhenAccessTokenIsReturned(t *testing.T) {
 	expectedAccessToken := "test"
 	expectedStatusCode := http.StatusOK
 
@@ -42,7 +42,7 @@ func TestAuthenticateWhenAccessTokenIsReturned(t *testing.T) {
 
 	auth := NewAuthV2(cfg)
 
-	resp, body, err := auth.Authenticate()
+	resp, body, err := auth.Authorize()
 
 	assert.NotNil(t, body)
 	assert.Nil(t, err)
@@ -50,9 +50,9 @@ func TestAuthenticateWhenAccessTokenIsReturned(t *testing.T) {
 	assert.Equal(t, expectedAccessToken, body.AccessToken)
 }
 
-func TestAuthenticateWhenGreaterThan200IsReturned(t *testing.T) {
+func TestAuthorizeWhenGreaterThan200IsReturned(t *testing.T) {
 	expectedStatusCode := http.StatusUnauthorized
-	expectedErr := errors.New(fmt.Sprintf("Auth responded with status code of [ %d ]", http.StatusUnauthorized))
+	expectedErr := errors.New(fmt.Sprintf("request error: context: auth service, status_code: [401], error_message: Unauthorized"))
 
 	httpClient := &http.Client{
 		Timeout: time.Second * 5,
@@ -73,7 +73,7 @@ func TestAuthenticateWhenGreaterThan200IsReturned(t *testing.T) {
 
 	auth := NewAuthV2(cfg)
 
-	resp, body, err := auth.Authenticate()
+	resp, body, err := auth.Authorize()
 
 	assert.Nil(t, body)
 	assert.NotNil(t, err)

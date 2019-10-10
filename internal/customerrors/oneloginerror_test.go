@@ -8,23 +8,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestOneloginErrorWrapperWithErrorPassedIn(t *testing.T) {
-	context := "Test"
+func TestOneLoginErrorWrapper(t *testing.T) {
 	errMsg := "Test Error"
-	expectedErrMsg := fmt.Sprintf("error: context: [%s], error_message: [%s]", context, errMsg)
-
-	err := errors.New(errMsg)
-
-	outputErr := OneloginErrorWrapper(context, err)
-	assert.NotNil(t, outputErr)
-	assert.Equal(t, expectedErrMsg, outputErr.Error())
-}
-
-func TestOneloginErrorWrapperWithNilErrorPassedIn(t *testing.T) {
 	context := "Test"
 
-	var err error = nil
+	tests := map[string]struct {
+		context     string
+		inputErr    error
+		expectedMsg string
+	}{
+		"error passed in": {
+			context:     context,
+			inputErr:    errors.New(errMsg),
+			expectedMsg: fmt.Sprintf("error: context: [%s], error_message: [%s]", context, errMsg),
+		},
+		"error not passed in": {
+			context:     context,
+			inputErr:    nil,
+			expectedMsg: "",
+		},
+	}
 
-	outputErr := OneloginErrorWrapper(context, err)
-	assert.Equal(t, nil, outputErr)
+	for testName, test := range tests {
+		t.Run(testName, func(t *testing.T) {
+			result := OneloginErrorWrapper(test.context, test.inputErr)
+
+			if test.inputErr != nil {
+				assert.NotNil(t, result)
+				assert.Equal(t, test.expectedMsg, result.Error())
+			} else if test.inputErr == nil {
+				assert.Nil(t, result)
+			} else {
+				assert.Fail(t, "Test should not reach here")
+			}
+		})
+	}
+
 }

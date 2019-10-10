@@ -52,7 +52,7 @@ func TestAuthorizeWhenAccessTokenIsReturned(t *testing.T) {
 
 func TestAuthorizeWhenGreaterThan200IsReturned(t *testing.T) {
 	expectedStatusCode := http.StatusUnauthorized
-	expectedErr := errors.New(fmt.Sprintf("request error: context: auth service, status_code: [401], error_message: Unauthorized"))
+	expectedErr := errors.New(fmt.Sprintf("request error: context: auth v2 service, status_code: [401], error_message: Unauthorized"))
 
 	httpClient := &http.Client{
 		Timeout: time.Second * 5,

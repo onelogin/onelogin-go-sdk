@@ -12,7 +12,6 @@ import (
 
 const (
 	ClientCredentialsText = "client_credentials"
-	ErrorContext          = "auth service"
 )
 
 type Authenticator interface {
@@ -24,6 +23,7 @@ type AuthV2 struct {
 	ClientSecret string
 	client       *http.Client
 	baseUrl      string
+	ErrorContext string
 }
 
 type AuthConfigV2 struct {
@@ -41,6 +41,7 @@ func NewAuthV2(cfg *AuthConfigV2) *AuthV2 {
 		ClientSecret: cfg.ClientSecret,
 		client:       cfg.Client,
 		baseUrl:      cfg.BaseUrl,
+		ErrorContext: "auth v2 service",
 	}
 }
 
@@ -51,7 +52,7 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 		GrantType: ClientCredentialsText,
 	})
 
-	oneloginErr := customerrors.OneloginErrorWrapper(ErrorContext, err)
+	oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
 
 	if oneloginErr != nil {
 		return nil, nil, oneloginErr
@@ -59,7 +60,7 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseUrl), bytes.NewBuffer(reqBody))
 
-	oneloginErr = customerrors.OneloginErrorWrapper(ErrorContext, err)
+	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
 
 	if oneloginErr != nil {
 		return nil, nil, oneloginErr
@@ -74,7 +75,7 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 		defer resp.Body.Close()
 	}
 
-	respErr := customerrors.ReqErrorWrapper(resp, err, ErrorContext)
+	respErr := customerrors.ReqErrorWrapper(resp, err, auth.ErrorContext)
 
 	if respErr != nil {
 		return resp, nil, respErr
@@ -82,9 +83,7 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 
 	var output models.AuthResp
 
-	err = json.NewDecoder(resp.Body).Decode(&output)
-
-	oneloginErr = customerrors.OneloginErrorWrapper(ErrorContext, err)
+	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, json.NewDecoder(resp.Body).Decode(&output))
 
 	if oneloginErr != nil {
 		return resp, nil, oneloginErr

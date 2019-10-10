@@ -2,8 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,69 +12,97 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAuthorizeWhenAccessTokenIsReturned(t *testing.T) {
-	expectedAccessToken := "test"
-	expectedStatusCode := http.StatusOK
+func TestAuthorize(t *testing.T) {
+	httpClient := &http.Client{
+		Timeout: time.Second * 5,
+	}
 
-	byteObj, _ := json.Marshal(models.AuthResp{
-		AccessToken: expectedAccessToken,
+	expectedAccessTokenFor1 := "test"
+	expectedStatusCodeFor1 := http.StatusOK
+	mockedResponse1, _ := json.Marshal(models.AuthResp{
+		AccessToken: expectedAccessTokenFor1,
 	})
 
-	httpClient := &http.Client{
-		Timeout: time.Second * 5,
+	expectedStatusCodeFor2 := http.StatusUnauthorized
+
+	tests := map[string]struct {
+		mockedResponseBody      []byte
+		mockedResponseCode      int
+		httpClient              *http.Client
+		expectedErroMsg         string
+		expectedStatusCode      int
+		expectedAccessToken     string
+		isErrResExpected        bool
+		isHttpResponseExpected  bool
+		isRespPayloadCompNeeded bool
+	}{
+		"access token is returned": {
+			httpClient:              httpClient,
+			mockedResponseBody:      mockedResponse1,
+			mockedResponseCode:      expectedStatusCodeFor1,
+			expectedStatusCode:      expectedStatusCodeFor1,
+			expectedAccessToken:     expectedAccessTokenFor1,
+			isRespPayloadCompNeeded: true,
+			isErrResExpected:        false,
+			isHttpResponseExpected:  true,
+		},
+		"error is returned when incorrect status code": {
+			httpClient:              httpClient,
+			mockedResponseCode:      expectedStatusCodeFor2,
+			expectedStatusCode:      expectedStatusCodeFor2,
+			isErrResExpected:        true,
+			isHttpResponseExpected:  true,
+			isRespPayloadCompNeeded: false,
+			expectedErroMsg:         "request error: context: auth v2 service, status_code: [401], error_message: Unauthorized",
+		},
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(expectedStatusCode)
-		w.Write(byteObj)
-	}))
+	for testName, test := range tests {
+		t.Run(testName, func(t *testing.T) {
+			// set up the mock server
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(test.mockedResponseCode)
+				if test.mockedResponseBody != nil {
+					w.Write(test.mockedResponseBody)
+				}
+			}))
 
-	defer ts.Close()
+			defer ts.Close()
 
-	cfg := &AuthConfigV2{
-		Client:       httpClient,
-		ClientId:     "",
-		ClientSecret: "",
-		BaseUrl:      ts.URL,
+			// end set up the mock server
+
+			cfg := &AuthConfigV2{
+				Client:       test.httpClient,
+				ClientId:     "",
+				ClientSecret: "",
+				BaseUrl:      ts.URL,
+			}
+
+			auth := NewAuthV2(cfg)
+
+			resp, body, err := auth.Authorize()
+
+			// check errors
+			if test.isErrResExpected {
+				assert.NotNil(t, err)
+				assert.Equal(t, err.Error(), test.expectedErroMsg)
+			} else {
+				assert.Nil(t, err)
+			}
+
+			// check http response
+			if test.isHttpResponseExpected {
+				assert.NotNil(t, resp)
+
+				if test.isRespPayloadCompNeeded {
+					assert.Equal(t, test.expectedAccessToken, body.AccessToken)
+				}
+
+				// check the response status code
+				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+			} else {
+				assert.Nil(t, resp)
+			}
+		})
 	}
-
-	auth := NewAuthV2(cfg)
-
-	resp, body, err := auth.Authorize()
-
-	assert.NotNil(t, body)
-	assert.Nil(t, err)
-	assert.Equal(t, expectedStatusCode, resp.StatusCode)
-	assert.Equal(t, expectedAccessToken, body.AccessToken)
-}
-
-func TestAuthorizeWhenGreaterThan200IsReturned(t *testing.T) {
-	expectedStatusCode := http.StatusUnauthorized
-	expectedErr := errors.New(fmt.Sprintf("request error: context: auth v2 service, status_code: [401], error_message: Unauthorized"))
-
-	httpClient := &http.Client{
-		Timeout: time.Second * 5,
-	}
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(expectedStatusCode)
-	}))
-
-	defer ts.Close()
-
-	cfg := &AuthConfigV2{
-		Client:       httpClient,
-		ClientId:     "",
-		ClientSecret: "",
-		BaseUrl:      ts.URL,
-	}
-
-	auth := NewAuthV2(cfg)
-
-	resp, body, err := auth.Authorize()
-
-	assert.Nil(t, body)
-	assert.NotNil(t, err)
-	assert.Equal(t, expectedErr.Error(), err.Error())
-	assert.Equal(t, expectedStatusCode, resp.StatusCode)
 }

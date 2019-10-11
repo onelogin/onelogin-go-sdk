@@ -1,23 +1,29 @@
 package services
 
 import (
-	"fmt"
 	"net/http"
 )
 
-type AppsV1 struct {
-	Url    string
-	client *http.Client
+type AppsV2 struct {
+	BaseUrl      string
+	client       *http.Client
+	Auth         Authenticator
+	ErrorContext string
 }
 
-type AppsV1Config struct {
+// config
+type AppsV2Config struct {
 	BaseUrl string
 	Client  *http.Client
+	Auth    Authenticator
 }
 
-func NewAppsV1(cfg *AppsV1Config) *AppsV1 {
-	return &AppsV1{
-		Url:    fmt.Sprintf("%s/api", cfg.BaseUrl),
-		client: cfg.Client,
+// apps version 2 service
+func NewAppsV2(cfg *AppsV2Config) *AppsV2 {
+	return &AppsV2{
+		BaseUrl:      cfg.BaseUrl,
+		client:       cfg.Client,
+		Auth:         cfg.Auth,
+		ErrorContext: "apps v2 service",
 	}
 }

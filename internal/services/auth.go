@@ -75,7 +75,7 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 		defer resp.Body.Close()
 	}
 
-	respErr := customerrors.ReqErrorWrapper(resp, err, auth.ErrorContext)
+	respErr := customerrors.ReqErrorWrapper(resp, auth.ErrorContext, err)
 
 	if respErr != nil {
 		return resp, nil, respErr

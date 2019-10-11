@@ -41,7 +41,7 @@ func TestReqErrorWrapper(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			resultErr := ReqErrorWrapper(test.responseHttp, test.err, test.context)
+			resultErr := ReqErrorWrapper(test.responseHttp, test.context, test.err)
 			if test.responseHttp == nil && test.err == nil {
 				assert.Nil(t, resultErr)
 			} else {

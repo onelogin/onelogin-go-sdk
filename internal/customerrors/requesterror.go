@@ -43,5 +43,10 @@ func (errReq *RequestError) Error() string {
 	if errReq.err != nil {
 		errMsg = errReq.err.Error()
 	}
+
+	if errReq.statusCode == 0 {
+		return fmt.Sprintf("request error: context: %s, error_message: %s", errReq.context, errMsg)
+	}
+
 	return fmt.Sprintf("request error: context: %s, status_code: [%d], error_message: %s", errReq.context, errReq.statusCode, errMsg)
 }

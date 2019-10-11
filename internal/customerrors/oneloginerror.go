@@ -16,8 +16,8 @@ func OneloginErrorWrapper(context string, err error) error {
 	}
 
 	return &OneloginError{
-		context: context,
-		err:     err,
+		context,
+		err,
 	}
 }
 

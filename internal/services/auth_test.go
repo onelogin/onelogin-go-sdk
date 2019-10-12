@@ -33,7 +33,7 @@ func TestAuthorize(t *testing.T) {
 		expectedStatusCode      int
 		expectedAccessToken     string
 		isErrResExpected        bool
-		isHttpResponseExpected  bool
+		isHTTPResponseExpected  bool
 		isRespPayloadCompNeeded bool
 	}{
 		"access token is returned": {
@@ -44,14 +44,14 @@ func TestAuthorize(t *testing.T) {
 			expectedAccessToken:     expectedAccessTokenFor1,
 			isRespPayloadCompNeeded: true,
 			isErrResExpected:        false,
-			isHttpResponseExpected:  true,
+			isHTTPResponseExpected:  true,
 		},
 		"error is returned when incorrect status code": {
 			httpClient:              httpClient,
 			mockedResponseCode:      expectedStatusCodeFor2,
 			expectedStatusCode:      expectedStatusCodeFor2,
 			isErrResExpected:        true,
-			isHttpResponseExpected:  true,
+			isHTTPResponseExpected:  true,
 			isRespPayloadCompNeeded: false,
 			expectedErroMsg:         "request error: context: auth v2 service, status_code: [401], error_message: Unauthorized",
 		},
@@ -73,9 +73,9 @@ func TestAuthorize(t *testing.T) {
 
 			cfg := &AuthConfigV2{
 				Client:       test.httpClient,
-				ClientId:     "",
+				ClientID:     "",
 				ClientSecret: "",
-				BaseUrl:      ts.URL,
+				BaseURL:      ts.URL,
 			}
 
 			auth := NewAuthV2(cfg)
@@ -91,7 +91,7 @@ func TestAuthorize(t *testing.T) {
 			}
 
 			// check http response
-			if test.isHttpResponseExpected {
+			if test.isHTTPResponseExpected {
 				assert.NotNil(t, resp)
 
 				if test.isRespPayloadCompNeeded {

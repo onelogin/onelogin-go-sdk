@@ -12,42 +12,46 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/internal/services"
 )
 
+// constants for the client.
 const (
-	US_REGION       = "us"
-	EU_REGION       = "eu"
-	DEFAULT_TIMEOUT = 5
+	USregion       = "us"
+	EUregion       = "eu"
+	DefaultTimeout = 5
 )
 
-type ApiClient struct {
-	clientId     string
+// APIClient is used to communicate with the available api services.
+type APIClient struct {
+	clientID     string
 	clientSecret string
 	region       string
 	token        string
-	baseUrl      string
+	baseURL      string
 	client       *http.Client
 	Services     *Services
 }
 
+// Services contains all the available api services.
 type Services struct {
 	AppsV2 *services.AppsV2
 	AuthV2 *services.AuthV2
 }
 
-type ApiClientConfig struct {
+// APIClientConfig is the configuration for the APIClient.
+type APIClientConfig struct {
 	TimeoutInSeconds int
-	ClientId         string
+	ClientID         string
 	ClientSecret     string
 	Region           string
 }
 
 // New uses the config to generate the api client with services attached, and returns
 // the new api client.
-func New(cfg *ApiClientConfig) *ApiClient {
+func New(cfg *APIClientConfig) *APIClient {
 	timeout := cfg.TimeoutInSeconds
 	regionToUse := cfg.Region
 
 	if cfg.TimeoutInSeconds == 0 {
-		timeout = DEFAULT_TIMEOUT
+		timeout = DefaultTimeout
 	}
 
 	httpClient := &http.Client{
@@ -60,26 +64,26 @@ func New(cfg *ApiClientConfig) *ApiClient {
 		regionToUse = getDefaultRegion()
 	}
 
-	baseUrl := setBaseUrl(regionToUse)
+	baseURL := setBaseUrl(regionToUse)
 
 	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
-		ClientId:     cfg.ClientId,
+		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
-		BaseUrl:      baseUrl,
+		BaseURL:      baseURL,
 		Client:       httpClient,
 	})
 
 	appv2Service := services.NewAppsV2(&services.AppsV2Config{
-		BaseUrl: baseUrl,
+		BaseURL: baseURL,
 		Client:  httpClient,
 		Auth:    authV2Service,
 	})
 
-	return &ApiClient{
-		clientId:     cfg.ClientId,
+	return &APIClient{
+		clientID:     cfg.ClientID,
 		clientSecret: cfg.ClientSecret,
 		region:       regionToUse,
-		baseUrl:      baseUrl,
+		baseURL:      baseURL,
 		client:       httpClient,
 		Services: &Services{
 			AppsV2: appv2Service,
@@ -92,9 +96,9 @@ func New(cfg *ApiClientConfig) *ApiClient {
 // a boolean indicating whether it is or not.
 func isSupportedRegion(region string) bool {
 	switch strings.ToLower(region) {
-	case US_REGION:
+	case USregion:
 		return true
-	case EU_REGION:
+	case EUregion:
 		return true
 	default:
 		return false
@@ -103,7 +107,7 @@ func isSupportedRegion(region string) bool {
 
 // getDefaultRegion grabs the default region, and returns it.
 func getDefaultRegion() string {
-	return US_REGION
+	return USregion
 }
 
 // setBaseUrl generates the proper base url based on region, if supported,and returns

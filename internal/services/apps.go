@@ -4,24 +4,25 @@ import (
 	"net/http"
 )
 
+// AppsV2 is the apps service v2.
 type AppsV2 struct {
-	BaseUrl      string
+	BaseURL      string
 	client       *http.Client
 	Auth         Authenticator
 	ErrorContext string
 }
 
-// config
+// AppsV2Config is the config for apps service v2.
 type AppsV2Config struct {
-	BaseUrl string
+	BaseURL string
 	Client  *http.Client
 	Auth    Authenticator
 }
 
-// apps version 2 service
+// NewAppsV2 creates the new apps service v2.
 func NewAppsV2(cfg *AppsV2Config) *AppsV2 {
 	return &AppsV2{
-		BaseUrl:      cfg.BaseUrl,
+		BaseURL:      cfg.BaseURL,
 		client:       cfg.Client,
 		Auth:         cfg.Auth,
 		ErrorContext: "apps v2 service",

@@ -8,30 +8,30 @@ import (
 )
 
 const (
-	usExpectedBaseUrl   = "https://api.us.onelogin.com"
-	euExpectedBaseUrl   = "https://api.eu.onelogin.com"
+	usExpectedBaseURL   = "https://api.us.onelogin.com"
+	euExpectedBaseURL   = "https://api.eu.onelogin.com"
 	notSupporttedRegion = "Test"
 )
 
 func TestSetBaseUrl(t *testing.T) {
 	tests := map[string]struct {
 		region          string
-		expectedBaseUrl string
+		expectedBaseURL string
 	}{
 		"us region": {
-			region:          US_REGION,
-			expectedBaseUrl: usExpectedBaseUrl,
+			region:          USregion,
+			expectedBaseURL: usExpectedBaseURL,
 		},
 		"eu region": {
-			region:          EU_REGION,
-			expectedBaseUrl: euExpectedBaseUrl,
+			region:          EUregion,
+			expectedBaseURL: euExpectedBaseURL,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			baseUrl := setBaseUrl(test.region)
-			assert.Equal(t, test.expectedBaseUrl, baseUrl)
+			baseURL := setBaseUrl(test.region)
+			assert.Equal(t, test.expectedBaseURL, baseURL)
 		})
 	}
 }
@@ -42,11 +42,11 @@ func TestIsSupportedRegion(t *testing.T) {
 		expectedValidation bool
 	}{
 		"us region": {
-			region:             US_REGION,
+			region:             USregion,
 			expectedValidation: true,
 		},
 		"eu region": {
-			region:             EU_REGION,
+			region:             EUregion,
 			expectedValidation: true,
 		},
 		"not supported": {
@@ -65,82 +65,82 @@ func TestIsSupportedRegion(t *testing.T) {
 
 func TestGetDefaultRegion(t *testing.T) {
 	defRegion := getDefaultRegion()
-	assert.Equal(t, US_REGION, defRegion)
+	assert.Equal(t, USregion, defRegion)
 }
 
 func TestNew(t *testing.T) {
-	clientId := "test"
+	clientID := "test"
 	clientSecret := "test"
 
 	tests := map[string]struct {
 		region               string
 		timeout              int
-		clientId             string
+		clientID             string
 		clientSecret         string
 		expectedRegion       string
-		expectedBaseUrl      string
+		expectedBaseURL      string
 		expectedTimeout      time.Duration
-		expectedClientId     string
+		expectedClientID     string
 		expectedClientSecret string
 	}{
 		"creates the expected default timeout": {
 			timeout:              0,
-			region:               US_REGION,
-			clientId:             clientId,
+			region:               USregion,
+			clientID:             clientID,
 			clientSecret:         clientSecret,
-			expectedTimeout:      time.Second * time.Duration(DEFAULT_TIMEOUT),
-			expectedRegion:       US_REGION,
-			expectedBaseUrl:      usExpectedBaseUrl,
-			expectedClientId:     clientId,
+			expectedTimeout:      time.Second * time.Duration(DefaultTimeout),
+			expectedRegion:       USregion,
+			expectedBaseURL:      usExpectedBaseURL,
+			expectedClientID:     clientID,
 			expectedClientSecret: clientSecret,
 		},
 		"has the provided timeout": {
 			timeout:              2,
-			region:               US_REGION,
-			clientId:             clientId,
+			region:               USregion,
+			clientID:             clientID,
 			clientSecret:         clientSecret,
 			expectedTimeout:      time.Second * time.Duration(2),
-			expectedRegion:       US_REGION,
-			expectedBaseUrl:      usExpectedBaseUrl,
-			expectedClientId:     clientId,
+			expectedRegion:       USregion,
+			expectedBaseURL:      usExpectedBaseURL,
+			expectedClientID:     clientID,
 			expectedClientSecret: clientSecret,
 		},
 		"has the region provided baseUrl": {
 			timeout:              2,
-			region:               EU_REGION,
-			clientId:             clientId,
+			region:               EUregion,
+			clientID:             clientID,
 			clientSecret:         clientSecret,
 			expectedTimeout:      time.Second * time.Duration(2),
-			expectedRegion:       EU_REGION,
-			expectedBaseUrl:      euExpectedBaseUrl,
-			expectedClientId:     clientId,
+			expectedRegion:       EUregion,
+			expectedBaseURL:      euExpectedBaseURL,
+			expectedClientID:     clientID,
 			expectedClientSecret: clientSecret,
 		},
 		"has the default baseurl and region": {
 			timeout:              2,
 			region:               notSupporttedRegion,
-			clientId:             clientId,
+			clientID:             clientID,
 			clientSecret:         clientSecret,
 			expectedTimeout:      time.Second * time.Duration(2),
-			expectedRegion:       US_REGION,
-			expectedBaseUrl:      usExpectedBaseUrl,
-			expectedClientId:     clientId,
+			expectedRegion:       USregion,
+			expectedBaseURL:      usExpectedBaseURL,
+			expectedClientID:     clientID,
 			expectedClientSecret: clientSecret,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			cl := New(&ApiClientConfig{
+			cl := New(&APIClientConfig{
 				Region:           test.region,
 				TimeoutInSeconds: test.timeout,
-				ClientId:         test.clientId,
+				ClientID:         test.clientID,
 				ClientSecret:     test.clientSecret,
 			})
 
 			assert.Equal(t, test.expectedRegion, cl.region)
-			assert.Equal(t, test.expectedBaseUrl, cl.baseUrl)
-			assert.Equal(t, test.expectedClientId, cl.clientId)
+			assert.Equal(t, test.expectedBaseURL, cl.baseURL)
+			assert.Equal(t, test.expectedClientID, cl.clientID)
 			assert.Equal(t, test.expectedClientSecret, cl.clientSecret)
 			assert.NotNil(t, cl.client)
 			assert.Equal(t, test.expectedTimeout, cl.client.Timeout)

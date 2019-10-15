@@ -3,93 +3,100 @@ package services
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 )
 
+// Auth service constants.
 const (
-	CLIENT_CREDENTIALS_TEXT = "client_credentials"
+	ClientCredentialsText = "client_credentials"
 )
 
+// Authenticator is an interface.
 type Authenticator interface {
-	Authenticate() (*models.AuthResp, error)
+	Authorize() (*http.Response, *models.AuthResp, error)
 }
 
+// AuthV2 is a service for authorization.
 type AuthV2 struct {
-	ClientId     string
+	ClientID     string
 	ClientSecret string
 	client       *http.Client
-	baseUrl      string
+	baseURL      string
+	ErrorContext string
 }
 
+// AuthConfigV2 is the config for the auth service v2.
 type AuthConfigV2 struct {
-	ClientId     string
+	ClientID     string
 	ClientSecret string
 	Client       *http.Client
-	BaseUrl      string
+	BaseURL      string
 }
 
 // NewAuthV2 uses the cfg to generate the new auth service, and returns
 // the created auth service for version 2.
 func NewAuthV2(cfg *AuthConfigV2) *AuthV2 {
 	return &AuthV2{
-		ClientId:     cfg.ClientId,
+		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
 		client:       cfg.Client,
-		baseUrl:      cfg.BaseUrl,
+		baseURL:      cfg.BaseURL,
+		ErrorContext: "auth v2 service",
 	}
 }
 
-// Authenticate authenticates the credentials for the ClientId and ClientSecret, and returns, if successfull,
+// Authorize authorizes the credentials for the ClientId and ClientSecret, and returns, if successfull,
 // the http response and the auth response.
-func (auth *AuthV2) Authenticate() (*http.Response, *models.AuthResp, error) {
+func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 	reqBody, err := json.Marshal(models.AuthBody{
-		GrantType: CLIENT_CREDENTIALS_TEXT,
+		GrantType: ClientCredentialsText,
 	})
 
-	if err != nil {
-		return nil, nil, err
+	oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
+
+	if oneloginErr != nil {
+		return nil, nil, oneloginErr
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseUrl), bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseURL), bytes.NewBuffer(reqBody))
+
+	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
+
+	if oneloginErr != nil {
+		return nil, nil, oneloginErr
+	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.SetBasicAuth(auth.ClientId, auth.ClientSecret)
-
-	if err != nil {
-		return nil, nil, err
-	}
+	req.SetBasicAuth(auth.ClientID, auth.ClientSecret)
 
 	resp, err := auth.client.Do(req)
 
-	if err != nil {
-		return resp, nil, err
+	if resp != nil {
+		defer resp.Body.Close()
 	}
 
-	defer resp.Body.Close()
+	respErr := customerrors.ReqErrorWrapper(resp, auth.ErrorContext, err)
 
-	if resp.StatusCode > http.StatusOK {
-		return resp, nil, errors.New(fmt.Sprintf("Auth responded with status code of [ %d ]", resp.StatusCode))
-	}
-
-	if err != nil {
-		return resp, nil, err
+	if respErr != nil {
+		return resp, nil, respErr
 	}
 
 	var output models.AuthResp
 
-	err = json.NewDecoder(resp.Body).Decode(&output)
+	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, json.NewDecoder(resp.Body).Decode(&output))
 
-	if err != nil {
-		return resp, nil, err
+	if oneloginErr != nil {
+		return resp, nil, oneloginErr
 	}
 
 	return resp, &output, nil
 }
 
-func Authenticate(auth Authenticator) (*models.AuthResp, error) {
-	return auth.Authenticate()
+// Authorize calls the Authorize function of the Authenticator interface.
+func Authorize(auth Authenticator) (*http.Response, *models.AuthResp, error) {
+	return auth.Authorize()
 }

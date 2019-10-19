@@ -5,11 +5,11 @@ import "time"
 // App is the contract for apps api v2.
 type App struct {
 	ID                 int32                    `json:"id,omitempty"`
-	Name               string                   `json:"name,omitempty"`
+	Name               string                   `json:"name"`
 	Visible            bool                     `json:"visible"`
-	Description        string                   `json:"description,omitempty"`
-	Notes              string                   `json:"notes,omitempty"`
-	IconURL            string                   `json:"icon_url,omitempty"`
+	Description        string                   `json:"description"`
+	Notes              string                   `json:"notes"`
+	IconURL            string                   `json:"icon_url"`
 	AuthMethod         int32                    `json:"auth_method,omitempty"`
 	PolicyID           int32                    `json:"policy_id,omitempty"`
 	AllowAssumedSignin bool                     `json:"allow_assumed_signin"`

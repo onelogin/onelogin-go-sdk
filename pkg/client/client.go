@@ -1,6 +1,4 @@
-/*
- * Onelogin api client.
- */
+// Package client provides intergation with api calls.
 package client
 
 import (
@@ -64,7 +62,7 @@ func New(cfg *APIClientConfig) *APIClient {
 		regionToUse = getDefaultRegion()
 	}
 
-	baseURL := setBaseUrl(regionToUse)
+	baseURL := setBaseURL(regionToUse)
 
 	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
 		ClientID:     cfg.ClientID,
@@ -110,9 +108,9 @@ func getDefaultRegion() string {
 	return USregion
 }
 
-// setBaseUrl generates the proper base url based on region, if supported,and returns
+// setBaseURL generates the proper base url based on region, if supported,and returns
 // the base url for the provided region, or 'us' by default.
-func setBaseUrl(region string) string {
+func setBaseURL(region string) string {
 	regionToUse := strings.ToLower(region)
 	return fmt.Sprintf("https://api.%s.onelogin.com", regionToUse)
 }

@@ -30,7 +30,7 @@ func TestSetBaseUrl(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			baseURL := setBaseUrl(test.region)
+			baseURL := setBaseURL(test.region)
 			assert.Equal(t, test.expectedBaseURL, baseURL)
 		})
 	}

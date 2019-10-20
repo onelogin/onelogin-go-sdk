@@ -56,17 +56,13 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 		GrantType: ClientCredentialsText,
 	})
 
-	oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
-
-	if oneloginErr != nil {
+	if oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err); oneloginErr != nil {
 		return nil, nil, oneloginErr
 	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseURL), bytes.NewBuffer(reqBody))
 
-	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
-
-	if oneloginErr != nil {
+	if oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err); oneloginErr != nil {
 		return nil, nil, oneloginErr
 	}
 
@@ -79,17 +75,13 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 		defer resp.Body.Close()
 	}
 
-	respErr := customerrors.ReqErrorWrapper(resp, auth.ErrorContext, err)
-
-	if respErr != nil {
+	if respErr := customerrors.ReqErrorWrapper(resp, auth.ErrorContext, err); respErr != nil {
 		return resp, nil, respErr
 	}
 
 	var output models.AuthResp
 
-	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, json.NewDecoder(resp.Body).Decode(&output))
-
-	if oneloginErr != nil {
+	if oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, json.NewDecoder(resp.Body).Decode(&output)); oneloginErr != nil {
 		return resp, nil, oneloginErr
 	}
 

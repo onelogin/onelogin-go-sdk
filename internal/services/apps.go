@@ -92,8 +92,8 @@ func (apps *AppsV2) CreateApp(app *models.App) (*http.Response, *models.App, err
 
 	respAuth, authResp, err := Authorize(apps.Auth)
 
-	if err = customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); err != nil {
-		return nil, nil, err
+	if respErr := customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); respErr != nil {
+		return nil, nil, respErr
 	}
 
 	req.Header.Set("Content-type", "application/json")

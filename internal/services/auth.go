@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -52,21 +51,22 @@ func NewAuthV2(cfg *AuthConfigV2) *AuthV2 {
 // Authorize authorizes the credentials for the ClientId and ClientSecret, and returns, if successfull,
 // the http response and the auth response.
 func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
-	reqBody, err := json.Marshal(models.AuthBody{
+	payload := models.AuthBody{
 		GrantType: ClientCredentialsText,
-	})
+	}
+
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
+
+	url := fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseURL)
+
+	req, err := setUpRequest(url, http.MethodPost, headers, payload)
 
 	if oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err); oneloginErr != nil {
 		return nil, nil, oneloginErr
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseURL), bytes.NewBuffer(reqBody))
-
-	if oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err); oneloginErr != nil {
-		return nil, nil, oneloginErr
-	}
-
-	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(auth.ClientID, auth.ClientSecret)
 
 	resp, err := auth.client.Do(req)

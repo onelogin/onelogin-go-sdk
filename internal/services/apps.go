@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -28,7 +27,7 @@ type AppsV2Config struct {
 // NewAppsV2 creates the new apps service v2.
 func NewAppsV2(cfg *AppsV2Config) *AppsV2 {
 	return &AppsV2{
-		BaseURL:      cfg.BaseURL,
+		BaseURL:      fmt.Sprintf("%s/api/2/apps", cfg.BaseURL),
 		client:       cfg.Client,
 		Auth:         cfg.Auth,
 		ErrorContext: "apps v2 service",
@@ -38,22 +37,24 @@ func NewAppsV2(cfg *AppsV2Config) *AppsV2 {
 // GetAppByID retrieves the app by id, and if successful, it returns
 // the http response and the pointer to the app.
 func (apps *AppsV2) GetAppByID(id int32) (*http.Response, *models.App, error) {
-	url := fmt.Sprintf("%s/api/2/apps/%d", apps.BaseURL, id)
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
-		return nil, nil, err
-	}
-
 	respAuth, authResp, err := Authorize(apps.Auth)
 
 	if authResErr := customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); authResErr != nil {
 		return nil, nil, authResErr
 	}
 
-	req.Header.Set("Content-type", "application/json")
-	bearer := "Bearer " + authResp.AccessToken
-	req.Header.Add("Authorization", bearer)
+	url := fmt.Sprintf("%s/%d", apps.BaseURL, id)
+
+	headers := map[string]string{
+		"Content-type":  "application/json",
+		"Authorization": "Bearer " + authResp.AccessToken,
+	}
+
+	req, err := setUpRequest(url, http.MethodGet, headers, nil)
+
+	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
+		return nil, nil, err
+	}
 
 	resp, err := apps.client.Do(req)
 
@@ -78,27 +79,22 @@ func (apps *AppsV2) GetAppByID(id int32) (*http.Response, *models.App, error) {
 // the http response and the pointer to the app.
 func (apps *AppsV2) CreateApp(app *models.App) (*http.Response, *models.App, error) {
 
-	appToCreate, err := json.Marshal(app)
-
-	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
-		return nil, nil, err
-	}
-
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/2/apps", apps.BaseURL), bytes.NewBuffer(appToCreate))
-
-	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
-		return nil, nil, err
-	}
-
 	respAuth, authResp, err := Authorize(apps.Auth)
 
 	if respErr := customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); respErr != nil {
 		return nil, nil, respErr
 	}
 
-	req.Header.Set("Content-type", "application/json")
-	bearer := "Bearer " + authResp.AccessToken
-	req.Header.Add("Authorization", bearer)
+	headers := map[string]string{
+		"Content-type":  "application/json",
+		"Authorization": "Bearer " + authResp.AccessToken,
+	}
+
+	req, err := setUpRequest(apps.BaseURL, http.MethodPost, headers, app)
+
+	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
+		return nil, nil, err
+	}
 
 	resp, err := apps.client.Do(req)
 
@@ -120,28 +116,24 @@ func (apps *AppsV2) CreateApp(app *models.App) (*http.Response, *models.App, err
 // UpdateAppByID updates an existing app, and if successful, it returns
 // the http response and the pointer to the updated app.
 func (apps *AppsV2) UpdateAppByID(id int32, app *models.App) (*http.Response, *models.App, error) {
-
-	appToCreate, err := json.Marshal(app)
-
-	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
-		return nil, nil, err
-	}
-
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/2/apps/%d", apps.BaseURL, id), bytes.NewBuffer(appToCreate))
-
-	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
-		return nil, nil, err
-	}
-
 	respAuth, authResp, err := Authorize(apps.Auth)
 
-	if err = customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); err != nil {
-		return nil, nil, err
+	if respErr := customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); respErr != nil {
+		return nil, nil, respErr
 	}
 
-	req.Header.Set("Content-type", "application/json")
-	bearer := "Bearer " + authResp.AccessToken
-	req.Header.Add("Authorization", bearer)
+	url := fmt.Sprintf("%s/%d", apps.BaseURL, id)
+
+	headers := map[string]string{
+		"Content-type":  "application/json",
+		"Authorization": "Bearer " + authResp.AccessToken,
+	}
+
+	req, err := setUpRequest(url, http.MethodPut, headers, app)
+
+	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
+		return nil, nil, err
+	}
 
 	resp, err := apps.client.Do(req)
 
@@ -167,12 +159,6 @@ func (apps *AppsV2) UpdateAppByID(id int32, app *models.App) (*http.Response, *m
 // DeleteApp deletes the app for the id, and if successful, it returns
 // the http response.
 func (apps *AppsV2) DeleteApp(id int32) (*http.Response, error) {
-	url := fmt.Sprintf("%s/api/2/apps/%d", apps.BaseURL, id)
-	req, err := http.NewRequest("DELETE", url, nil)
-
-	if err != nil {
-		return nil, err
-	}
 
 	respAuth, authResp, err := Authorize(apps.Auth)
 
@@ -180,9 +166,14 @@ func (apps *AppsV2) DeleteApp(id int32) (*http.Response, error) {
 		return nil, err
 	}
 
-	req.Header.Set("Content-type", "application/json")
-	bearer := "Bearer " + authResp.AccessToken
-	req.Header.Add("Authorization", bearer)
+	url := fmt.Sprintf("%s/%d", apps.BaseURL, id)
+
+	headers := map[string]string{
+		"Content-type":  "application/json",
+		"Authorization": "Bearer " + authResp.AccessToken,
+	}
+
+	req, err := setUpRequest(url, http.MethodDelete, headers, nil)
 
 	resp, err := apps.client.Do(req)
 

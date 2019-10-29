@@ -1,7 +1,8 @@
 package models
 
+// AppParameters is the contract for parameters.
 type AppParameters struct {
-	Id                        int32  `json:"id"`
+	ID                        int32  `json:"id"`
 	Label                     string `json:"label"`
 	UserAttributeMappings     string `json:"user_attribute_mappings"`
 	UserAttributeMacros       string `json:"user_attribute_macros"`

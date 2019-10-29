@@ -1,7 +1,6 @@
 package services
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -52,25 +51,22 @@ func NewAuthV2(cfg *AuthConfigV2) *AuthV2 {
 // Authorize authorizes the credentials for the ClientId and ClientSecret, and returns, if successfull,
 // the http response and the auth response.
 func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
-	reqBody, err := json.Marshal(models.AuthBody{
+	payload := models.AuthBody{
 		GrantType: ClientCredentialsText,
-	})
+	}
 
-	oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
+	headers := map[string]string{
+		"Content-Type": "application/json",
+	}
 
-	if oneloginErr != nil {
+	url := fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseURL)
+
+	req, err := setUpRequest(url, http.MethodPost, headers, payload)
+
+	if oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, err); oneloginErr != nil {
 		return nil, nil, oneloginErr
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/auth/oauth2/v2/token", auth.baseURL), bytes.NewBuffer(reqBody))
-
-	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, err)
-
-	if oneloginErr != nil {
-		return nil, nil, oneloginErr
-	}
-
-	req.Header.Set("Content-Type", "application/json")
 	req.SetBasicAuth(auth.ClientID, auth.ClientSecret)
 
 	resp, err := auth.client.Do(req)
@@ -79,17 +75,13 @@ func (auth *AuthV2) Authorize() (*http.Response, *models.AuthResp, error) {
 		defer resp.Body.Close()
 	}
 
-	respErr := customerrors.ReqErrorWrapper(resp, auth.ErrorContext, err)
-
-	if respErr != nil {
+	if respErr := customerrors.ReqErrorWrapper(resp, auth.ErrorContext, err); respErr != nil {
 		return resp, nil, respErr
 	}
 
 	var output models.AuthResp
 
-	oneloginErr = customerrors.OneloginErrorWrapper(auth.ErrorContext, json.NewDecoder(resp.Body).Decode(&output))
-
-	if oneloginErr != nil {
+	if oneloginErr := customerrors.OneloginErrorWrapper(auth.ErrorContext, json.NewDecoder(resp.Body).Decode(&output)); oneloginErr != nil {
 		return resp, nil, oneloginErr
 	}
 

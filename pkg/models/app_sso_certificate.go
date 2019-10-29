@@ -2,7 +2,7 @@ package models
 
 // AppSsoCertificate is the conract for sso certificate.
 type AppSsoCertificate struct {
-	ID    int32  `json:"id"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	ID    int32  `json:"id,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
 }

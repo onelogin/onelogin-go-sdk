@@ -9,9 +9,11 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 )
 
-// Auth service constants.
+// ClientCredentialsText is the key used for the auth request.
+// errAuthContext is the context.
 const (
 	ClientCredentialsText = "client_credentials"
+	errAuthContext        = "auth v2 service"
 )
 
 // Authenticator is an interface.
@@ -44,7 +46,7 @@ func NewAuthV2(cfg *AuthConfigV2) *AuthV2 {
 		ClientSecret: cfg.ClientSecret,
 		client:       cfg.Client,
 		baseURL:      cfg.BaseURL,
-		ErrorContext: "auth v2 service",
+		ErrorContext: errAuthContext,
 	}
 }
 

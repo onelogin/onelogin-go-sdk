@@ -2,14 +2,14 @@ package models
 
 // AppParameters is the contract for parameters.
 type AppParameters struct {
-	ID                        int32  `json:"id"`
-	Label                     string `json:"label"`
-	UserAttributeMappings     string `json:"user_attribute_mappings"`
-	UserAttributeMacros       string `json:"user_attribute_macros"`
-	AttributesTransformations string `json:"attributes_transformations"`
-	SkipIfBlank               bool   `json:"skip_if_blank"`
-	Values                    string `json:"values"`
-	DefaultValues             string `json:"default_values"`
-	ProvisionedEntitlements   bool   `json:"provisioned_entitlements"`
-	SafeEntitlementsEnabled   bool   `json:"safe_entitlements_enabled"`
+	ID                        *int32  `json:"id,omitempty"`
+	Label                     *string `json:"label,omitempty"`
+	UserAttributeMappings     *string `json:"user_attribute_mappings,omitempty"`
+	UserAttributeMacros       *string `json:"user_attribute_macros,omitempty"`
+	AttributesTransformations *string `json:"attributes_transformations,omitempty"`
+	SkipIfBlank               *bool   `json:"skip_if_blank,omitempty"`
+	Values                    *string `json:"values,omitempty,omitempty"`
+	DefaultValues             *string `json:"default_values,omitempty"`
+	ProvisionedEntitlements   *bool   `json:"provisioned_entitlements,omitempty"`
+	SafeEntitlementsEnabled   *bool   `json:"safe_entitlements_enabled,omitempty"`
 }

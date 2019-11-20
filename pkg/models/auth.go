@@ -7,10 +7,10 @@ type AuthBody struct {
 
 // AuthResp is the authorization response payload.
 type AuthResp struct {
-	AccessToken  string `json:"access_token"`
-	CreatedAt    string `json:"created_at"`
-	ExpiresIn    int    `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-	TokenType    string `json:"token_type"`
-	AccountID    int    `json:"account_id"`
+	AccessToken  *string `json:"access_token,omitempty"`
+	CreatedAt    *string `json:"created_at,omitempty"`
+	ExpiresIn    *int32  `json:"expires_in,omitempty"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
+	TokenType    *string `json:"token_type,omitempty"`
+	AccountID    *int32  `json:"account_id,omitempty"`
 }

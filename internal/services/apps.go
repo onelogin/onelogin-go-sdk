@@ -5,8 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+)
+
+const (
+	errAppsV2Context = "apps v2 service"
 )
 
 // AppsV2 is the apps service v2.
@@ -30,7 +36,7 @@ func NewAppsV2(cfg *AppsV2Config) *AppsV2 {
 		BaseURL:      fmt.Sprintf("%s/api/2/apps", cfg.BaseURL),
 		client:       cfg.Client,
 		Auth:         cfg.Auth,
-		ErrorContext: "apps v2 service",
+		ErrorContext: errAppsV2Context,
 	}
 }
 
@@ -43,11 +49,17 @@ func (apps *AppsV2) GetAppByID(id int32) (*http.Response, *models.App, error) {
 		return nil, nil, authResErr
 	}
 
+	accessToken, isValid := oltypes.GetStringVal(authResp.AccessToken)
+
+	if !isValid {
+		return nil, nil, customerrors.OneloginErrorWrapper(apps.ErrorContext, ErrValueMissing)
+	}
+
 	url := fmt.Sprintf("%s/%d", apps.BaseURL, id)
 
 	headers := map[string]string{
 		"Content-type":  "application/json",
-		"Authorization": "Bearer " + authResp.AccessToken,
+		"Authorization": "Bearer " + accessToken,
 	}
 
 	req, err := setUpRequest(url, http.MethodGet, headers, nil)
@@ -85,9 +97,15 @@ func (apps *AppsV2) CreateApp(app *models.App) (*http.Response, *models.App, err
 		return nil, nil, respErr
 	}
 
+	accessToken, isValid := oltypes.GetStringVal(authResp.AccessToken)
+
+	if !isValid {
+		return nil, nil, customerrors.OneloginErrorWrapper(apps.ErrorContext, ErrValueMissing)
+	}
+
 	headers := map[string]string{
 		"Content-type":  "application/json",
-		"Authorization": "Bearer " + authResp.AccessToken,
+		"Authorization": "Bearer " + accessToken,
 	}
 
 	req, err := setUpRequest(apps.BaseURL, http.MethodPost, headers, app)
@@ -122,11 +140,17 @@ func (apps *AppsV2) UpdateAppByID(id int32, app *models.App) (*http.Response, *m
 		return nil, nil, respErr
 	}
 
+	accessToken, isValid := oltypes.GetStringVal(authResp.AccessToken)
+
+	if !isValid {
+		return nil, nil, customerrors.OneloginErrorWrapper(apps.ErrorContext, ErrValueMissing)
+	}
+
 	url := fmt.Sprintf("%s/%d", apps.BaseURL, id)
 
 	headers := map[string]string{
 		"Content-type":  "application/json",
-		"Authorization": "Bearer " + authResp.AccessToken,
+		"Authorization": "Bearer " + accessToken,
 	}
 
 	req, err := setUpRequest(url, http.MethodPut, headers, app)
@@ -166,11 +190,17 @@ func (apps *AppsV2) DeleteApp(id int32) (*http.Response, error) {
 		return nil, err
 	}
 
+	accessToken, isValid := oltypes.GetStringVal(authResp.AccessToken)
+
+	if !isValid {
+		return nil, customerrors.OneloginErrorWrapper(apps.ErrorContext, ErrValueMissing)
+	}
+
 	url := fmt.Sprintf("%s/%d", apps.BaseURL, id)
 
 	headers := map[string]string{
 		"Content-type":  "application/json",
-		"Authorization": "Bearer " + authResp.AccessToken,
+		"Authorization": "Bearer " + accessToken,
 	}
 
 	req, err := setUpRequest(url, http.MethodDelete, headers, nil)

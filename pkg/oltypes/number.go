@@ -16,7 +16,7 @@ func GetInt64Val(val *int64) (int64, bool) {
 	return 0, false
 }
 
-// Int32 takes in a int64 and returns
+// Int32 takes in a int32 and returns
 // the pointer to it.
 func Int32(val int32) *int32 {
 	return &val

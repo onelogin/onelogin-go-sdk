@@ -31,7 +31,7 @@ func TestGetInt32Val(t *testing.T) {
 			expectedValidationOutput: true,
 			expectedOutput:           zeroInt32Value,
 		},
-		"should return 0 and false validation when nil passed in as value": {
+		"should return zero and false validation when nil passed in as value": {
 			input:                    nil,
 			expectedValidationOutput: false,
 			expectedOutput:           0,
@@ -48,19 +48,31 @@ func TestGetInt32Val(t *testing.T) {
 
 }
 func TestGetInt64Val(t *testing.T) {
-	validInt64Value := int64(1)
+	positiveInt64Value := int64(1)
+	zeroInt64Value := int64(0)
+	negativeInt64Value := int64(-1)
 
 	tests := map[string]struct {
 		input                    *int64
 		expectedValidationOutput bool
 		expectedOutput           int64
 	}{
-		"should return value when value passed in": {
-			input:                    Int64(validInt64Value),
+		"should return value and true validation when positive value passed in": {
+			input:                    Int64(positiveInt64Value),
 			expectedValidationOutput: true,
-			expectedOutput:           validInt64Value,
+			expectedOutput:           positiveInt64Value,
 		},
-		"should return false when nil passed in as value": {
+		"should return value and true validation when zero passed in": {
+			input:                    Int64(zeroInt64Value),
+			expectedValidationOutput: true,
+			expectedOutput:           zeroInt64Value,
+		},
+		"should return value and true validation when negative value passed in": {
+			input:                    Int64(negativeInt64Value),
+			expectedValidationOutput: true,
+			expectedOutput:           negativeInt64Value,
+		},
+		"should return zero and false validation when nil passed in as value": {
 			input:                    nil,
 			expectedValidationOutput: false,
 			expectedOutput:           0,

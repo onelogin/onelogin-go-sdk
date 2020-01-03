@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -28,53 +28,51 @@ func (auth *TypeAuthV2Mock) Authorize() (*http.Response, *models.AuthResp, error
 
 func TestGetAppByID(t *testing.T) {
 	tests := map[string]struct {
-		authMockAuthToken      string
-		authMockErr            error
-		authMockStatusCode     int
-		appMockPayload         *models.App
-		appMockStatusCodeResp  int
-		isAppErrExpected       bool
-		expectedAppErrorMsg    string
-		expectedAppRespPayload *models.App
-		expectedAppStatusCode  int
+		authMockAuthToken          string
+		authMockErr                error
+		authMockStatusCode         int
+		appMockPayload             *models.App
+		appMockStatusCodeResp      int
+		isAppErrExpected           bool
+		expectedAppErrorMsg        string
+		expectedAppRespID          int32
+		expectedAppRespConnectorID int32
+		expectedAppStatusCode      int
 	}{
 		"auth returns access token and successful response": {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        nil,
 			authMockStatusCode: http.StatusOK,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
 			},
-			appMockStatusCodeResp: http.StatusOK,
-			isAppErrExpected:      false,
-			expectedAppErrorMsg:   "",
-			expectedAppRespPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
-			},
-			expectedAppStatusCode: http.StatusOK,
+			appMockStatusCodeResp:      http.StatusOK,
+			isAppErrExpected:           false,
+			expectedAppErrorMsg:        "",
+			expectedAppRespID:          1234,
+			expectedAppRespConnectorID: 1111,
+			expectedAppStatusCode:      http.StatusOK,
 		},
 		"auth returns 401 status code": {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        errors.New("test"),
 			authMockStatusCode: http.StatusUnauthorized,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
 			},
-			appMockStatusCodeResp:  http.StatusBadRequest,
-			isAppErrExpected:       true,
-			expectedAppErrorMsg:    "request error: context: apps v2 service, status_code: [401], error_message: test",
-			expectedAppRespPayload: nil,
-			expectedAppStatusCode:  http.StatusCreated,
+			appMockStatusCodeResp: http.StatusBadRequest,
+			isAppErrExpected:      true,
+			expectedAppErrorMsg:   "request error: context: apps v2 service, status_code: [401], error_message: test",
+			expectedAppStatusCode: http.StatusCreated,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			authOutput, _ := json.Marshal(&models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			})
 
 			authResp := &http.Response{
@@ -85,7 +83,7 @@ func TestGetAppByID(t *testing.T) {
 			authErr := test.authMockErr
 
 			payloadRes := &models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			}
 
 			// set up the mock server
@@ -113,16 +111,22 @@ func TestGetAppByID(t *testing.T) {
 				Auth:    mockedObj,
 			})
 
-			resultResp, resultPayload, resultErr := apps.GetAppByID(test.appMockPayload.ID)
+			idToSearch, _ := oltypes.GetInt32Val(test.appMockPayload.ID)
+
+			resultResp, resultPayload, resultErr := apps.GetAppByID(idToSearch)
 
 			if test.isAppErrExpected {
 				assert.NotNil(t, resultErr)
 				assert.Equal(t, test.expectedAppErrorMsg, resultErr.Error())
 			} else {
 				assert.Nil(t, resultErr)
+
+				resultPayloadID, _ := oltypes.GetInt32Val(resultPayload.ID)
+				resultPayloadConnectorID, _ := oltypes.GetInt32Val(resultPayload.ConnectorID)
+
 				assert.Equal(t, test.expectedAppStatusCode, resultResp.StatusCode)
-				assert.Equal(t, test.expectedAppRespPayload.ID, resultPayload.ID)
-				assert.Equal(t, test.expectedAppRespPayload.ConnectorID, resultPayload.ConnectorID)
+				assert.Equal(t, test.expectedAppRespID, resultPayloadID)
+				assert.Equal(t, test.expectedAppRespConnectorID, resultPayloadConnectorID)
 				assert.Nil(t, resultErr)
 			}
 
@@ -177,7 +181,7 @@ func TestDeleteAppByID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// set up mock auth response
 			authOutput, _ := json.Marshal(&models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			})
 
 			authResp := &http.Response{
@@ -188,7 +192,7 @@ func TestDeleteAppByID(t *testing.T) {
 			authErr := test.authMockErr
 
 			payloadRes := &models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			}
 
 			// set up the mock server
@@ -231,40 +235,39 @@ func TestDeleteAppByID(t *testing.T) {
 
 func TestCreateApp(t *testing.T) {
 	tests := map[string]struct {
-		authMockAuthToken      string
-		authMockErr            error
-		authMockStatusCode     int
-		appMockPayload         *models.App
-		appMockStatusCodeResp  int
-		isAppErrExpected       bool
-		expectedAppErrorMsg    string
-		expectedAppRespPayload *models.App
-		expectedAppStatusCode  int
+		authMockAuthToken          string
+		authMockErr                error
+		authMockStatusCode         int
+		appMockPayload             *models.App
+		appMockStatusCodeResp      int
+		isAppErrExpected           bool
+		expectedAppErrorMsg        string
+		expectedAppRespID          int32
+		expectedAppRespConnectorID int32
+		expectedAppStatusCode      int
 	}{
 		"auth returns access token and successful response": {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        nil,
 			authMockStatusCode: http.StatusOK,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
 			},
-			appMockStatusCodeResp: http.StatusCreated,
-			isAppErrExpected:      false,
-			expectedAppErrorMsg:   "",
-			expectedAppRespPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
-			},
-			expectedAppStatusCode: http.StatusCreated,
+			appMockStatusCodeResp:      http.StatusCreated,
+			isAppErrExpected:           false,
+			expectedAppErrorMsg:        "",
+			expectedAppRespID:          1234,
+			expectedAppRespConnectorID: 1111,
+			expectedAppStatusCode:      http.StatusCreated,
 		},
 		"auth returns 401 status code": {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        errors.New("test"),
 			authMockStatusCode: http.StatusUnauthorized,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
 			},
 			appMockStatusCodeResp: http.StatusBadRequest,
 			isAppErrExpected:      true,
@@ -275,8 +278,8 @@ func TestCreateApp(t *testing.T) {
 			authMockErr:        nil,
 			authMockStatusCode: http.StatusOK,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
 			},
 			appMockStatusCodeResp: http.StatusBadRequest,
 			isAppErrExpected:      true,
@@ -288,7 +291,7 @@ func TestCreateApp(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// set up mock auth response
 			authOutput, _ := json.Marshal(&models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			})
 
 			authResp := &http.Response{
@@ -299,7 +302,7 @@ func TestCreateApp(t *testing.T) {
 			authErr := test.authMockErr
 
 			payloadRes := &models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			}
 
 			// set up the mock server
@@ -335,8 +338,12 @@ func TestCreateApp(t *testing.T) {
 			} else {
 				assert.Nil(t, resultErr)
 				assert.Equal(t, test.expectedAppStatusCode, resultResp.StatusCode)
-				assert.Equal(t, test.expectedAppRespPayload.ID, resultPayload.ID)
-				assert.Equal(t, test.expectedAppRespPayload.ConnectorID, resultPayload.ConnectorID)
+
+				resultPayloadID, _ := oltypes.GetInt32Val(resultPayload.ID)
+				resultPayloadConnectorID, _ := oltypes.GetInt32Val(resultPayload.ConnectorID)
+
+				assert.Equal(t, test.expectedAppRespID, resultPayloadID)
+				assert.Equal(t, test.expectedAppRespConnectorID, resultPayloadConnectorID)
 				assert.Nil(t, resultErr)
 			}
 
@@ -348,42 +355,42 @@ func TestCreateApp(t *testing.T) {
 
 func TestUpdateApp(t *testing.T) {
 	tests := map[string]struct {
-		authMockAuthToken      string
-		authMockErr            error
-		authMockStatusCode     int
-		appMockPayload         *models.App
-		appMockStatusCodeResp  int
-		isAppErrExpected       bool
-		expectedAppErrorMsg    string
-		expectedAppRespPayload *models.App
-		expectedAppStatusCode  int
+		authMockAuthToken          string
+		authMockErr                error
+		authMockStatusCode         int
+		appMockPayload             *models.App
+		appMockStatusCodeResp      int
+		isAppErrExpected           bool
+		expectedAppErrorMsg        string
+		expectedAppRespID          int32
+		expectedAppRespConnectorID int32
+		expectedAppRespDescription string
+		expectedAppStatusCode      int
 	}{
 		"auth returns access token and successful response": {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        nil,
 			authMockStatusCode: http.StatusOK,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
-				Description: "UPDATE",
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
+				Description: oltypes.String("UPDATE"),
 			},
-			appMockStatusCodeResp: http.StatusCreated,
-			isAppErrExpected:      false,
-			expectedAppErrorMsg:   "",
-			expectedAppRespPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
-				Description: "UPDATE",
-			},
-			expectedAppStatusCode: http.StatusCreated,
+			appMockStatusCodeResp:      http.StatusCreated,
+			isAppErrExpected:           false,
+			expectedAppErrorMsg:        "",
+			expectedAppRespID:          1234,
+			expectedAppRespConnectorID: 1111,
+			expectedAppRespDescription: "UPDATE",
+			expectedAppStatusCode:      http.StatusCreated,
 		},
 		"auth returns 401 status code": {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        errors.New("test"),
 			authMockStatusCode: http.StatusUnauthorized,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
 			},
 			appMockStatusCodeResp: http.StatusBadRequest,
 			isAppErrExpected:      true,
@@ -394,8 +401,8 @@ func TestUpdateApp(t *testing.T) {
 			authMockErr:        nil,
 			authMockStatusCode: http.StatusOK,
 			appMockPayload: &models.App{
-				ID:          1234,
-				ConnectorID: 1111,
+				ID:          oltypes.Int32(1234),
+				ConnectorID: oltypes.Int32(1111),
 			},
 			appMockStatusCodeResp: http.StatusBadRequest,
 			isAppErrExpected:      true,
@@ -407,7 +414,7 @@ func TestUpdateApp(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// set up mock auth response
 			authOutput, _ := json.Marshal(&models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			})
 
 			authResp := &http.Response{
@@ -418,7 +425,7 @@ func TestUpdateApp(t *testing.T) {
 			authErr := test.authMockErr
 
 			payloadRes := &models.AuthResp{
-				AccessToken: test.authMockAuthToken,
+				AccessToken: oltypes.String(test.authMockAuthToken),
 			}
 
 			// set up the mock server
@@ -446,17 +453,25 @@ func TestUpdateApp(t *testing.T) {
 				Auth:    mockedObj,
 			})
 
-			resultResp, resultPayload, resultErr := apps.UpdateAppByID(test.appMockPayload.ID, test.appMockPayload)
+			idToUpdate, _ := oltypes.GetInt32Val(test.appMockPayload.ID)
+
+			resultResp, resultPayload, resultErr := apps.UpdateAppByID(idToUpdate, test.appMockPayload)
 
 			if test.isAppErrExpected {
 				assert.NotNil(t, resultErr)
 				assert.Equal(t, test.expectedAppErrorMsg, resultErr.Error())
 			} else {
 				assert.Nil(t, resultErr)
-				assert.Equal(t, test.expectedAppStatusCode, resultResp.StatusCode)
-				assert.Equal(t, test.expectedAppRespPayload.ID, resultPayload.ID)
-				assert.Equal(t, test.expectedAppRespPayload.ConnectorID, resultPayload.ConnectorID)
-				assert.Equal(t, test.expectedAppRespPayload.Description, resultPayload.Description)
+
+				respStatusCode := resultResp.StatusCode
+				respID, _ := oltypes.GetInt32Val(resultPayload.ID)
+				respConnectorID, _ := oltypes.GetInt32Val(resultPayload.ConnectorID)
+				respDescription, _ := oltypes.GetStringVal(resultPayload.Description)
+
+				assert.Equal(t, test.expectedAppStatusCode, respStatusCode)
+				assert.Equal(t, test.expectedAppRespID, respID)
+				assert.Equal(t, test.expectedAppRespConnectorID, respConnectorID)
+				assert.Equal(t, test.expectedAppRespDescription, respDescription)
 				assert.Nil(t, resultErr)
 			}
 

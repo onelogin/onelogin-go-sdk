@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +22,7 @@ func TestAuthorize(t *testing.T) {
 	expectedAccessTokenFor1 := "test"
 	expectedStatusCodeFor1 := http.StatusOK
 	mockedResponse1, _ := json.Marshal(models.AuthResp{
-		AccessToken: expectedAccessTokenFor1,
+		AccessToken: oltypes.String(expectedAccessTokenFor1),
 	})
 
 	expectedStatusCodeFor2 := http.StatusUnauthorized
@@ -95,7 +97,10 @@ func TestAuthorize(t *testing.T) {
 				assert.NotNil(t, resp)
 
 				if test.isRespPayloadCompNeeded {
-					assert.Equal(t, test.expectedAccessToken, body.AccessToken)
+					val, isValid := oltypes.GetStringVal(body.AccessToken)
+
+					assert.True(t, isValid)
+					assert.Equal(t, test.expectedAccessToken, val)
 				}
 
 				// check the response status code

@@ -9,11 +9,12 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 )
 
-// ClientCredentialsText is the key used for the auth request.
-// errAuthContext is the context.
 const (
+	// ClientCredentialsText is the key used for the auth request.
 	ClientCredentialsText = "client_credentials"
-	errAuthContext        = "auth v2 service"
+
+	// errAuthContext is the context.
+	errAuthContext = "auth v2 service"
 )
 
 // Authenticator is an interface.

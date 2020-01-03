@@ -12,14 +12,19 @@ func TestGetBoolVal(t *testing.T) {
 		expectedValidationOutput bool
 		expectedOutput           bool
 	}{
-		"should return true when value passed in": {
+		"should return true validation and output when value passed in": {
 			input:                    Bool(true),
 			expectedValidationOutput: true,
 			expectedOutput:           true,
 		},
-		"should return false when nil passed in as value": {
+		"should return false validation and output when nil passed in as value": {
 			input:                    nil,
 			expectedValidationOutput: false,
+			expectedOutput:           false,
+		},
+		"should return true validation and false output when false passed in as value": {
+			input:                    Bool(false),
+			expectedValidationOutput: true,
 			expectedOutput:           false,
 		},
 	}

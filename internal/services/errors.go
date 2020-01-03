@@ -4,5 +4,5 @@ import "errors"
 
 // Errors in services
 var (
-	ErrValueMissing = errors.New("The value is nil")
+	ErrValueMissing = errors.New("A required parameter was not given")
 )

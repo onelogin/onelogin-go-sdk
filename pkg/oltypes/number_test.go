@@ -7,19 +7,31 @@ import (
 )
 
 func TestGetInt32Val(t *testing.T) {
-	validInt32Value := int32(1)
+	positiveInt32Value := int32(1)
+	zeroInt32Value := int32(0)
+	negativeInt32Value := int32(-1)
 
 	tests := map[string]struct {
 		input                    *int32
 		expectedValidationOutput bool
 		expectedOutput           int32
 	}{
-		"should return value when value passed in": {
-			input:                    Int32(validInt32Value),
+		"should return value and true validation when positive passed in": {
+			input:                    Int32(positiveInt32Value),
 			expectedValidationOutput: true,
-			expectedOutput:           validInt32Value,
+			expectedOutput:           positiveInt32Value,
 		},
-		"should return false when nil passed in as value": {
+		"should return value and true validation when negative passed in": {
+			input:                    Int32(negativeInt32Value),
+			expectedValidationOutput: true,
+			expectedOutput:           negativeInt32Value,
+		},
+		"should return value and true validation when zero passed in": {
+			input:                    Int32(zeroInt32Value),
+			expectedValidationOutput: true,
+			expectedOutput:           zeroInt32Value,
+		},
+		"should return 0 and false validation when nil passed in as value": {
 			input:                    nil,
 			expectedValidationOutput: false,
 			expectedOutput:           0,

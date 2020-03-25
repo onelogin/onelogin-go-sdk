@@ -16,14 +16,14 @@ func TestClientIDValidation(t *testing.T) {
 	clientSecret := "test"
 
 	t.Run("invalidClientID", func(t *testing.T) {
-		_, err := NewConfig(
+		config, err := NewConfig(
 			invalidClientID,
 			clientSecret,
 			USRegion,
 			DefaultTimeout,
 		)
 		assert.NotNil(t, err)
-
+		assert.Equal(t, APIClientConfig{}, config)
 	})
 
 	t.Run("validClientID", func(t *testing.T) {
@@ -44,13 +44,14 @@ func TestClientSecretValidation(t *testing.T) {
 	clientID := "test"
 
 	t.Run("invalidClientSecret", func(t *testing.T) {
-		_, err := NewConfig(
+		config, err := NewConfig(
 			clientID,
 			invalidClientSecret,
 			USRegion,
 			DefaultTimeout,
 		)
 		assert.NotNil(t, err)
+		assert.Equal(t, APIClientConfig{}, config)
 	})
 
 	t.Run("validClientSecret", func(t *testing.T) {

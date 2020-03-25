@@ -6,3 +6,6 @@ build:
 
 test:
 	go test './...'
+
+link:
+	ln -s ${GOPATH}/src/github.com/onelogin/onelogin-go-sdk .

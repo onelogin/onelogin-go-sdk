@@ -26,7 +26,7 @@ type APIClientConfig struct {
 	region           string
 }
 
-func NewConfig(clientID string, clientSecret string, region string, timeout int) (*APIClientConfig, error) {
+func NewConfig(clientID string, clientSecret string, region string, timeout int) (APIClientConfig, error) {
 	// Validate clientID
 	if  len(clientID) == 0 {
 		return nil, errClientIDEmpty
@@ -47,7 +47,7 @@ func NewConfig(clientID string, clientSecret string, region string, timeout int)
 	}
 
 	// Build the new client config
-	config := &APIClientConfig {
+	config := APIClientConfig {
 		timeout: timeout,
 		clientID: clientID,
 		clientSecret: clientSecret,

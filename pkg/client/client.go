@@ -33,7 +33,7 @@ type Services struct {
 
 // New uses the config to generate the api client with services attached, and returns
 // the new api client.
-func NewClient(cfg *APIClientConfig) *APIClient {
+func NewClient(cfg APIClientConfig) *APIClient {
 	httpClient := &http.Client{
 		Timeout: time.Second * time.Duration(cfg.timeout),
 	}

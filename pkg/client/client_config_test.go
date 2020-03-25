@@ -16,14 +16,14 @@ func TestClientIDValidation(t *testing.T) {
 	clientSecret := "test"
 
 	t.Run("invalidClientID", func(t *testing.T) {
-		config, err := NewConfig(
+		_, err := NewConfig(
 			invalidClientID,
 			clientSecret,
 			USRegion,
 			DefaultTimeout,
 		)
 		assert.NotNil(t, err)
-		assert.Nil(t, config)
+
 	})
 
 	t.Run("validClientID", func(t *testing.T) {
@@ -44,14 +44,13 @@ func TestClientSecretValidation(t *testing.T) {
 	clientID := "test"
 
 	t.Run("invalidClientSecret", func(t *testing.T) {
-		config, err := NewConfig(
+		_, err := NewConfig(
 			clientID,
 			invalidClientSecret,
 			USRegion,
 			DefaultTimeout,
 		)
 		assert.NotNil(t, err)
-		assert.Nil(t, config)
 	})
 
 	t.Run("validClientSecret", func(t *testing.T) {
@@ -74,15 +73,15 @@ func TestTimeoutBehavior(t *testing.T) {
 	timeoutDefaultTrigger := 0
 
 	tests := map[string]struct {
-		timeout int
+		timeout         int
 		expectedTimeout int
 	}{
 		"has the provided timeout": {
-			timeout: testTimeout,
+			timeout:         testTimeout,
 			expectedTimeout: testTimeout,
 		},
 		"uses the expected default timeout": {
-			timeout: timeoutDefaultTrigger,
+			timeout:         timeoutDefaultTrigger,
 			expectedTimeout: DefaultTimeout,
 		},
 	}

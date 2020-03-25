@@ -7,38 +7,40 @@ import (
 
 // constants for the client.
 const (
-	USRegion        = "us"
-	EURegion        = "eu"
-	DefaultTimeout  = 5
+	USRegion       = "us"
+	EURegion       = "eu"
+	DefaultTimeout = 5
 )
 
 var (
-	errRegion = errors.New("region is missing or unsupported")
-	errClientIDEmpty = errors.New("client_id is missing")
+	errRegion            = errors.New("region is missing or unsupported")
+	errClientIDEmpty     = errors.New("client_id is missing")
 	errClientSecretEmpty = errors.New("client_secret is missing")
 )
 
 // APIClientConfig is the configuration for the APIClient.
 type APIClientConfig struct {
-	timeout          int
-	clientID         string
-	clientSecret     string
-	region           string
+	timeout      int
+	clientID     string
+	clientSecret string
+	region       string
 }
 
 func NewConfig(clientID string, clientSecret string, region string, timeout int) (APIClientConfig, error) {
+	var config APIClientConfig
+
 	// Validate clientID
-	if  len(clientID) == 0 {
-		return nil, errClientIDEmpty
+	if len(clientID) == 0 {
+		return config, errClientIDEmpty
 	}
 
 	// Validate clientSecret
 	if len(clientSecret) == 0 {
-		return nil, errClientSecretEmpty
+		return config, errClientSecretEmpty
 	}
 	// validate the region
 	if !isSupportedRegion(region) {
-		return nil, errRegion
+		return config, errRegion
 	}
 
 	// Validate the timeout
@@ -47,11 +49,11 @@ func NewConfig(clientID string, clientSecret string, region string, timeout int)
 	}
 
 	// Build the new client config
-	config := APIClientConfig {
-		timeout: timeout,
-		clientID: clientID,
+	config = APIClientConfig{
+		timeout:      timeout,
+		clientID:     clientID,
 		clientSecret: clientSecret,
-		region: region,
+		region:       region,
 	}
 
 	return config, nil

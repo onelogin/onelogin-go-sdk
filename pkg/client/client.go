@@ -4,7 +4,6 @@ package client
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/services"
@@ -12,9 +11,7 @@ import (
 
 // constants for the client.
 const (
-	USregion       = "us"
-	EUregion       = "eu"
-	DefaultTimeout = 5
+	BaseURLTemplate = "https://api.%s.onelogin.com"
 )
 
 // APIClient is used to communicate with the available api services.
@@ -34,39 +31,18 @@ type Services struct {
 	AuthV2 *services.AuthV2
 }
 
-// APIClientConfig is the configuration for the APIClient.
-type APIClientConfig struct {
-	TimeoutInSeconds int
-	ClientID         string
-	ClientSecret     string
-	Region           string
-}
-
 // New uses the config to generate the api client with services attached, and returns
 // the new api client.
-func New(cfg *APIClientConfig) *APIClient {
-	timeout := cfg.TimeoutInSeconds
-	regionToUse := cfg.Region
-
-	if cfg.TimeoutInSeconds == 0 {
-		timeout = DefaultTimeout
-	}
-
+func NewClient(cfg APIClientConfig) *APIClient {
 	httpClient := &http.Client{
-		Timeout: time.Second * time.Duration(timeout),
+		Timeout: time.Second * time.Duration(cfg.timeout),
 	}
 
-	isValidRegion := isSupportedRegion(regionToUse)
-
-	if !isValidRegion {
-		regionToUse = getDefaultRegion()
-	}
-
-	baseURL := setBaseURL(regionToUse)
+	baseURL := fmt.Sprintf(BaseURLTemplate, cfg.region)
 
 	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
-		ClientID:     cfg.ClientID,
-		ClientSecret: cfg.ClientSecret,
+		ClientID:     cfg.clientID,
+		ClientSecret: cfg.clientSecret,
 		BaseURL:      baseURL,
 		Client:       httpClient,
 	})
@@ -78,9 +54,9 @@ func New(cfg *APIClientConfig) *APIClient {
 	})
 
 	return &APIClient{
-		clientID:     cfg.ClientID,
-		clientSecret: cfg.ClientSecret,
-		region:       regionToUse,
+		clientID:     cfg.clientID,
+		clientSecret: cfg.clientSecret,
+		region:       cfg.region,
 		baseURL:      baseURL,
 		client:       httpClient,
 		Services: &Services{
@@ -88,29 +64,4 @@ func New(cfg *APIClientConfig) *APIClient {
 			AuthV2: authV2Service,
 		},
 	}
-}
-
-// isSupportedRegion validates whether a region is supported, and returns
-// a boolean indicating whether it is or not.
-func isSupportedRegion(region string) bool {
-	switch strings.ToLower(region) {
-	case USregion:
-		return true
-	case EUregion:
-		return true
-	default:
-		return false
-	}
-}
-
-// getDefaultRegion grabs the default region, and returns it.
-func getDefaultRegion() string {
-	return USregion
-}
-
-// setBaseURL generates the proper base url based on region, if supported,and returns
-// the base url for the provided region, or 'us' by default.
-func setBaseURL(region string) string {
-	regionToUse := strings.ToLower(region)
-	return fmt.Sprintf("https://api.%s.onelogin.com", regionToUse)
 }

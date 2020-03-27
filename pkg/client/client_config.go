@@ -9,7 +9,7 @@ import (
 const (
 	USRegion       = "us"
 	EURegion       = "eu"
-	DefaultTimeout = 5
+	DefaultTimeout = 60
 )
 
 var (
@@ -28,7 +28,6 @@ type APIClientConfig struct {
 
 func NewConfig(clientID string, clientSecret string, region string, timeout int) (APIClientConfig, error) {
 	var config APIClientConfig
-
 	// Validate clientID
 	if len(clientID) == 0 {
 		return config, errClientIDEmpty

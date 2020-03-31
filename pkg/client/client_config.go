@@ -3,13 +3,15 @@ package client
 
 import (
 	"errors"
+	"fmt"
 )
 
-// constants for the client.
+// constants for the client config.
 const (
-	USRegion       = "us"
-	EURegion       = "eu"
-	DefaultTimeout = 60
+	USRegion        = "us"
+	EURegion        = "eu"
+	BaseURLTemplate = "https://api.%s.onelogin.com"
+	DefaultTimeout  = 5
 )
 
 var (
@@ -20,42 +22,38 @@ var (
 
 // APIClientConfig is the configuration for the APIClient.
 type APIClientConfig struct {
-	timeout      int
-	clientID     string
-	clientSecret string
-	region       string
+	Timeout      int
+	ClientID     string
+	ClientSecret string
+	Region       string
+	Url          string
 }
 
-func NewConfig(clientID string, clientSecret string, region string, timeout int) (APIClientConfig, error) {
-	var config APIClientConfig
-	// Validate clientID
-	if len(clientID) == 0 {
-		return config, errClientIDEmpty
+func (cfg *APIClientConfig) Initialize() (*APIClientConfig, error) {
+
+	// Initialize clientID
+	if len(cfg.ClientID) == 0 {
+		return cfg, errClientIDEmpty
 	}
 
-	// Validate clientSecret
-	if len(clientSecret) == 0 {
-		return config, errClientSecretEmpty
+	// Initialize clientSecret
+	if len(cfg.ClientSecret) == 0 {
+		return cfg, errClientSecretEmpty
 	}
-	// validate the region
-	if !isSupportedRegion(region) {
-		return config, errRegion
-	}
-
-	// Validate the timeout
-	if timeout == 0 {
-		timeout = DefaultTimeout
+	if len(cfg.Url) == 0 {
+		// Initialize the region if no url given
+		if !isSupportedRegion(cfg.Region) {
+			return cfg, errRegion
+		}
+		cfg.Url = fmt.Sprintf(BaseURLTemplate, cfg.Region)
 	}
 
-	// Build the new client config
-	config = APIClientConfig{
-		timeout:      timeout,
-		clientID:     clientID,
-		clientSecret: clientSecret,
-		region:       region,
+	// Initialize the timeout
+	if cfg.Timeout == 0 {
+		cfg.Timeout = DefaultTimeout
 	}
 
-	return config, nil
+	return cfg, nil
 }
 
 func isSupportedRegion(region string) bool {

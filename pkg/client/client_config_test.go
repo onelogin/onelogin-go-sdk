@@ -6,10 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	notSupporttedRegion = "Test"
-)
-
 func TestClientIDValidation(t *testing.T) {
 	invalidClientID := ""
 	validClientID := "test"
@@ -105,6 +101,7 @@ func TestTimeoutBehavior(t *testing.T) {
 }
 
 func TestRegionValidation(t *testing.T) {
+	notSupporttedRegion := "Test"
 	tests := map[string]struct {
 		region             string
 		expectedValidation bool
@@ -127,6 +124,49 @@ func TestRegionValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			isValid := isSupportedRegion(test.region)
 			assert.Equal(t, test.expectedValidation, isValid)
+		})
+	}
+}
+
+func TestUrlConstruction(t *testing.T) {
+	clientID := "test"
+	clientSecret := "test"
+	usExpectedBaseURL := "https://api.us.onelogin.com"
+	euExpectedBaseURL := "https://api.eu.onelogin.com"
+	shadow := "https://oapi.onelogin-shadow01.com"
+
+	tests := map[string]struct {
+		region          string
+		expectedBaseURL string
+		url             string
+	}{
+		"region given, no url honors region": {
+			region:          USRegion,
+			expectedBaseURL: usExpectedBaseURL,
+		},
+		"url given, no region honors url": {
+			url:             shadow,
+			expectedBaseURL: shadow,
+		},
+		"url and region given honors url given": {
+			region:          USRegion,
+			url:             euExpectedBaseURL,
+			expectedBaseURL: euExpectedBaseURL,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			config := &APIClientConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+				Region:       test.region,
+				Url:          test.url,
+			}
+			config, err := config.Validate()
+			client := NewClient(config)
+			assert.Nil(t, err)
+			assert.Equal(t, test.expectedBaseURL, client.baseURL)
 		})
 	}
 }

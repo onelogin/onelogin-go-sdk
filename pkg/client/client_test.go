@@ -7,61 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	usExpectedBaseURL = "https://api.us.onelogin.com"
-	euExpectedBaseURL = "https://api.eu.onelogin.com"
-	shadow            = "https://oapi.onelogin-shadow01.com"
-)
-
-func TestClientBaseURL(t *testing.T) {
-	defaultClientId := "test"
-	defaultClientSecret := "test"
-	defaultTimeout := 0
-
-	tests := map[string]struct {
-		region          string
-		expectedBaseURL string
-		url             string
-	}{
-		"us region": {
-			region:          USRegion,
-			expectedBaseURL: usExpectedBaseURL,
-		},
-		"eu region": {
-			region:          EURegion,
-			expectedBaseURL: euExpectedBaseURL,
-		},
-		"url given, no region": {
-			url:             shadow,
-			expectedBaseURL: shadow,
-		},
-		"url and region given": {
-			region:          USRegion,
-			url:             euExpectedBaseURL,
-			expectedBaseURL: euExpectedBaseURL,
-		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			config := &APIClientConfig{
-				ClientID:     defaultClientId,
-				ClientSecret: defaultClientSecret,
-				Region:       test.region,
-				Url:          test.url,
-				Timeout:      defaultTimeout,
-			}
-			config, err := config.Validate()
-			client := NewClient(config)
-			assert.Nil(t, err)
-			assert.Equal(t, test.expectedBaseURL, client.baseURL)
-		})
-	}
-}
-
 func TestNewClient(t *testing.T) {
 	clientID := "test"
 	clientSecret := "test"
+	usExpectedBaseURL := "https://api.us.onelogin.com"
+	euExpectedBaseURL := "https://api.eu.onelogin.com"
 
 	tests := map[string]struct {
 		region               string

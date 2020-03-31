@@ -29,28 +29,26 @@ type APIClientConfig struct {
 	Url          string
 }
 
-func (cfg *APIClientConfig) Validate() (*APIClientConfig, error) {
+func (cfg *APIClientConfig) Initialize() (*APIClientConfig, error) {
 
-	// Validate clientID
+	// Initialize clientID
 	if len(cfg.ClientID) == 0 {
 		return cfg, errClientIDEmpty
 	}
 
-	// Validate clientSecret
+	// Initialize clientSecret
 	if len(cfg.ClientSecret) == 0 {
 		return cfg, errClientSecretEmpty
 	}
-	// Validate the region if no url given
-	if !isSupportedRegion(cfg.Region) && len(cfg.Url) == 0 {
-		return cfg, errRegion
-	}
-
-	// Create the Url from the region and template if no url is given
 	if len(cfg.Url) == 0 {
+		// Initialize the region if no url given
+		if !isSupportedRegion(cfg.Region) {
+			return cfg, errRegion
+		}
 		cfg.Url = fmt.Sprintf(BaseURLTemplate, cfg.Region)
 	}
 
-	// Validate the timeout
+	// Initialize the timeout
 	if cfg.Timeout == 0 {
 		cfg.Timeout = DefaultTimeout
 	}

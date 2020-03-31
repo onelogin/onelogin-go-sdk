@@ -18,7 +18,7 @@ func TestClientIDValidation(t *testing.T) {
 			Region:       USRegion,
 			Timeout:      DefaultTimeout,
 		}
-		config, err := config.Validate()
+		config, err := config.Initialize()
 		assert.NotNil(t, err)
 	})
 
@@ -29,7 +29,7 @@ func TestClientIDValidation(t *testing.T) {
 			Region:       USRegion,
 			Timeout:      DefaultTimeout,
 		}
-		config, err := config.Validate()
+		config, err := config.Initialize()
 		assert.Nil(t, err)
 		assert.Equal(t, config.ClientID, validClientID)
 	})
@@ -47,7 +47,7 @@ func TestClientSecretValidation(t *testing.T) {
 			Region:       USRegion,
 			Timeout:      DefaultTimeout,
 		}
-		config, err := config.Validate()
+		config, err := config.Initialize()
 		assert.NotNil(t, err)
 	})
 
@@ -58,7 +58,7 @@ func TestClientSecretValidation(t *testing.T) {
 			Region:       USRegion,
 			Timeout:      DefaultTimeout,
 		}
-		config, err := config.Validate()
+		config, err := config.Initialize()
 		assert.Nil(t, err)
 		assert.Equal(t, config.ClientSecret, validClientSecret)
 	})
@@ -93,7 +93,7 @@ func TestTimeoutBehavior(t *testing.T) {
 				Region:       USRegion,
 				Timeout:      test.timeout,
 			}
-			config, err := config.Validate()
+			config, err := config.Initialize()
 			assert.Nil(t, err)
 			assert.Equal(t, test.expectedTimeout, config.Timeout)
 		})
@@ -163,10 +163,9 @@ func TestUrlConstruction(t *testing.T) {
 				Region:       test.region,
 				Url:          test.url,
 			}
-			config, err := config.Validate()
-			client := NewClient(config)
+			config, err := config.Initialize()
 			assert.Nil(t, err)
-			assert.Equal(t, test.expectedBaseURL, client.baseURL)
+			assert.Equal(t, test.expectedBaseURL, config.Url)
 		})
 	}
 }

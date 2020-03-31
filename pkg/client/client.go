@@ -27,7 +27,12 @@ type Services struct {
 
 // New uses the config to generate the api client with services attached, and returns
 // the new api client.
-func NewClient(cfg *APIClientConfig) *APIClient {
+func NewClient(cfg *APIClientConfig) (*APIClient, error) {
+	cfg, err := cfg.Initialize()
+	if err != nil {
+		return &APIClient{}, err
+	}
+
 	httpClient := &http.Client{
 		Timeout: time.Second * time.Duration(cfg.Timeout),
 	}
@@ -55,5 +60,5 @@ func NewClient(cfg *APIClientConfig) *APIClient {
 			AppsV2: appV2Service,
 			AuthV2: authV2Service,
 		},
-	}
+	}, nil
 }

@@ -35,12 +35,12 @@ func NewClient(cfg *APIClientConfig) *APIClient {
 	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
 		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
-		BaseURL:      cfg.BaseURL,
+		BaseURL:      cfg.Url,
 		Client:       httpClient,
 	})
 
 	appV2Service := services.NewAppsV2(&services.AppsV2Config{
-		BaseURL: cfg.BaseURL,
+		BaseURL: cfg.Url,
 		Client:  httpClient,
 		Auth:    authV2Service,
 	})
@@ -49,7 +49,7 @@ func NewClient(cfg *APIClientConfig) *APIClient {
 		clientID:     cfg.ClientID,
 		clientSecret: cfg.ClientSecret,
 		region:       cfg.Region,
-		baseURL:      cfg.BaseURL,
+		baseURL:      cfg.Url,
 		client:       httpClient,
 		Services: &Services{
 			AppsV2: appV2Service,

@@ -27,7 +27,6 @@ type APIClientConfig struct {
 	ClientSecret string
 	Region       string
 	Url          string
-	BaseURL      string
 }
 
 func (cfg *APIClientConfig) Validate() (*APIClientConfig, error) {
@@ -46,11 +45,9 @@ func (cfg *APIClientConfig) Validate() (*APIClientConfig, error) {
 		return cfg, errRegion
 	}
 
-	// Create the BaseURL from the region and template unless a BaseURL is given
+	// Create the Url from the region and template if no url is given
 	if len(cfg.Url) == 0 {
-		cfg.BaseURL = fmt.Sprintf(BaseURLTemplate, cfg.Region)
-	} else {
-		cfg.BaseURL = cfg.Url
+		cfg.Url = fmt.Sprintf(BaseURLTemplate, cfg.Region)
 	}
 
 	// Validate the timeout

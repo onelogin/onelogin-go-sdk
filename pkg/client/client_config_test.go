@@ -16,7 +16,7 @@ func TestClientIDValidation(t *testing.T) {
 	clientSecret := "test"
 
 	t.Run("invalidClientID", func(t *testing.T) {
-		config := APIClientConfig{
+		config := &APIClientConfig{
 			ClientID:     invalidClientID,
 			ClientSecret: clientSecret,
 			Region:       USRegion,
@@ -27,7 +27,7 @@ func TestClientIDValidation(t *testing.T) {
 	})
 
 	t.Run("validClientID", func(t *testing.T) {
-		config := APIClientConfig{
+		config := &APIClientConfig{
 			ClientID:     validClientID,
 			ClientSecret: clientSecret,
 			Region:       USRegion,
@@ -45,7 +45,7 @@ func TestClientSecretValidation(t *testing.T) {
 	clientID := "test"
 
 	t.Run("invalidClientSecret", func(t *testing.T) {
-		config := APIClientConfig{
+		config := &APIClientConfig{
 			ClientID:     clientID,
 			ClientSecret: invalidClientSecret,
 			Region:       USRegion,
@@ -56,7 +56,7 @@ func TestClientSecretValidation(t *testing.T) {
 	})
 
 	t.Run("validClientSecret", func(t *testing.T) {
-		config := APIClientConfig{
+		config := &APIClientConfig{
 			ClientID:     clientID,
 			ClientSecret: validClientSecret,
 			Region:       USRegion,
@@ -91,7 +91,7 @@ func TestTimeoutBehavior(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config := APIClientConfig{
+			config := &APIClientConfig{
 				ClientID:     clientID,
 				ClientSecret: clientSecret,
 				Region:       USRegion,

@@ -38,13 +38,13 @@ func TestClientBaseURL(t *testing.T) {
 		"url and region given": {
 			region:          USRegion,
 			url:             euExpectedBaseURL,
-			expectedBaseURL: usExpectedBaseURL,
+			expectedBaseURL: euExpectedBaseURL,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config := APIClientConfig{
+			config := &APIClientConfig{
 				ClientID:     defaultClientId,
 				ClientSecret: defaultClientSecret,
 				Region:       test.region,
@@ -100,7 +100,7 @@ func TestNewClient(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config := APIClientConfig{
+			config := &APIClientConfig{
 				ClientID:     test.clientID,
 				ClientSecret: test.clientSecret,
 				Region:       test.region,

@@ -3,14 +3,15 @@ package client
 
 import (
 	"errors"
+	"fmt"
 )
 
-// constants for the client.
+// constants for the client config.
 const (
-	USRegion       = "us"
-	EURegion       = "eu"
-	BaseUrl        = "https://api.us.onelogin.com"
-	DefaultTimeout = 5
+	USRegion        = "us"
+	EURegion        = "eu"
+	BaseURLTemplate = "https://api.%s.onelogin.com"
+	DefaultTimeout  = 5
 )
 
 var (
@@ -26,9 +27,10 @@ type APIClientConfig struct {
 	ClientSecret string
 	Region       string
 	Url          string
+	BaseURL      string
 }
 
-func (cfg APIClientConfig) Validate() (APIClientConfig, error) {
+func (cfg *APIClientConfig) Validate() (*APIClientConfig, error) {
 
 	// Validate clientID
 	if len(cfg.ClientID) == 0 {
@@ -39,9 +41,16 @@ func (cfg APIClientConfig) Validate() (APIClientConfig, error) {
 	if len(cfg.ClientSecret) == 0 {
 		return cfg, errClientSecretEmpty
 	}
-	// validate the region if no url given
+	// Validate the region if no url given
 	if !isSupportedRegion(cfg.Region) && len(cfg.Url) == 0 {
 		return cfg, errRegion
+	}
+
+	// Create the BaseURL from the region and template unless a BaseURL is given
+	if len(cfg.Url) == 0 {
+		cfg.BaseURL = fmt.Sprintf(BaseURLTemplate, cfg.Region)
+	} else {
+		cfg.BaseURL = cfg.Url
 	}
 
 	// Validate the timeout

@@ -169,3 +169,28 @@ func TestUrlConstruction(t *testing.T) {
 		})
 	}
 }
+
+func TestUrlRegionValidation(t *testing.T) {
+	clientID := "test"
+	clientSecret := "test"
+
+	tests := map[string]struct {
+		expectedBaseURL string
+	}{
+		"no region given, no url returns error": {
+			expectedBaseURL: "",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			config := &APIClientConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+			}
+			config, err := config.Initialize()
+			assert.NotNil(t, err)
+			assert.Equal(t, test.expectedBaseURL, "")
+		})
+	}
+}

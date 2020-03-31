@@ -131,27 +131,27 @@ func TestRegionValidation(t *testing.T) {
 func TestUrlConstruction(t *testing.T) {
 	clientID := "test"
 	clientSecret := "test"
-	usExpectedBaseURL := "https://api.us.onelogin.com"
-	euExpectedBaseURL := "https://api.eu.onelogin.com"
+	usexpectedUrl := "https://api.us.onelogin.com"
+	euexpectedUrl := "https://api.eu.onelogin.com"
 	shadow := "https://oapi.onelogin-shadow01.com"
 
 	tests := map[string]struct {
-		region          string
-		expectedBaseURL string
-		url             string
+		region      string
+		expectedUrl string
+		url         string
 	}{
 		"region given, no url honors region": {
-			region:          USRegion,
-			expectedBaseURL: usExpectedBaseURL,
+			region:      USRegion,
+			expectedUrl: usexpectedUrl,
 		},
 		"url given, no region honors url": {
-			url:             shadow,
-			expectedBaseURL: shadow,
+			url:         shadow,
+			expectedUrl: shadow,
 		},
 		"url and region given honors url given": {
-			region:          USRegion,
-			url:             euExpectedBaseURL,
-			expectedBaseURL: euExpectedBaseURL,
+			region:      USRegion,
+			url:         euexpectedUrl,
+			expectedUrl: euexpectedUrl,
 		},
 	}
 
@@ -165,7 +165,7 @@ func TestUrlConstruction(t *testing.T) {
 			}
 			config, err := config.Initialize()
 			assert.Nil(t, err)
-			assert.Equal(t, test.expectedBaseURL, config.Url)
+			assert.Equal(t, test.expectedUrl, config.Url)
 		})
 	}
 }
@@ -175,10 +175,10 @@ func TestUrlRegionValidation(t *testing.T) {
 	clientSecret := "test"
 
 	tests := map[string]struct {
-		expectedBaseURL string
+		expectedUrl string
 	}{
 		"no region given, no url returns error": {
-			expectedBaseURL: "",
+			expectedUrl: "",
 		},
 	}
 
@@ -190,7 +190,7 @@ func TestUrlRegionValidation(t *testing.T) {
 			}
 			config, err := config.Initialize()
 			assert.NotNil(t, err)
-			assert.Equal(t, test.expectedBaseURL, "")
+			assert.Equal(t, test.expectedUrl, "")
 		})
 	}
 }

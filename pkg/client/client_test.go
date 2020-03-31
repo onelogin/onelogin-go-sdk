@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	usExpectedBaseURL   = "https://api.us.onelogin.com"
-	euExpectedBaseURL   = "https://api.eu.onelogin.com"
+	usExpectedBaseURL = "https://api.us.onelogin.com"
+	euExpectedBaseURL = "https://api.eu.onelogin.com"
+	shadow            = "https://oapi.onelogin-shadow01.com"
 )
 
 func TestClientBaseURL(t *testing.T) {
@@ -20,6 +21,7 @@ func TestClientBaseURL(t *testing.T) {
 	tests := map[string]struct {
 		region          string
 		expectedBaseURL string
+		url             string
 	}{
 		"us region": {
 			region:          USRegion,
@@ -29,15 +31,27 @@ func TestClientBaseURL(t *testing.T) {
 			region:          EURegion,
 			expectedBaseURL: euExpectedBaseURL,
 		},
+		"url given, no region": {
+			url:             shadow,
+			expectedBaseURL: shadow,
+		},
+		"url and region given": {
+			region:          USRegion,
+			url:             euExpectedBaseURL,
+			expectedBaseURL: usExpectedBaseURL,
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config, err := NewConfig(
-				defaultClientId,
-				defaultClientSecret,
-				test.region,
-				defaultTimeout,
+			config, err := ValidateConfig(
+				APIClientConfig{
+					clientID:     defaultClientId,
+					clientSecret: defaultClientSecret,
+					region:       test.region,
+					url:          test.url,
+					timeout:      defaultTimeout,
+				},
 			)
 			client := NewClient(config)
 			assert.Nil(t, err)
@@ -87,11 +101,13 @@ func TestNewClient(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config, err := NewConfig(
-				test.clientID,
-				test.clientSecret,
-				test.region,
-				test.timeout,
+			config, err := ValidateConfig(
+				APIClientConfig{
+					clientID:     test.clientID,
+					clientSecret: test.clientSecret,
+					region:       test.region,
+					timeout:      test.timeout,
+				},
 			)
 			assert.Nil(t, err)
 			cl := NewClient(config)

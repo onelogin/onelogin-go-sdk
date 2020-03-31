@@ -16,22 +16,25 @@ func TestClientIDValidation(t *testing.T) {
 	clientSecret := "test"
 
 	t.Run("invalidClientID", func(t *testing.T) {
-		config, err := NewConfig(
-			invalidClientID,
-			clientSecret,
-			USRegion,
-			DefaultTimeout,
+		_, err := ValidateConfig(
+			APIClientConfig{
+				clientID:     invalidClientID,
+				clientSecret: clientSecret,
+				region:       USRegion,
+				timeout:      DefaultTimeout,
+			},
 		)
 		assert.NotNil(t, err)
-		assert.Equal(t, APIClientConfig{}, config)
 	})
 
 	t.Run("validClientID", func(t *testing.T) {
-		config, err := NewConfig(
-			validClientID,
-			clientSecret,
-			USRegion,
-			DefaultTimeout,
+		config, err := ValidateConfig(
+			APIClientConfig{
+				clientID:     validClientID,
+				clientSecret: clientSecret,
+				region:       USRegion,
+				timeout:      DefaultTimeout,
+			},
 		)
 		assert.Nil(t, err)
 		assert.Equal(t, config.clientID, validClientID)
@@ -44,22 +47,25 @@ func TestClientSecretValidation(t *testing.T) {
 	clientID := "test"
 
 	t.Run("invalidClientSecret", func(t *testing.T) {
-		config, err := NewConfig(
-			clientID,
-			invalidClientSecret,
-			USRegion,
-			DefaultTimeout,
+		_, err := ValidateConfig(
+			APIClientConfig{
+				clientID:     clientID,
+				clientSecret: invalidClientSecret,
+				region:       USRegion,
+				timeout:      DefaultTimeout,
+			},
 		)
 		assert.NotNil(t, err)
-		assert.Equal(t, APIClientConfig{}, config)
 	})
 
 	t.Run("validClientSecret", func(t *testing.T) {
-		config, err := NewConfig(
-			clientID,
-			validClientSecret,
-			USRegion,
-			DefaultTimeout,
+		config, err := ValidateConfig(
+			APIClientConfig{
+				clientID:     clientID,
+				clientSecret: validClientSecret,
+				region:       USRegion,
+				timeout:      DefaultTimeout,
+			},
 		)
 		assert.Nil(t, err)
 		assert.Equal(t, config.clientSecret, validClientSecret)
@@ -89,11 +95,13 @@ func TestTimeoutBehavior(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			cc, err := NewConfig(
-				clientID,
-				clientSecret,
-				USRegion,
-				test.timeout,
+			cc, err := ValidateConfig(
+				APIClientConfig{
+					clientID:     clientID,
+					clientSecret: clientSecret,
+					region:       USRegion,
+					timeout:      test.timeout,
+				},
 			)
 			assert.Nil(t, err)
 			assert.Equal(t, test.expectedTimeout, cc.timeout)

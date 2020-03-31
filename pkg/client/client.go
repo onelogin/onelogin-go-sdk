@@ -34,11 +34,16 @@ type Services struct {
 // New uses the config to generate the api client with services attached, and returns
 // the new api client.
 func NewClient(cfg APIClientConfig) *APIClient {
+	var baseURL string
 	httpClient := &http.Client{
 		Timeout: time.Second * time.Duration(cfg.timeout),
 	}
 
-	baseURL := fmt.Sprintf(BaseURLTemplate, cfg.region)
+	if len(cfg.region) > 0 {
+		baseURL = fmt.Sprintf(BaseURLTemplate, cfg.region)
+	} else {
+		baseURL = cfg.url
+	}
 
 	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
 		ClientID:     cfg.clientID,
@@ -47,7 +52,7 @@ func NewClient(cfg APIClientConfig) *APIClient {
 		Client:       httpClient,
 	})
 
-	appv2Service := services.NewAppsV2(&services.AppsV2Config{
+	appV2Service := services.NewAppsV2(&services.AppsV2Config{
 		BaseURL: baseURL,
 		Client:  httpClient,
 		Auth:    authV2Service,
@@ -60,7 +65,7 @@ func NewClient(cfg APIClientConfig) *APIClient {
 		baseURL:      baseURL,
 		client:       httpClient,
 		Services: &Services{
-			AppsV2: appv2Service,
+			AppsV2: appV2Service,
 			AuthV2: authV2Service,
 		},
 	}

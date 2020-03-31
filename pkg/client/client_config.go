@@ -9,7 +9,8 @@ import (
 const (
 	USRegion       = "us"
 	EURegion       = "eu"
-	DefaultTimeout = 60
+	BaseUrl        = "https://api.us.onelogin.com"
+	DefaultTimeout = 5
 )
 
 var (
@@ -24,38 +25,31 @@ type APIClientConfig struct {
 	clientID     string
 	clientSecret string
 	region       string
+	url          string
 }
 
-func NewConfig(clientID string, clientSecret string, region string, timeout int) (APIClientConfig, error) {
-	var config APIClientConfig
+func ValidateConfig(cfg APIClientConfig) (APIClientConfig, error) {
+
 	// Validate clientID
-	if len(clientID) == 0 {
-		return config, errClientIDEmpty
+	if len(cfg.clientID) == 0 {
+		return cfg, errClientIDEmpty
 	}
 
 	// Validate clientSecret
-	if len(clientSecret) == 0 {
-		return config, errClientSecretEmpty
+	if len(cfg.clientSecret) == 0 {
+		return cfg, errClientSecretEmpty
 	}
-	// validate the region
-	if !isSupportedRegion(region) {
-		return config, errRegion
+	// validate the region if no url given
+	if !isSupportedRegion(cfg.region) && len(cfg.url) == 0 {
+		return cfg, errRegion
 	}
 
 	// Validate the timeout
-	if timeout == 0 {
-		timeout = DefaultTimeout
+	if cfg.timeout == 0 {
+		cfg.timeout = DefaultTimeout
 	}
 
-	// Build the new client config
-	config = APIClientConfig{
-		timeout:      timeout,
-		clientID:     clientID,
-		clientSecret: clientSecret,
-		region:       region,
-	}
-
-	return config, nil
+	return cfg, nil
 }
 
 func isSupportedRegion(region string) bool {

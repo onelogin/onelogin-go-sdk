@@ -21,32 +21,32 @@ var (
 
 // APIClientConfig is the configuration for the APIClient.
 type APIClientConfig struct {
-	timeout      int
-	clientID     string
-	clientSecret string
-	region       string
-	url          string
+	Timeout      int
+	ClientID     string
+	ClientSecret string
+	Region       string
+	Url          string
 }
 
-func ValidateConfig(cfg APIClientConfig) (APIClientConfig, error) {
+func (cfg APIClientConfig) Validate() (APIClientConfig, error) {
 
 	// Validate clientID
-	if len(cfg.clientID) == 0 {
+	if len(cfg.ClientID) == 0 {
 		return cfg, errClientIDEmpty
 	}
 
 	// Validate clientSecret
-	if len(cfg.clientSecret) == 0 {
+	if len(cfg.ClientSecret) == 0 {
 		return cfg, errClientSecretEmpty
 	}
 	// validate the region if no url given
-	if !isSupportedRegion(cfg.region) && len(cfg.url) == 0 {
+	if !isSupportedRegion(cfg.Region) && len(cfg.Url) == 0 {
 		return cfg, errRegion
 	}
 
 	// Validate the timeout
-	if cfg.timeout == 0 {
-		cfg.timeout = DefaultTimeout
+	if cfg.Timeout == 0 {
+		cfg.Timeout = DefaultTimeout
 	}
 
 	return cfg, nil

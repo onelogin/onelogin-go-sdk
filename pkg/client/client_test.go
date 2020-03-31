@@ -44,15 +44,14 @@ func TestClientBaseURL(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config, err := ValidateConfig(
-				APIClientConfig{
-					clientID:     defaultClientId,
-					clientSecret: defaultClientSecret,
-					region:       test.region,
-					url:          test.url,
-					timeout:      defaultTimeout,
-				},
-			)
+			config := APIClientConfig{
+				ClientID:     defaultClientId,
+				ClientSecret: defaultClientSecret,
+				Region:       test.region,
+				Url:          test.url,
+				Timeout:      defaultTimeout,
+			}
+			config, err := config.Validate()
 			client := NewClient(config)
 			assert.Nil(t, err)
 			assert.Equal(t, test.expectedBaseURL, client.baseURL)
@@ -101,14 +100,13 @@ func TestNewClient(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config, err := ValidateConfig(
-				APIClientConfig{
-					clientID:     test.clientID,
-					clientSecret: test.clientSecret,
-					region:       test.region,
-					timeout:      test.timeout,
-				},
-			)
+			config := APIClientConfig{
+				ClientID:     test.clientID,
+				ClientSecret: test.clientSecret,
+				Region:       test.region,
+				Timeout:      test.timeout,
+			}
+			config, err := config.Validate()
 			assert.Nil(t, err)
 			cl := NewClient(config)
 

@@ -36,18 +36,18 @@ type Services struct {
 func NewClient(cfg APIClientConfig) *APIClient {
 	var baseURL string
 	httpClient := &http.Client{
-		Timeout: time.Second * time.Duration(cfg.timeout),
+		Timeout: time.Second * time.Duration(cfg.Timeout),
 	}
 
-	if len(cfg.region) > 0 {
-		baseURL = fmt.Sprintf(BaseURLTemplate, cfg.region)
+	if len(cfg.Region) > 0 {
+		baseURL = fmt.Sprintf(BaseURLTemplate, cfg.Region)
 	} else {
-		baseURL = cfg.url
+		baseURL = cfg.Url
 	}
 
 	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
-		ClientID:     cfg.clientID,
-		ClientSecret: cfg.clientSecret,
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
 		BaseURL:      baseURL,
 		Client:       httpClient,
 	})
@@ -59,9 +59,9 @@ func NewClient(cfg APIClientConfig) *APIClient {
 	})
 
 	return &APIClient{
-		clientID:     cfg.clientID,
-		clientSecret: cfg.clientSecret,
-		region:       cfg.region,
+		clientID:     cfg.ClientID,
+		clientSecret: cfg.ClientSecret,
+		region:       cfg.Region,
 		baseURL:      baseURL,
 		client:       httpClient,
 		Services: &Services{

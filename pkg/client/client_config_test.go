@@ -16,28 +16,26 @@ func TestClientIDValidation(t *testing.T) {
 	clientSecret := "test"
 
 	t.Run("invalidClientID", func(t *testing.T) {
-		_, err := ValidateConfig(
-			APIClientConfig{
-				clientID:     invalidClientID,
-				clientSecret: clientSecret,
-				region:       USRegion,
-				timeout:      DefaultTimeout,
-			},
-		)
+		config := APIClientConfig{
+			ClientID:     invalidClientID,
+			ClientSecret: clientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Validate()
 		assert.NotNil(t, err)
 	})
 
 	t.Run("validClientID", func(t *testing.T) {
-		config, err := ValidateConfig(
-			APIClientConfig{
-				clientID:     validClientID,
-				clientSecret: clientSecret,
-				region:       USRegion,
-				timeout:      DefaultTimeout,
-			},
-		)
+		config := APIClientConfig{
+			ClientID:     validClientID,
+			ClientSecret: clientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Validate()
 		assert.Nil(t, err)
-		assert.Equal(t, config.clientID, validClientID)
+		assert.Equal(t, config.ClientID, validClientID)
 	})
 }
 
@@ -47,28 +45,26 @@ func TestClientSecretValidation(t *testing.T) {
 	clientID := "test"
 
 	t.Run("invalidClientSecret", func(t *testing.T) {
-		_, err := ValidateConfig(
-			APIClientConfig{
-				clientID:     clientID,
-				clientSecret: invalidClientSecret,
-				region:       USRegion,
-				timeout:      DefaultTimeout,
-			},
-		)
+		config := APIClientConfig{
+			ClientID:     clientID,
+			ClientSecret: invalidClientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Validate()
 		assert.NotNil(t, err)
 	})
 
 	t.Run("validClientSecret", func(t *testing.T) {
-		config, err := ValidateConfig(
-			APIClientConfig{
-				clientID:     clientID,
-				clientSecret: validClientSecret,
-				region:       USRegion,
-				timeout:      DefaultTimeout,
-			},
-		)
+		config := APIClientConfig{
+			ClientID:     clientID,
+			ClientSecret: validClientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Validate()
 		assert.Nil(t, err)
-		assert.Equal(t, config.clientSecret, validClientSecret)
+		assert.Equal(t, config.ClientSecret, validClientSecret)
 	})
 
 }
@@ -95,16 +91,15 @@ func TestTimeoutBehavior(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			cc, err := ValidateConfig(
-				APIClientConfig{
-					clientID:     clientID,
-					clientSecret: clientSecret,
-					region:       USRegion,
-					timeout:      test.timeout,
-				},
-			)
+			config := APIClientConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+				Region:       USRegion,
+				Timeout:      test.timeout,
+			}
+			config, err := config.Validate()
 			assert.Nil(t, err)
-			assert.Equal(t, test.expectedTimeout, cc.timeout)
+			assert.Equal(t, test.expectedTimeout, config.Timeout)
 		})
 	}
 }

@@ -1,5 +1,5 @@
 # Onelogin-Go-SDK
-  This is the Onelogin go sdk client, supporting the following apis:
+  This is the Onelogin Go SDK client, supporting the following apis:
 
     - Apps (v2)
     - Auth (v2)

@@ -40,7 +40,7 @@ func NewSessionLoginTokenV1(cfg *SessionLoginTokenV1Config) *SessionLoginTokenV1
 }
 
 // CreateSessionLoginToken takes a SessionLoginToken request that represents an end-user's credentials
-// and returns a Session Token that represnets an authenticated session
+// and returns a Session Token that represents an authenticated session
 func (session_login_tokens *SessionLoginTokenV1) CreateSessionLoginToken(request *models.SessionLoginTokenRequest) (*http.Response, *models.SessionLoginToken, error) {
 	respAuth, authResp, err := Authorize(session_login_tokens.Auth)
 	fmt.Println(*authResp.AccessToken)

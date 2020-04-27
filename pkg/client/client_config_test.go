@@ -6,35 +6,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	notSupporttedRegion = "Test"
-)
-
 func TestClientIDValidation(t *testing.T) {
 	invalidClientID := ""
 	validClientID := "test"
 	clientSecret := "test"
 
 	t.Run("invalidClientID", func(t *testing.T) {
-		config, err := NewConfig(
-			invalidClientID,
-			clientSecret,
-			USRegion,
-			DefaultTimeout,
-		)
+		config := &APIClientConfig{
+			ClientID:     invalidClientID,
+			ClientSecret: clientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Initialize()
 		assert.NotNil(t, err)
-		assert.Equal(t, APIClientConfig{}, config)
 	})
 
 	t.Run("validClientID", func(t *testing.T) {
-		config, err := NewConfig(
-			validClientID,
-			clientSecret,
-			USRegion,
-			DefaultTimeout,
-		)
+		config := &APIClientConfig{
+			ClientID:     validClientID,
+			ClientSecret: clientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Initialize()
 		assert.Nil(t, err)
-		assert.Equal(t, config.clientID, validClientID)
+		assert.Equal(t, config.ClientID, validClientID)
 	})
 }
 
@@ -44,25 +41,26 @@ func TestClientSecretValidation(t *testing.T) {
 	clientID := "test"
 
 	t.Run("invalidClientSecret", func(t *testing.T) {
-		config, err := NewConfig(
-			clientID,
-			invalidClientSecret,
-			USRegion,
-			DefaultTimeout,
-		)
+		config := &APIClientConfig{
+			ClientID:     clientID,
+			ClientSecret: invalidClientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Initialize()
 		assert.NotNil(t, err)
-		assert.Equal(t, APIClientConfig{}, config)
 	})
 
 	t.Run("validClientSecret", func(t *testing.T) {
-		config, err := NewConfig(
-			clientID,
-			validClientSecret,
-			USRegion,
-			DefaultTimeout,
-		)
+		config := &APIClientConfig{
+			ClientID:     clientID,
+			ClientSecret: validClientSecret,
+			Region:       USRegion,
+			Timeout:      DefaultTimeout,
+		}
+		config, err := config.Initialize()
 		assert.Nil(t, err)
-		assert.Equal(t, config.clientSecret, validClientSecret)
+		assert.Equal(t, config.ClientSecret, validClientSecret)
 	})
 
 }
@@ -89,19 +87,21 @@ func TestTimeoutBehavior(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			cc, err := NewConfig(
-				clientID,
-				clientSecret,
-				USRegion,
-				test.timeout,
-			)
+			config := &APIClientConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+				Region:       USRegion,
+				Timeout:      test.timeout,
+			}
+			config, err := config.Initialize()
 			assert.Nil(t, err)
-			assert.Equal(t, test.expectedTimeout, cc.timeout)
+			assert.Equal(t, test.expectedTimeout, config.Timeout)
 		})
 	}
 }
 
 func TestRegionValidation(t *testing.T) {
+	notSupporttedRegion := "Test"
 	tests := map[string]struct {
 		region             string
 		expectedValidation bool
@@ -124,6 +124,73 @@ func TestRegionValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			isValid := isSupportedRegion(test.region)
 			assert.Equal(t, test.expectedValidation, isValid)
+		})
+	}
+}
+
+func TestUrlConstruction(t *testing.T) {
+	clientID := "test"
+	clientSecret := "test"
+	usexpectedUrl := "https://api.us.onelogin.com"
+	euexpectedUrl := "https://api.eu.onelogin.com"
+	shadow := "https://oapi.onelogin-shadow01.com"
+
+	tests := map[string]struct {
+		region      string
+		expectedUrl string
+		url         string
+	}{
+		"region given, no url honors region": {
+			region:      USRegion,
+			expectedUrl: usexpectedUrl,
+		},
+		"url given, no region honors url": {
+			url:         shadow,
+			expectedUrl: shadow,
+		},
+		"url and region given honors url given": {
+			region:      USRegion,
+			url:         euexpectedUrl,
+			expectedUrl: euexpectedUrl,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			config := &APIClientConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+				Region:       test.region,
+				Url:          test.url,
+			}
+			config, err := config.Initialize()
+			assert.Nil(t, err)
+			assert.Equal(t, test.expectedUrl, config.Url)
+		})
+	}
+}
+
+func TestUrlRegionValidation(t *testing.T) {
+	clientID := "test"
+	clientSecret := "test"
+
+	tests := map[string]struct {
+		expectedUrl string
+	}{
+		"no region given, no url returns error": {
+			expectedUrl: "",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			config := &APIClientConfig{
+				ClientID:     clientID,
+				ClientSecret: clientSecret,
+			}
+			config, err := config.Initialize()
+			assert.NotNil(t, err)
+			assert.Equal(t, test.expectedUrl, "")
 		})
 	}
 }

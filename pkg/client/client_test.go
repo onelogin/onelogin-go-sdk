@@ -7,48 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	usExpectedBaseURL   = "https://api.us.onelogin.com"
-	euExpectedBaseURL   = "https://api.eu.onelogin.com"
-)
-
-func TestClientBaseURL(t *testing.T) {
-	defaultClientId := "test"
-	defaultClientSecret := "test"
-	defaultTimeout := 0
-
-	tests := map[string]struct {
-		region          string
-		expectedBaseURL string
-	}{
-		"us region": {
-			region:          USRegion,
-			expectedBaseURL: usExpectedBaseURL,
-		},
-		"eu region": {
-			region:          EURegion,
-			expectedBaseURL: euExpectedBaseURL,
-		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			config, err := NewConfig(
-				defaultClientId,
-				defaultClientSecret,
-				test.region,
-				defaultTimeout,
-			)
-			client := NewClient(config)
-			assert.Nil(t, err)
-			assert.Equal(t, test.expectedBaseURL, client.baseURL)
-		})
-	}
-}
-
 func TestNewClient(t *testing.T) {
 	clientID := "test"
 	clientSecret := "test"
+	usExpectedBaseURL := "https://api.us.onelogin.com"
+	euExpectedBaseURL := "https://api.eu.onelogin.com"
 
 	tests := map[string]struct {
 		region               string
@@ -87,15 +50,15 @@ func TestNewClient(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			config, err := NewConfig(
-				test.clientID,
-				test.clientSecret,
-				test.region,
-				test.timeout,
-			)
-			assert.Nil(t, err)
-			cl := NewClient(config)
+			config := &APIClientConfig{
+				ClientID:     test.clientID,
+				ClientSecret: test.clientSecret,
+				Region:       test.region,
+				Timeout:      test.timeout,
+			}
 
+			cl, err := NewClient(config)
+			assert.Nil(t, err)
 			assert.Equal(t, test.expectedRegion, cl.region)
 			assert.Equal(t, test.expectedBaseURL, cl.baseURL)
 			assert.Equal(t, test.expectedClientID, cl.clientID)
@@ -105,6 +68,41 @@ func TestNewClient(t *testing.T) {
 			assert.NotNil(t, cl.Services)
 			assert.NotNil(t, cl.Services.AppsV2)
 			assert.NotNil(t, cl.Services.AuthV2)
+		})
+	}
+}
+
+func TestInvalidNewClient(t *testing.T) {
+	invalidClientID := ""
+	clientSecret := "test"
+	tests := map[string]struct {
+		region               string
+		timeout              int
+		clientID             string
+		clientSecret         string
+		expectedRegion       string
+		expectedBaseURL      string
+		expectedTimeout      time.Duration
+		expectedClientID     string
+		expectedClientSecret string
+	}{
+		"invalid config due to missing client id": {
+			region:       USRegion,
+			clientID:     invalidClientID,
+			clientSecret: clientSecret,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			config := &APIClientConfig{
+				ClientID:     test.clientID,
+				ClientSecret: test.clientSecret,
+				Region:       test.region,
+			}
+			cl, err := NewClient(config)
+			assert.NotNil(t, err)
+			assert.Equal(t, &APIClient{}, cl)
 		})
 	}
 }

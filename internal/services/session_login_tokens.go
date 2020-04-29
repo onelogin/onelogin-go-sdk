@@ -10,6 +10,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
+// #nosec
 const (
 	errSessionLoginTokenV1Context = "apps v2 service"
 )

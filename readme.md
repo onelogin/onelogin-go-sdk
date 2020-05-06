@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/onelogin/onelogin-go-sdk)](https://goreportcard.com/report/github.com/onelogin/onelogin-go-sdk)
+
 # Onelogin-Go-SDK
   This is the Onelogin Go SDK client, supporting the following apis:
 

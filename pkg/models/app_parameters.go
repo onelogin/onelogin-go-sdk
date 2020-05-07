@@ -12,4 +12,5 @@ type AppParameters struct {
 	DefaultValues             *string `json:"default_values,omitempty"`
 	ProvisionedEntitlements   *bool   `json:"provisioned_entitlements,omitempty"`
 	SafeEntitlementsEnabled   *bool   `json:"safe_entitlements_enabled,omitempty"`
+	IncludeInSamlAssertion    *bool   `json:"include_in_saml_assertion,omitempty"`
 }

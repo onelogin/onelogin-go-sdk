@@ -26,6 +26,143 @@ func (auth *TypeAuthV2Mock) Authorize() (*http.Response, *models.AuthResp, error
 	return args.Get(0).(*http.Response), args.Get(1).(*models.AuthResp), args.Error(2)
 }
 
+func TestGetApp(t *testing.T) {
+	tests := map[string]struct {
+		authMockAuthToken          string
+		authMockErr                error
+		authMockStatusCode         int
+		queryRequestMock           *models.AppsQuery
+		appMockPayload             []models.App
+		appMockStatusCodeResp      int
+		isAppErrExpected           bool
+		expectedAppErrorMsg        string
+		expectedAppRespID          int32
+		expectedAppRespConnectorID int32
+		expectedAppStatusCode      int
+		expectedAppCount           int
+	}{
+		"returns one app if query with limit 1 given": {
+			authMockAuthToken:  "testAuthToken",
+			authMockErr:        nil,
+			authMockStatusCode: http.StatusOK,
+			queryRequestMock: &models.AppsQuery{
+				Limit: "1",
+			},
+			appMockPayload: []models.App{
+				models.App{
+					ID:          oltypes.Int32(1234),
+					ConnectorID: oltypes.Int32(1111),
+				},
+			},
+			appMockStatusCodeResp:      http.StatusOK,
+			isAppErrExpected:           false,
+			expectedAppErrorMsg:        "",
+			expectedAppRespID:          1234,
+			expectedAppRespConnectorID: 1111,
+			expectedAppStatusCode:      http.StatusOK,
+			expectedAppCount:           1,
+		},
+		"returns all apps if empty query given": {
+			authMockAuthToken:  "testAuthToken",
+			authMockErr:        nil,
+			authMockStatusCode: http.StatusOK,
+			queryRequestMock:   &models.AppsQuery{},
+			appMockPayload: []models.App{
+				models.App{
+					ID:          oltypes.Int32(1234),
+					ConnectorID: oltypes.Int32(1111),
+				},
+				models.App{
+					ID:          oltypes.Int32(5678),
+					ConnectorID: oltypes.Int32(2222),
+				},
+			},
+			appMockStatusCodeResp:      http.StatusOK,
+			isAppErrExpected:           false,
+			expectedAppErrorMsg:        "",
+			expectedAppRespID:          1234,
+			expectedAppRespConnectorID: 1111,
+			expectedAppStatusCode:      http.StatusOK,
+			expectedAppCount:           2,
+		},
+		"auth returns 401 status code": {
+			authMockAuthToken:     "testAuthToken",
+			authMockErr:           errors.New("test"),
+			authMockStatusCode:    http.StatusUnauthorized,
+			appMockPayload:        []models.App{},
+			appMockStatusCodeResp: http.StatusBadRequest,
+			isAppErrExpected:      true,
+			expectedAppErrorMsg:   "request error: context: apps v2 service, status_code: [401], error_message: test",
+			expectedAppStatusCode: http.StatusCreated,
+			expectedAppCount:      0,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			authOutput, _ := json.Marshal(&models.AuthResp{
+				AccessToken: oltypes.String(test.authMockAuthToken),
+			})
+
+			authResp := &http.Response{
+				StatusCode: test.authMockStatusCode,
+				Body:       ioutil.NopCloser(bytes.NewReader(authOutput)),
+			}
+
+			authErr := test.authMockErr
+
+			payloadRes := &models.AuthResp{
+				AccessToken: oltypes.String(test.authMockAuthToken),
+			}
+
+			// set up the mock server
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(test.appMockStatusCodeResp)
+				if test.appMockPayload != nil {
+					body, _ := json.Marshal(test.appMockPayload)
+					w.Write(body)
+				}
+			}))
+
+			defer ts.Close()
+
+			client := &http.Client{
+				Timeout: time.Second * 5,
+			}
+
+			mockedObj := &TypeAuthV2Mock{}
+
+			mockedObj.On("Authorize", mock.Anything).Return(authResp, payloadRes, authErr)
+
+			apps := NewAppsV2(&AppsV2Config{
+				BaseURL: ts.URL,
+				Client:  client,
+				Auth:    mockedObj,
+			})
+
+			resultResp, resultPayload, resultErr := apps.GetApps(test.queryRequestMock)
+
+			if test.isAppErrExpected {
+				assert.NotNil(t, resultErr)
+				assert.Equal(t, test.expectedAppErrorMsg, resultErr.Error())
+			} else {
+				assert.Nil(t, resultErr)
+				resultPayloadID, _ := oltypes.GetInt32Val(resultPayload[0].ID)
+				resultPayloadConnectorID, _ := oltypes.GetInt32Val(resultPayload[0].ConnectorID)
+
+				assert.Equal(t, test.expectedAppStatusCode, resultResp.StatusCode)
+				assert.Equal(t, test.expectedAppRespID, resultPayloadID)
+				assert.Equal(t, test.expectedAppRespConnectorID, resultPayloadConnectorID)
+				assert.Equal(t, test.expectedAppCount, len(resultPayload))
+				assert.Nil(t, resultErr)
+			}
+
+			// make sure the mocked function was called
+			mockedObj.AssertExpectations(t)
+		})
+	}
+}
+
 func TestGetAppByID(t *testing.T) {
 	tests := map[string]struct {
 		authMockAuthToken          string

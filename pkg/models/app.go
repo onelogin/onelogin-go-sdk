@@ -23,3 +23,12 @@ type App struct {
 	Parameters         map[string]AppParameters `json:"parameters"`
 	RoleIDs            []int                    `json:"role_ids"`
 }
+
+type AppsQuery struct {
+	Limit       string
+	Page        string
+	Name        string
+	ConnectorID string
+	AuthMethod  string
+	Cursor      string
+}

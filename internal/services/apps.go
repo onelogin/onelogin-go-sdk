@@ -40,6 +40,70 @@ func NewAppsV2(cfg *AppsV2Config) *AppsV2 {
 	}
 }
 
+func (apps *AppsV2) GetApps(query *models.AppsQuery) (*http.Response, []models.App, error) {
+	respAuth, authResp, err := Authorize(apps.Auth)
+
+	if authResErr := customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); authResErr != nil {
+		return nil, nil, authResErr
+	}
+
+	accessToken, isValid := oltypes.GetStringVal(authResp.AccessToken)
+
+	if !isValid {
+		return nil, nil, customerrors.OneloginErrorWrapper(apps.ErrorContext, ErrValueMissing)
+	}
+
+	url := fmt.Sprintf("%s", apps.BaseURL)
+
+	headers := map[string]string{
+		"Content-type":  "application/json",
+		"Authorization": "Bearer " + accessToken,
+	}
+
+	req, err := setUpRequest(url, http.MethodGet, headers, nil)
+
+	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
+		return nil, nil, err
+	}
+
+	params := req.URL.Query()
+
+	if query.Limit != "" {
+		params.Add("limit", query.Limit)
+	}
+
+	if query.Page != "" {
+		params.Add("page", query.Page)
+	}
+	if query.Name != "" {
+		params.Add("name", query.Name)
+	}
+	if query.ConnectorID != "" {
+		params.Add("connector_id", query.ConnectorID)
+	}
+	if query.AuthMethod != "" {
+		params.Add("auth_method", query.AuthMethod)
+	}
+	if query.Cursor != "" {
+		params.Add("cursor", query.Cursor)
+	}
+	req.URL.RawQuery = params.Encode()
+
+	resp, err := apps.client.Do(req)
+
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+
+	var bodyResp []models.App
+
+	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, json.NewDecoder(resp.Body).Decode(&bodyResp)); err != nil {
+		return resp, nil, err
+	}
+
+	return resp, bodyResp, nil
+}
+
 // GetAppByID retrieves the app by id, and if successful, it returns
 // the http response and the pointer to the app.
 func (apps *AppsV2) GetAppByID(id int32) (*http.Response, *models.App, error) {

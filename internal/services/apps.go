@@ -53,14 +53,12 @@ func (apps *AppsV2) GetApps(query *models.AppsQuery) (*http.Response, []models.A
 		return nil, nil, customerrors.OneloginErrorWrapper(apps.ErrorContext, ErrValueMissing)
 	}
 
-	url := fmt.Sprintf("%s", apps.BaseURL)
-
 	headers := map[string]string{
 		"Content-type":  "application/json",
 		"Authorization": "Bearer " + accessToken,
 	}
 
-	req, err := setUpRequest(url, http.MethodGet, headers, nil)
+	req, err := setUpRequest(apps.BaseURL, http.MethodGet, headers, nil)
 
 	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
 		return nil, nil, err

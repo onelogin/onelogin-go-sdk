@@ -10,6 +10,7 @@ type AppParameters struct {
 	SkipIfBlank               *bool   `json:"skip_if_blank,omitempty"`
 	Values                    *string `json:"values,omitempty,omitempty"`
 	DefaultValues             *string `json:"default_values,omitempty"`
+	ParamKeyName              *string `json:"param_key_name,omitempty"`
 	ProvisionedEntitlements   *bool   `json:"provisioned_entitlements,omitempty"`
 	SafeEntitlementsEnabled   *bool   `json:"safe_entitlements_enabled,omitempty"`
 	IncludeInSamlAssertion    *bool   `json:"include_in_saml_assertion,omitempty"`

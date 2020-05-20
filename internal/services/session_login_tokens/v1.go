@@ -6,41 +6,35 @@ import (
 	"net/http"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/services"
-	"github.com/onelogin/onelogin-go-sdk/internal/services/client_credentials"
 	"github.com/onelogin/onelogin-go-sdk/internal/services/olhttp"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 )
 
 // #nosec
-const (
-	errSessionLoginTokenV1Context = "apps v2 service"
-)
+const errSessionLoginTokenV1Context = "Session Login Tokens v2 service"
+
+type V1Service struct {
+	Endpoint, ErrorContext string
+	Config                 services.APIServiceConfig
+	Auth                   services.Authenticator
+}
 
 // NewSessionLoginTokenV1 creates the new apps service v2.
-func New(cfg *services.APIServiceConfig) *services.APIService {
-	return &services.APIService{
-		BaseURL:      fmt.Sprintf("%s/api/1/login/auth", cfg.BaseURL),
-		Client:       cfg.Client,
-		Auth:         cfg.Auth,
+func New(cfg *services.APIServiceConfig) V1Service {
+	return V1Service{
+		Endpoint:     fmt.Sprintf("%s/api/1/login/auth", cfg.BaseURL),
+		Config:       *cfg,
 		ErrorContext: errSessionLoginTokenV1Context,
 	}
 }
 
 // CreateSessionLoginToken takes a SessionLoginToken request that represents an end-user's credentials
 // and returns a Session Token that represents an authenticated session
-func (session_login_tokens *SessionLoginTokenV1) CreateSessionLoginToken(request *SessionLoginTokenRequest) (*http.Response, *SessionLoginToken, error) {
-	respAuth, clientCredential, err := clientcredentials.Authorize(session_login_tokens.Auth)
-	fmt.Println(*clientCredential.AccessToken)
-	if respErr := customerrors.ReqErrorWrapper(respAuth, session_login_tokens.ErrorContext, err); respErr != nil {
-		return nil, nil, respErr
-	}
-
-	accessToken, isValid := oltypes.GetStringVal(clientCredential.AccessToken)
-
-	if !isValid {
-		return nil, nil, customerrors.OneloginErrorWrapper(session_login_tokens.ErrorContext, customerrors.ErrValueMissing)
+func (svc *V1Service) Create(request *SessionLoginTokenRequest) (*http.Response, *SessionLoginToken, error) {
+	accessToken, err := svc.Config.Auth.Authorize()
+	if err != nil {
+		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
 	}
 
 	headers := map[string]string{
@@ -48,15 +42,23 @@ func (session_login_tokens *SessionLoginTokenV1) CreateSessionLoginToken(request
 		"Authorization": "Bearer " + accessToken,
 	}
 
-	req, err := olhttp.NewOneloginRequest(session_login_tokens.BaseURL, http.MethodPost, headers, request)
-
-	if err = customerrors.OneloginErrorWrapper(session_login_tokens.ErrorContext, err); err != nil {
+	req, err := olhttp.NewOneloginRequest(svc.Endpoint, http.MethodGet, headers, nil)
+	if err = customerrors.OneloginErrorWrapper(svc.ErrorContext, err); err != nil {
 		return nil, nil, err
 	}
 
-	resp, err := session_login_tokens.client.Do(req)
+	resp, err := svc.Config.Client.Do(req)
 
-	if err = customerrors.ReqErrorWrapper(resp, session_login_tokens.ErrorContext, err); err != nil {
+	if resp.StatusCode == 401 {
+
+		_, err := svc.Config.Auth.ReAuthorize()
+		if err != nil {
+			return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
+		}
+		return svc.Create(request)
+	}
+
+	if err = customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err); err != nil {
 		return resp, nil, err
 	}
 
@@ -64,7 +66,7 @@ func (session_login_tokens *SessionLoginTokenV1) CreateSessionLoginToken(request
 
 	err = json.NewDecoder(resp.Body).Decode(&bodyResp)
 
-	if err = customerrors.OneloginErrorWrapper(session_login_tokens.ErrorContext, err); err != nil {
+	if err = customerrors.OneloginErrorWrapper(svc.ErrorContext, err); err != nil {
 		return resp, nil, err
 	}
 

@@ -2,110 +2,226 @@ package clientcredentials
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/onelogin/onelogin-go-sdk/internal/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAuthorize(t *testing.T) {
-	httpClient := &http.Client{
-		Timeout: time.Second * 5,
-	}
+type TestMocks struct {
+	mockedResponseBody interface{}
+	mockedResponseCode int
+	mockedService      V2Service
+}
 
-	expectedAccessTokenFor1 := "test"
-	expectedStatusCodeFor1 := http.StatusOK
-	mockedResponse1, _ := json.Marshal(ClientCredential{
-		AccessToken: oltypes.String(expectedAccessTokenFor1),
-	})
+type ExpectedOuts struct {
+	expectedErroMsg        string
+	expectedServiceState   V2Service
+	expectedStatusCode     int
+	expectedAccessToken    ClientCredential
+	isHTTPResponseExpected bool
+}
 
-	expectedStatusCodeFor2 := http.StatusUnauthorized
+func MockServer(mocks *TestMocks) *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(mocks.mockedResponseCode)
+		if mocks.mockedResponseBody != nil {
+			body, _ := json.Marshal(mocks.mockedResponseBody)
+			w.Write(body)
+		}
+	}))
+	return ts
+}
 
+func TestCreate(t *testing.T) {
 	tests := map[string]struct {
-		mockedResponseBody      []byte
-		mockedResponseCode      int
-		httpClient              *http.Client
-		expectedErroMsg         string
-		expectedStatusCode      int
-		expectedAccessToken     string
-		isErrResExpected        bool
-		isHTTPResponseExpected  bool
-		isRespPayloadCompNeeded bool
+		Mocks TestMocks
+		Outs  ExpectedOuts
 	}{
 		"access token is returned": {
-			httpClient:              httpClient,
-			mockedResponseBody:      mockedResponse1,
-			mockedResponseCode:      expectedStatusCodeFor1,
-			expectedStatusCode:      expectedStatusCodeFor1,
-			expectedAccessToken:     expectedAccessTokenFor1,
-			isRespPayloadCompNeeded: true,
-			isErrResExpected:        false,
-			isHTTPResponseExpected:  true,
+			Mocks: TestMocks{
+				mockedResponseCode: http.StatusOK,
+				mockedResponseBody: ClientCredential{
+					AccessToken: oltypes.String("test"),
+				},
+			},
+			Outs: ExpectedOuts{
+				expectedStatusCode: http.StatusOK,
+				expectedAccessToken: ClientCredential{
+					AccessToken: oltypes.String("test"),
+				},
+				isHTTPResponseExpected: true,
+			},
 		},
 		"error is returned when incorrect status code": {
-			httpClient:              httpClient,
-			mockedResponseCode:      expectedStatusCodeFor2,
-			expectedStatusCode:      expectedStatusCodeFor2,
-			isErrResExpected:        true,
-			isHTTPResponseExpected:  true,
-			isRespPayloadCompNeeded: false,
-			expectedErroMsg:         "request error: context: auth v2 service, status_code: [401], error_message: Unauthorized",
+			Mocks: TestMocks{
+				mockedResponseCode: http.StatusUnauthorized,
+			},
+			Outs: ExpectedOuts{
+				expectedStatusCode:     http.StatusUnauthorized,
+				isHTTPResponseExpected: true,
+				expectedErroMsg:        "request error: context: auth v2 service, status_code: [401], error_message: Unauthorized",
+			},
 		},
 	}
-
-	for testName, test := range tests {
-		t.Run(testName, func(t *testing.T) {
-			// set up the mock server
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(test.mockedResponseCode)
-				if test.mockedResponseBody != nil {
-					w.Write(test.mockedResponseBody)
-				}
-			}))
-
-			defer ts.Close()
-
-			// end set up the mock server
-
-			cfg := &AuthConfigV2{
-				Client:       test.httpClient,
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			client := &http.Client{Timeout: time.Second * 5}
+			srv := MockServer(&test.Mocks)
+			defer srv.Close()
+			cfg := &services.AuthServiceConfig{
 				ClientID:     "",
 				ClientSecret: "",
-				BaseURL:      ts.URL,
+				BaseURL:      srv.URL,
+				Client:       client,
 			}
 
-			auth := NewAuthV2(cfg)
+			auth := New(cfg)
 
 			resp, body, err := auth.Create()
-
 			// check errors
-			if test.isErrResExpected {
+			if test.Outs.expectedErroMsg != "" {
 				assert.NotNil(t, err)
-				assert.Equal(t, err.Error(), test.expectedErroMsg)
+				assert.Equal(t, err.Error(), test.Outs.expectedErroMsg)
 			} else {
 				assert.Nil(t, err)
 			}
 
 			// check http response
-			if test.isHTTPResponseExpected {
+			if test.Outs.isHTTPResponseExpected {
 				assert.NotNil(t, resp)
 
-				if test.isRespPayloadCompNeeded {
-					val, isValid := oltypes.GetStringVal(body.(ClientCredential).AccessToken)
-
-					assert.True(t, isValid)
-					assert.Equal(t, test.expectedAccessToken, val)
-				}
+				actualPayload, _ := json.Marshal(body)
+				expectedPayload, _ := json.Marshal(test.Mocks.mockedResponseBody)
+				assert.Equal(t, expectedPayload, actualPayload)
 
 				// check the response status code
-				assert.Equal(t, test.expectedStatusCode, resp.StatusCode)
+				assert.Equal(t, test.Outs.expectedStatusCode, resp.StatusCode)
 			} else {
 				assert.Nil(t, resp)
 			}
+		})
+	}
+}
+
+func TestAuthorize(t *testing.T) {
+	tests := map[string]struct {
+		Mocks TestMocks
+		Outs  ExpectedOuts
+	}{
+		"it memoizes the access token on the service": {
+			Mocks: TestMocks{
+				mockedResponseCode: http.StatusOK,
+				mockedResponseBody: ClientCredential{
+					AccessToken: oltypes.String("test"),
+				},
+			},
+			Outs: ExpectedOuts{
+				expectedServiceState: V2Service{
+					Token: "test",
+				},
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			client := &http.Client{Timeout: time.Second * 5}
+			srv := MockServer(&test.Mocks)
+			defer srv.Close()
+			cfg := &services.AuthServiceConfig{
+				ClientID:     "",
+				ClientSecret: "",
+				BaseURL:      srv.URL,
+				Client:       client,
+			}
+
+			auth := New(cfg)
+
+			auth.Authorize()
+			assert.Equal(t, test.Outs.expectedServiceState.Token, auth.Token)
+		})
+	}
+}
+
+func TestReAuthorize(t *testing.T) {
+	tests := map[string]struct {
+		Mocks TestMocks
+		Outs  ExpectedOuts
+	}{
+		"it resets the access token memoized on the service": {
+			Mocks: TestMocks{
+				mockedResponseCode: http.StatusOK,
+				mockedResponseBody: ClientCredential{
+					AccessToken: oltypes.String("after"),
+				},
+			},
+			Outs: ExpectedOuts{
+				expectedServiceState: V2Service{
+					Token: "after",
+				},
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			client := &http.Client{Timeout: time.Second * 5}
+			srv := MockServer(&test.Mocks)
+			defer srv.Close()
+			cfg := &services.AuthServiceConfig{
+				ClientID:     "",
+				ClientSecret: "",
+				BaseURL:      srv.URL,
+				Client:       client,
+			}
+
+			auth := New(cfg)
+			tok, _ := auth.ReAuthorize()
+			fmt.Println("FUCK", auth.Token, tok)
+			assert.Equal(t, test.Outs.expectedServiceState.Token, auth.Token)
+		})
+	}
+}
+
+func TestSetToken(t *testing.T) {
+	tests := map[string]struct {
+		Mocks TestMocks
+		Outs  ExpectedOuts
+	}{
+		"it memoizes the access token from the api on the service": {
+			Mocks: TestMocks{
+				mockedResponseCode: http.StatusOK,
+				mockedResponseBody: ClientCredential{
+					AccessToken: oltypes.String("test"),
+				},
+			},
+			Outs: ExpectedOuts{
+				expectedServiceState: V2Service{
+					Token: "test",
+				},
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			client := &http.Client{Timeout: time.Second * 5}
+			srv := MockServer(&test.Mocks)
+			defer srv.Close()
+			cfg := &services.AuthServiceConfig{
+				ClientID:     "",
+				ClientSecret: "",
+				BaseURL:      srv.URL,
+				Client:       client,
+			}
+
+			auth := New(cfg)
+			setToken(&auth)
+
+			assert.Equal(t, test.Outs.expectedServiceState.Token, auth.Token)
 		})
 	}
 }

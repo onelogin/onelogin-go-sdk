@@ -8,6 +8,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/internal/services"
 	"github.com/onelogin/onelogin-go-sdk/internal/services/apps"
 	"github.com/onelogin/onelogin-go-sdk/internal/services/client_credentials"
+	"github.com/onelogin/onelogin-go-sdk/internal/services/session_login_tokens"
 )
 
 // APIClient is used to communicate with the available api services.
@@ -22,9 +23,9 @@ type APIClient struct {
 
 // Services contains all the available api services.
 type Services struct {
-	AppsV2 services.CRUD
-	AuthV2 services.Creator
-	// SessionLoginTokensV1 *services.Creator
+	AppsV2               apps.V2Service
+	AuthV2               clientcredentials.V2Service
+	SessionLoginTokensV1 sessionlogintokens.V1Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -43,18 +44,16 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
 		BaseURL:      cfg.Url,
-		// Client:       httpClient,
 	})
 
 	apiServiceConfig := services.APIServiceConfig{
 		BaseURL: cfg.Url,
 		Client:  httpClient,
-		Auth:    authV2Service,
+		Auth:    &authV2Service,
 	}
 
 	appV2Service := apps.New(&apiServiceConfig)
-
-	// sessionLoginTokenV1Service := sessionlogintokens.New(&apiServiceConfig)
+	sessionLoginTokenV1Service := sessionlogintokens.New(&apiServiceConfig)
 
 	return &APIClient{
 		clientID:     cfg.ClientID,
@@ -63,9 +62,9 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		baseURL:      cfg.Url,
 		client:       httpClient,
 		Services: &Services{
-			AppsV2: appV2Service,
-			AuthV2: authV2Service,
-			// SessionLoginTokensV1: sessionLoginTokenV1Service,
+			AppsV2:               appV2Service,
+			AuthV2:               authV2Service,
+			SessionLoginTokensV1: sessionLoginTokenV1Service,
 		},
 	}, nil
 }

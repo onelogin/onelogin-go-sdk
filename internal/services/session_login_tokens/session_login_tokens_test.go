@@ -1,156 +1,201 @@
 package sessionlogintokens
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/services/client_credentials"
+	"github.com/onelogin/onelogin-go-sdk/internal/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-type TypeAuthV2Mock struct {
+type AuthenticatorMock struct {
 	mock.Mock
 }
 
-// mocked authorize function which returns mocked response
-func (auth *TypeAuthV2Mock) Authorize() (*http.Response, *clientcredentials.ClientCredential, error) {
+func (auth *AuthenticatorMock) Authorize() (string, error) {
 	args := auth.Called()
-	return args.Get(0).(*http.Response), args.Get(1).(*clientcredentials.ClientCredential), args.Error(2)
+	return args.Get(0).(string), args.Error(1)
 }
 
-func TestCreateSessionLoginToken(t *testing.T) {
+func (auth *AuthenticatorMock) ReAuthorize() (string, error) {
+	args := auth.Called()
+	return args.Get(0).(string), args.Error(1)
+}
+
+type TestIns struct {
+	mockRequest *SessionLoginTokenRequest
+}
+
+type TestMocks struct {
+	authMockErr           error
+	authMockStatusCode    int
+	appMockPayload        interface{}
+	appMockStatusCodeResp int
+	tokenExpiredError     error
+	tokenRefreshError     error
+	mockResponse          *SessionLoginToken
+	mockStatusCodeResp    int
+}
+
+type ExpectedOuts struct {
+	expectedErrorMsg     string
+	expectedSessionToken string
+	expectedStateToken   string
+	expectedStatusCode   int
+}
+
+func MockServer(mocks *TestMocks) *httptest.Server {
+	// set up the mock server
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if mocks.tokenExpiredError != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			mocks.tokenExpiredError = nil
+		} else {
+			w.WriteHeader(mocks.mockStatusCodeResp)
+			if mocks.mockResponse != nil {
+				body, _ := json.Marshal(mocks.mockResponse)
+				w.Write(body)
+			}
+		}
+	}))
+	return ts
+}
+
+func MockAuthenticator(mocks TestMocks) *AuthenticatorMock {
+	mockedObj := &AuthenticatorMock{}
+	mockedObj.On("Authorize", mock.Anything).Return("accessToken", mocks.authMockErr)
+	if mocks.tokenExpiredError != nil {
+		mockedObj.On("ReAuthorize", mock.Anything).Return("accessToken", mocks.tokenRefreshError)
+	}
+	return mockedObj
+}
+
+func TestCreate(t *testing.T) {
 	tests := map[string]struct {
-		authMockAuthToken    string
-		authMockErr          error
-		authMockStatusCode   int
-		mockRequest          *SessionLoginTokenRequest
-		mockResponse         *SessionLoginToken
-		mockStatusCodeResp   int
-		isErrExpected        bool
-		expectedErrorMsg     string
-		expectedSessionToken string
-		expectedStateToken   string
-		expectedStatusCode   int
+		Ins   TestIns
+		Mocks TestMocks
+		Outs  ExpectedOuts
 	}{
-		"auth returns access token and successful response": {
-			authMockAuthToken:  "testAuthToken",
-			authMockErr:        nil,
-			authMockStatusCode: http.StatusOK,
-			mockRequest: &SessionLoginTokenRequest{
-				UsernameOrEmail: oltypes.String("test"),
-				Password:        oltypes.String("test"),
-				Subdomain:       oltypes.String("test"),
+		"If request is valid and user credentials are valid, it returns a session token": {
+			Ins: TestIns{
+				mockRequest: &SessionLoginTokenRequest{
+					UsernameOrEmail: oltypes.String("test"),
+					Password:        oltypes.String("test"),
+					Subdomain:       oltypes.String("test"),
+				},
 			},
-			mockResponse: &SessionLoginToken{
-				SessionToken: oltypes.String("test"),
-				ReturnToURL:  oltypes.String("test"),
-				StateToken:   oltypes.String("test"),
+			Mocks: TestMocks{
+				authMockStatusCode: http.StatusOK,
+				mockStatusCodeResp: http.StatusCreated,
+				mockResponse: &SessionLoginToken{
+					ReturnToURL:  oltypes.String("http://test.com"),
+					SessionToken: oltypes.String("test"),
+					StateToken:   oltypes.String("test"),
+				},
 			},
-			mockStatusCodeResp:   http.StatusCreated,
-			isErrExpected:        false,
-			expectedErrorMsg:     "",
-			expectedSessionToken: "test",
-			expectedStateToken:   "test",
-			expectedStatusCode:   http.StatusCreated,
+			Outs: ExpectedOuts{
+				expectedSessionToken: "test",
+				expectedStateToken:   "test",
+				expectedStatusCode:   http.StatusCreated,
+			},
 		},
-		"auth returns 401 status code": {
-			authMockAuthToken:  "testAuthToken",
-			authMockErr:        errors.New("test"),
-			authMockStatusCode: http.StatusUnauthorized,
-			mockRequest: &SessionLoginTokenRequest{
-				UsernameOrEmail: oltypes.String("bad_guy"),
-				Password:        oltypes.String("bad_guy"),
-				Subdomain:       oltypes.String("bad_guy"),
+		"An unauthorized request is given a 401 response": {
+			Ins: TestIns{
+				mockRequest: &SessionLoginTokenRequest{
+					UsernameOrEmail: oltypes.String("bad_guy"),
+					Password:        oltypes.String("bad_guy"),
+					Subdomain:       oltypes.String("bad_guy"),
+				},
 			},
-			mockStatusCodeResp: http.StatusBadRequest,
-			isErrExpected:      true,
-			expectedErrorMsg:   "request error: context: apps v2 service, status_code: [401], error_message: test",
+			Mocks: TestMocks{
+				authMockErr:        errors.New("test"),
+				mockStatusCodeResp: http.StatusBadRequest,
+				mockResponse: &SessionLoginToken{
+					ReturnToURL:  oltypes.String("http://test.com"),
+					SessionToken: oltypes.String("test"),
+					StateToken:   oltypes.String("test"),
+				},
+			},
+			Outs: ExpectedOuts{
+				expectedErrorMsg: "error: context: [Session Login Tokens v2 service], error_message: [test]",
+			},
 		},
-		"app api call returns a 400": {
-			authMockAuthToken:  "testAuthToken",
-			authMockErr:        nil,
-			authMockStatusCode: http.StatusOK,
-			mockRequest: &SessionLoginTokenRequest{
-				UsernameOrEmail: oltypes.String("test"),
-				Subdomain:       oltypes.String("test"),
+		"Invalid user credentials returns a 401 response": {
+			Ins: TestIns{
+				mockRequest: &SessionLoginTokenRequest{
+					UsernameOrEmail: oltypes.String("bad"),
+					Subdomain:       oltypes.String("bad"),
+				},
 			},
-			mockStatusCodeResp: http.StatusBadRequest,
-			isErrExpected:      true,
-			expectedErrorMsg:   "request error: context: apps v2 service, status_code: [400], error_message: Bad Request",
+			Mocks: TestMocks{
+				authMockStatusCode: http.StatusOK,
+				mockStatusCodeResp: http.StatusBadRequest,
+			},
+			Outs: ExpectedOuts{
+				expectedErrorMsg: "request error: context: Session Login Tokens v2 service, status_code: [400], error_message: Bad Request",
+			},
+		},
+		"expired access token re-auths and succeeds": {
+			Mocks: TestMocks{
+				tokenExpiredError: errors.New("expired"),
+				mockResponse: &SessionLoginToken{
+					ReturnToURL:  oltypes.String("http://test.com"),
+					SessionToken: oltypes.String("test"),
+					StateToken:   oltypes.String("test"),
+				},
+				mockStatusCodeResp: http.StatusOK,
+			},
+			Outs: ExpectedOuts{
+				expectedSessionToken: "test",
+				expectedStateToken:   "test",
+				expectedStatusCode:   http.StatusOK,
+			},
+		},
+		"expired access token re-auths and fails": {
+			Mocks: TestMocks{
+				tokenExpiredError:  errors.New("expired"),
+				tokenRefreshError:  errors.New("failed to renew access token"),
+				mockStatusCodeResp: http.StatusUnauthorized,
+			},
+			Outs: ExpectedOuts{
+				expectedErrorMsg:   "error: context: [Session Login Tokens v2 service], error_message: [failed to renew access token]",
+				expectedStatusCode: http.StatusUnauthorized,
+			},
 		},
 	}
-
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			// set up mock auth response
-			authOutput, _ := json.Marshal(&clientcredentials.ClientCredential{
-				AccessToken: oltypes.String(test.authMockAuthToken),
-			})
-
-			clientCredential := &http.Response{
-				StatusCode: test.authMockStatusCode,
-				Body:       ioutil.NopCloser(bytes.NewReader(authOutput)),
-			}
-
-			authErr := test.authMockErr
-
-			payloadRes := &clientcredentials.ClientCredential{
-				AccessToken: oltypes.String(test.authMockAuthToken),
-			}
-
-			// set up the mock server
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(test.mockStatusCodeResp)
-				if test.mockResponse != nil {
-					body, _ := json.Marshal(test.mockResponse)
-					w.Write(body)
-				}
-			}))
-
-			defer ts.Close()
-
-			client := &http.Client{
-				Timeout: time.Second * 5,
-			}
-
-			mockedObj := &TypeAuthV2Mock{}
-
-			mockedObj.On("Authorize", mock.Anything).Return(clientCredential, payloadRes, authErr)
-
-			sessionLoginToken := NewSessionLoginTokenV1(&SessionLoginTokenV1Config{
-				BaseURL: ts.URL,
+			client := &http.Client{Timeout: time.Second * 5}
+			mockedAuthenticator := MockAuthenticator(test.Mocks)
+			srv := MockServer(&test.Mocks)
+			defer srv.Close()
+			sessionLoginToken := New(&services.APIServiceConfig{
+				BaseURL: srv.URL,
 				Client:  client,
-				Auth:    mockedObj,
+				Auth:    mockedAuthenticator,
 			})
 
-			resultResp, resultPayload, resultErr := sessionLoginToken.CreateSessionLoginToken(test.mockRequest)
-
-			if test.isErrExpected {
+			resultResp, resultPayload, resultErr := sessionLoginToken.Create(test.Ins.mockRequest)
+			if test.Outs.expectedErrorMsg != "" {
 				assert.NotNil(t, resultErr)
-				assert.Equal(t, test.expectedErrorMsg, resultErr.Error())
+				assert.Equal(t, test.Outs.expectedErrorMsg, resultErr.Error())
 			} else {
 				assert.Nil(t, resultErr)
-				assert.Equal(t, test.expectedStatusCode, resultResp.StatusCode)
-
+				assert.Equal(t, test.Outs.expectedStatusCode, resultResp.StatusCode)
+				fmt.Println("RES", resultPayload, resultErr)
 				resultSessionToken, _ := oltypes.GetStringVal(resultPayload.SessionToken)
 				resultStateToken, _ := oltypes.GetStringVal(resultPayload.StateToken)
-
-				assert.Equal(t, test.expectedSessionToken, resultSessionToken)
-				assert.Equal(t, test.expectedStateToken, resultStateToken)
-				assert.Nil(t, resultErr)
+				assert.Equal(t, test.Outs.expectedSessionToken, resultSessionToken)
+				assert.Equal(t, test.Outs.expectedStateToken, resultStateToken)
 			}
-
-			// make sure the mocked function was called
-			mockedObj.AssertExpectations(t)
 		})
 	}
 }

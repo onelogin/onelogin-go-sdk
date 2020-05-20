@@ -52,4 +52,5 @@ type APIServiceConfig struct {
 
 type AuthServiceConfig struct {
 	ClientID, ClientSecret, BaseURL string
+	Client                          *http.Client
 }

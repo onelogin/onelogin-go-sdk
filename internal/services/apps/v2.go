@@ -13,22 +13,22 @@ import (
 
 const errAppsV2Context = "apps v2 service"
 
-type AppV2Service struct {
+type V2Service struct {
 	Endpoint, ErrorContext string
 	Config                 services.APIServiceConfig
 	Auth                   services.Authenticator
 }
 
 // New creates the new svc service v2.
-func New(cfg *services.APIServiceConfig) AppV2Service {
-	return AppV2Service{
+func New(cfg *services.APIServiceConfig) V2Service {
+	return V2Service{
 		Endpoint:     fmt.Sprintf("%s/api/2/svc", cfg.BaseURL),
 		Config:       *cfg,
 		ErrorContext: errAppsV2Context,
 	}
 }
 
-func (svc *AppV2Service) Query(query *AppsQuery) (*http.Response, []App, error) {
+func (svc *V2Service) Query(query *AppsQuery) (*http.Response, []App, error) {
 	accessToken, err := svc.Config.Auth.Authorize()
 	if err != nil {
 		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
@@ -90,7 +90,7 @@ func (svc *AppV2Service) Query(query *AppsQuery) (*http.Response, []App, error) 
 
 // GetAppByID retrieves the app by id, and if successful, it returns
 // the http response and the pointer to the app.
-func (svc *AppV2Service) GetOne(id int32) (*http.Response, *App, error) {
+func (svc *V2Service) GetOne(id int32) (*http.Response, *App, error) {
 	accessToken, err := svc.Config.Auth.Authorize()
 	if err != nil {
 		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
@@ -136,7 +136,7 @@ func (svc *AppV2Service) GetOne(id int32) (*http.Response, *App, error) {
 
 // CreateApp creates a new app, and if successful, it returns
 // the http response and the pointer to the app.
-func (svc *AppV2Service) Create(app *App) (*http.Response, *App, error) {
+func (svc *V2Service) Create(app *App) (*http.Response, *App, error) {
 	accessToken, err := svc.Config.Auth.Authorize()
 	if err != nil {
 		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
@@ -182,7 +182,7 @@ func (svc *AppV2Service) Create(app *App) (*http.Response, *App, error) {
 
 // UpdateAppByID updates an existing app, and if successful, it returns
 // the http response and the pointer to the updated app.
-func (svc *AppV2Service) Update(id int32, app *App) (*http.Response, *App, error) {
+func (svc *V2Service) Update(id int32, app *App) (*http.Response, *App, error) {
 	accessToken, err := svc.Config.Auth.Authorize()
 	if err != nil {
 		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
@@ -236,7 +236,7 @@ func (svc *AppV2Service) Update(id int32, app *App) (*http.Response, *App, error
 
 // DeleteApp deletes the app for the id, and if successful, it returns
 // the http response.
-func (svc *AppV2Service) Destroy(id int32) (*http.Response, error) {
+func (svc *V2Service) Destroy(id int32) (*http.Response, error) {
 	accessToken, err := svc.Config.Auth.Authorize()
 	if err != nil {
 		return nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)

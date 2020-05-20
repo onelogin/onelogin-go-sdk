@@ -37,7 +37,6 @@ type TestIns struct {
 
 type TestMocks struct {
 	authMockErr           error
-	authMockStatusCode    int
 	appMockPayload        interface{}
 	appMockStatusCodeResp int
 	tokenExpiredError     error
@@ -111,7 +110,6 @@ func TestQuery(t *testing.T) {
 				queryRequestMock: &AppsQuery{},
 			},
 			Mocks: TestMocks{
-				authMockStatusCode: http.StatusOK,
 				appMockPayload: []App{
 					App{
 						ID:          oltypes.Int32(1234),
@@ -222,7 +220,6 @@ func TestGetOne(t *testing.T) {
 			Ins: TestIns{},
 			Mocks: TestMocks{
 				authMockErr:           errors.New("test"),
-				authMockStatusCode:    http.StatusUnauthorized,
 				appMockStatusCodeResp: http.StatusUnauthorized,
 			},
 			Outs: ExpectedOuts{
@@ -390,7 +387,6 @@ func TestCreateApp(t *testing.T) {
 			},
 			Mocks: TestMocks{
 				authMockErr:           errors.New("test"),
-				authMockStatusCode:    http.StatusUnauthorized,
 				appMockStatusCodeResp: http.StatusUnauthorized,
 			},
 			Outs: ExpectedOuts{
@@ -429,7 +425,6 @@ func TestCreateApp(t *testing.T) {
 		},
 		"expired access token re-auths and fails": {
 			Mocks: TestMocks{
-				authMockStatusCode:    http.StatusUnauthorized,
 				tokenExpiredError:     errors.New("expired"),
 				tokenRefreshError:     errors.New("failed to renew access token"),
 				appMockStatusCodeResp: http.StatusUnauthorized,
@@ -553,7 +548,6 @@ func TestUpdateApp(t *testing.T) {
 		},
 		"expired access token re-auths and fails": {
 			Mocks: TestMocks{
-				authMockStatusCode:    http.StatusUnauthorized,
 				tokenExpiredError:     errors.New("expired"),
 				tokenRefreshError:     errors.New("failed to renew access token"),
 				appMockStatusCodeResp: http.StatusUnauthorized,

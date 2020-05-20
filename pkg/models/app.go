@@ -29,6 +29,7 @@ type App struct {
 	Provisioning       *AppProvisioning         `json:"provisioning"`
 	Sso                *AppSso                  `json:"sso"`
 	Configuration      *AppConfiguration        `json:"configuration"`
+	Rules              []AppRule                `json:"rules"`
 	Parameters         map[string]AppParameters `json:"parameters"`
 	RoleIDs            []int                    `json:"role_ids"`
 }

@@ -40,6 +40,36 @@ func NewAppsV2(cfg *AppsV2Config) *AppsV2 {
 	}
 }
 
+func (apps *AppsV2) GetAppRules(appId int32) (*http.Response, []models.AppRule, error) {
+	respAuth, authResp, err := Authorize(apps.Auth)
+
+	if authResErr := customerrors.ReqErrorWrapper(respAuth, apps.ErrorContext, err); authResErr != nil {
+		return nil, nil, authResErr
+	}
+
+	accessToken, isValid := oltypes.GetStringVal(authResp.AccessToken)
+
+	if !isValid {
+		return nil, nil, customerrors.OneloginErrorWrapper(apps.ErrorContext, ErrValueMissing)
+	}
+
+	headers := map[string]string{
+		"Content-type":  "application/json",
+		"Authorization": "Bearer " + accessToken,
+	}
+
+	req, err := setUpRequest(apps.BaseURL, http.MethodGet, headers, nil)
+
+	if err = customerrors.OneloginErrorWrapper(apps.ErrorContext, err); err != nil {
+		return nil, nil, err
+	}
+	resp, err := apps.client.Do(req)
+	if err != nil {
+		return nil, []models.AppRule{}, nil
+	}
+	return resp, []models.AppRule{}, nil
+}
+
 func (apps *AppsV2) GetApps(query *models.AppsQuery) (*http.Response, []models.App, error) {
 	respAuth, authResp, err := Authorize(apps.Auth)
 

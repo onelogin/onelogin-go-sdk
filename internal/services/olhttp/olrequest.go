@@ -34,7 +34,6 @@ func NewOneloginRequest(url string, method string, headers map[string]string, pa
 
 	var req *http.Request
 	var reqErr error
-
 	// add payload if put or post
 	if (methodToUse == http.MethodPost || methodToUse == http.MethodPut) && payload != nil {
 		bodyToSend, marshErr := json.Marshal(payload)

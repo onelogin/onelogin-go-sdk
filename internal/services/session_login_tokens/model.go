@@ -1,4 +1,4 @@
-package models
+package sessionlogintokens
 
 import "time"
 

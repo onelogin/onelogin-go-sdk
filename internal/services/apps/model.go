@@ -1,6 +1,15 @@
-package models
+package apps
 
 import "time"
+
+type AppsQuery struct {
+	Limit       *string
+	Page        *string
+	Name        *string
+	ConnectorID *string
+	AuthMethod  *string
+	Cursor      *string
+}
 
 // App is the contract for apps api v2.
 type App struct {
@@ -22,15 +31,6 @@ type App struct {
 	Configuration      *AppConfiguration        `json:"configuration"`
 	Parameters         map[string]AppParameters `json:"parameters"`
 	RoleIDs            []int                    `json:"role_ids"`
-}
-
-type AppsQuery struct {
-	Limit       string
-	Page        string
-	Name        string
-	ConnectorID string
-	AuthMethod  string
-	Cursor      string
 }
 
 // AppProvisioning is the contract for provisioning.

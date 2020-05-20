@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/services"
+	"github.com/onelogin/onelogin-go-sdk/internal/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/internal/services/client_credentials"
 )
 
 // APIClient is used to communicate with the available api services.
@@ -13,7 +15,6 @@ type APIClient struct {
 	clientID     string
 	clientSecret string
 	region       string
-	token        string
 	baseURL      string
 	client       *http.Client
 	Services     *Services
@@ -21,9 +22,9 @@ type APIClient struct {
 
 // Services contains all the available api services.
 type Services struct {
-	AppsV2               *services.AppsV2
-	AuthV2               *services.AuthV2
-	SessionLoginTokensV1 *services.SessionLoginTokenV1
+	AppsV2 services.CRUD
+	AuthV2 services.Creator
+	// SessionLoginTokensV1 *services.Creator
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -38,24 +39,22 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		Timeout: time.Second * time.Duration(cfg.Timeout),
 	}
 
-	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
+	authV2Service := clientcredentials.New(&services.AuthServiceConfig{
 		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
 		BaseURL:      cfg.Url,
-		Client:       httpClient,
+		// Client:       httpClient,
 	})
 
-	appV2Service := services.NewAppsV2(&services.AppsV2Config{
+	apiServiceConfig := services.APIServiceConfig{
 		BaseURL: cfg.Url,
 		Client:  httpClient,
 		Auth:    authV2Service,
-	})
+	}
 
-	sessionLoginTokenV1Service := services.NewSessionLoginTokenV1(&services.SessionLoginTokenV1Config{
-		BaseURL: cfg.Url,
-		Client:  httpClient,
-		Auth:    authV2Service,
-	})
+	appV2Service := apps.New(&apiServiceConfig)
+
+	// sessionLoginTokenV1Service := sessionlogintokens.New(&apiServiceConfig)
 
 	return &APIClient{
 		clientID:     cfg.ClientID,
@@ -64,9 +63,9 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		baseURL:      cfg.Url,
 		client:       httpClient,
 		Services: &Services{
-			AppsV2:               appV2Service,
-			AuthV2:               authV2Service,
-			SessionLoginTokensV1: sessionLoginTokenV1Service,
+			AppsV2: appV2Service,
+			AuthV2: authV2Service,
+			// SessionLoginTokensV1: sessionLoginTokenV1Service,
 		},
 	}, nil
 }

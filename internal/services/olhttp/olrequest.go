@@ -1,4 +1,4 @@
-package services
+package olhttp
 
 import (
 	"bytes"
@@ -10,13 +10,9 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 )
 
-const (
-	olRequestContext = "ol request"
-)
+const olRequestContext = "ol request"
 
-var (
-	errInvalidRequestInput = errors.New("Invalid input for request creation")
-)
+var errInvalidRequestInput = errors.New("Invalid input for request creation")
 
 // allowed http methods
 var allowedMethods = map[string]string{
@@ -26,9 +22,9 @@ var allowedMethods = map[string]string{
 	http.MethodDelete: http.MethodDelete,
 }
 
-// setUpRequest sets up the http request with url, method, headers, and the payload, if one is needed. If successful, it returns
+// NewOneloginRequest sets up the http request with url, method, headers, and the payload, if one is needed. If successful, it returns
 // the http request.
-func setUpRequest(url string, method string, headers map[string]string, payload interface{}) (*http.Request, error) {
+func NewOneloginRequest(url string, method string, headers map[string]string, payload interface{}) (*http.Request, error) {
 	methodToUse := strings.ToUpper(method)
 
 	// make sure that the method is valid and allowed

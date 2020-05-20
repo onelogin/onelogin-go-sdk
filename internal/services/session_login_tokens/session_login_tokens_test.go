@@ -1,4 +1,4 @@
-package services
+package sessionlogintokens
 
 import (
 	"bytes"
@@ -10,19 +10,30 @@ import (
 	"testing"
 	"time"
 
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
+	"github.com/onelogin/onelogin-go-sdk/internal/services/client_credentials"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+type TypeAuthV2Mock struct {
+	mock.Mock
+}
+
+// mocked authorize function which returns mocked response
+func (auth *TypeAuthV2Mock) Authorize() (*http.Response, *clientcredentials.ClientCredential, error) {
+	args := auth.Called()
+	return args.Get(0).(*http.Response), args.Get(1).(*clientcredentials.ClientCredential), args.Error(2)
+}
 
 func TestCreateSessionLoginToken(t *testing.T) {
 	tests := map[string]struct {
 		authMockAuthToken    string
 		authMockErr          error
 		authMockStatusCode   int
-		mockRequest          *models.SessionLoginTokenRequest
-		mockResponse         *models.SessionLoginToken
+		mockRequest          *SessionLoginTokenRequest
+		mockResponse         *SessionLoginToken
 		mockStatusCodeResp   int
 		isErrExpected        bool
 		expectedErrorMsg     string
@@ -34,12 +45,12 @@ func TestCreateSessionLoginToken(t *testing.T) {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        nil,
 			authMockStatusCode: http.StatusOK,
-			mockRequest: &models.SessionLoginTokenRequest{
+			mockRequest: &SessionLoginTokenRequest{
 				UsernameOrEmail: oltypes.String("test"),
 				Password:        oltypes.String("test"),
 				Subdomain:       oltypes.String("test"),
 			},
-			mockResponse: &models.SessionLoginToken{
+			mockResponse: &SessionLoginToken{
 				SessionToken: oltypes.String("test"),
 				ReturnToURL:  oltypes.String("test"),
 				StateToken:   oltypes.String("test"),
@@ -55,7 +66,7 @@ func TestCreateSessionLoginToken(t *testing.T) {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        errors.New("test"),
 			authMockStatusCode: http.StatusUnauthorized,
-			mockRequest: &models.SessionLoginTokenRequest{
+			mockRequest: &SessionLoginTokenRequest{
 				UsernameOrEmail: oltypes.String("bad_guy"),
 				Password:        oltypes.String("bad_guy"),
 				Subdomain:       oltypes.String("bad_guy"),
@@ -68,7 +79,7 @@ func TestCreateSessionLoginToken(t *testing.T) {
 			authMockAuthToken:  "testAuthToken",
 			authMockErr:        nil,
 			authMockStatusCode: http.StatusOK,
-			mockRequest: &models.SessionLoginTokenRequest{
+			mockRequest: &SessionLoginTokenRequest{
 				UsernameOrEmail: oltypes.String("test"),
 				Subdomain:       oltypes.String("test"),
 			},
@@ -81,18 +92,18 @@ func TestCreateSessionLoginToken(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			// set up mock auth response
-			authOutput, _ := json.Marshal(&models.AuthResp{
+			authOutput, _ := json.Marshal(&clientcredentials.ClientCredential{
 				AccessToken: oltypes.String(test.authMockAuthToken),
 			})
 
-			authResp := &http.Response{
+			clientCredential := &http.Response{
 				StatusCode: test.authMockStatusCode,
 				Body:       ioutil.NopCloser(bytes.NewReader(authOutput)),
 			}
 
 			authErr := test.authMockErr
 
-			payloadRes := &models.AuthResp{
+			payloadRes := &clientcredentials.ClientCredential{
 				AccessToken: oltypes.String(test.authMockAuthToken),
 			}
 
@@ -113,7 +124,7 @@ func TestCreateSessionLoginToken(t *testing.T) {
 
 			mockedObj := &TypeAuthV2Mock{}
 
-			mockedObj.On("Authorize", mock.Anything).Return(authResp, payloadRes, authErr)
+			mockedObj.On("Authorize", mock.Anything).Return(clientCredential, payloadRes, authErr)
 
 			sessionLoginToken := NewSessionLoginTokenV1(&SessionLoginTokenV1Config{
 				BaseURL: ts.URL,

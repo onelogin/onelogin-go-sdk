@@ -1,4 +1,4 @@
-package services
+package clientcredentials
 
 import (
 	"encoding/json"
@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-
-	"github.com/onelogin/onelogin-go-sdk/pkg/models"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +19,7 @@ func TestAuthorize(t *testing.T) {
 
 	expectedAccessTokenFor1 := "test"
 	expectedStatusCodeFor1 := http.StatusOK
-	mockedResponse1, _ := json.Marshal(models.AuthResp{
+	mockedResponse1, _ := json.Marshal(ClientCredential{
 		AccessToken: oltypes.String(expectedAccessTokenFor1),
 	})
 
@@ -82,7 +80,7 @@ func TestAuthorize(t *testing.T) {
 
 			auth := NewAuthV2(cfg)
 
-			resp, body, err := auth.Authorize()
+			resp, body, err := auth.Create()
 
 			// check errors
 			if test.isErrResExpected {
@@ -97,7 +95,7 @@ func TestAuthorize(t *testing.T) {
 				assert.NotNil(t, resp)
 
 				if test.isRespPayloadCompNeeded {
-					val, isValid := oltypes.GetStringVal(body.AccessToken)
+					val, isValid := oltypes.GetStringVal(body.(ClientCredential).AccessToken)
 
 					assert.True(t, isValid)
 					assert.Equal(t, test.expectedAccessToken, val)

@@ -60,7 +60,16 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 	return data, err
 }
 
-// Read retrieves a resource from remote over HTTP
+// Read retrieves a resource from remote over HTTP. If a payload is supplied as part of the
+// request, it will be sent as query parameters to the HTTP service. If no parameters are given,
+// the Read method will pull all the resources out of the remote store. The Read method will
+// pull all resources from the remote up to the 'limit' if one is given, up to the remote's
+// per-response limit if the remote is not using pagination or all resources using pagination
+
+// This assumes pagination is implemented using a After-Cursor response header and the Read method
+// will use this until the remote stops responding with the After-Cursor header, indicating we have
+// run out of pages. This is not to be confused with the Cursor header which can be set by the
+// caller in the request to Read which will offset the remote query starting at that page.
 func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	resourceRequest := r.(OLHTTPRequest)
 	req, reqErr := http.NewRequest(http.MethodGet, resourceRequest.URL, nil)

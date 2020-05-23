@@ -10,6 +10,7 @@ import (
 
 const errAppsV2Context = "apps v2 service"
 
+// V2Service holds the information needed to interface with a repository
 type V2Service struct {
 	Endpoint, ErrorContext string
 	Repository             services.Repository
@@ -24,6 +25,8 @@ func New(repo services.Repository, host string) V2Service {
 	}
 }
 
+// Query retrieves all the apps from the repository that meet the query criteria passed in the
+// request payload. If an empty payload is given, it will retrieve all apps
 func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
@@ -42,7 +45,7 @@ func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 	return apps, nil
 }
 
-// GetAppByID retrieves the app by id, and if successful, it returns
+// GetOne retrieves the app by id, and if successful, it returns
 // the http response and the pointer to the app.
 func (svc *V2Service) GetOne(id int32) (*App, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
@@ -61,7 +64,7 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	return &app, nil
 }
 
-// CreateApp creates a new app, and if successful, it returns
+// Create creates a new app, and if successful, it returns
 // the http response and the pointer to the app.
 func (svc *V2Service) Create(app *App) (*App, error) {
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
@@ -80,7 +83,7 @@ func (svc *V2Service) Create(app *App) (*App, error) {
 	return &newApp, nil
 }
 
-// UpdateAppByID updates an existing app, and if successful, it returns
+// Update updates an existing app, and if successful, it returns
 // the http response and the pointer to the updated app.
 func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
@@ -100,8 +103,7 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 	return &updatedApp, nil
 }
 
-// DeleteApp deletes the app for the id, and if successful, it returns
-// the http response.
+// Destroy deletes the app for the id, and if successful, it returns nil
 func (svc *V2Service) Destroy(id int32) error {
 	_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),

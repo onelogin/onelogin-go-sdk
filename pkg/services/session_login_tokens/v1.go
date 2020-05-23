@@ -16,7 +16,7 @@ type V1Service struct {
 	Repository             services.Repository
 }
 
-// NewSessionLoginTokenV1 creates the new apps service v2.
+// New creates the new apps service v2.
 func New(repo services.Repository, host string) V1Service {
 	return V1Service{
 		Endpoint:     fmt.Sprintf("%s/api/1/login/auth", host),
@@ -25,7 +25,7 @@ func New(repo services.Repository, host string) V1Service {
 	}
 }
 
-// CreateSessionLoginToken takes a SessionLoginToken request that represents an end-user's credentials
+// Create takes a SessionLoginToken request that represents an end-user's credentials
 // and returns a Session Token that represents an authenticated session
 func (svc *V1Service) Create(request *SessionLoginTokenRequest) (*SessionLoginToken, error) {
 

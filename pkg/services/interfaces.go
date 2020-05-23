@@ -2,12 +2,9 @@ package services
 
 import "net/http"
 
-// Authenticator is an interface.
-type Authenticator interface {
-	Authorize() (string, error)
-	ReAuthorize() (string, error)
-}
-
+// Repository is a thing that stores and retireves data using these methods. This
+// could represent a HTTP backend service or a local database or file where business
+// entities live such as apps or users
 type Repository interface {
 	Create(r interface{}) ([]byte, error)
 	Read(r interface{}) ([]byte, error)
@@ -15,14 +12,13 @@ type Repository interface {
 	Destroy(r interface{}) ([]byte, error)
 }
 
+// HTTPClient is a thing that implements the Do method. This enables mocking a
+// HTTPService's Client for testing
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type ResourceServiceConfig struct {
-	Repository Repository
-}
-
+// HTTPServiceConfig Represents configuration information needed to work with an authenticated HTTP remote service
 type HTTPServiceConfig struct {
 	ClientID, ClientSecret, BaseURL string
 	Client                          HTTPClient

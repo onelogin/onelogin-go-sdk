@@ -42,6 +42,24 @@ func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 	if err = json.Unmarshal(resp, &apps); err != nil {
 		return nil, err
 	}
+
+	for _, app := range apps {
+		resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, app.ID),
+			Headers:    map[string]string{"Content-Type": "application/json"},
+			AuthMethod: "bearer",
+			Payload:    query,
+		})
+		if err != nil {
+			return nil, err
+		}
+		var rules []AppRule
+		if err = json.Unmarshal(resp, &rules); err != nil {
+			return nil, err
+		}
+		app.Rules = rules
+	}
+
 	return apps, nil
 }
 

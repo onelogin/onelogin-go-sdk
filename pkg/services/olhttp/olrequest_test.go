@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
@@ -46,10 +47,18 @@ func authPassThrough() (*http.Response, error) {
 	r := ioutil.NopCloser(bytes.NewReader([]byte(json)))
 	return &http.Response{StatusCode: 200, Body: r}, nil
 }
+func authFailThrough() (*http.Response, error) {
+	json := `{"type":"Unauthorized"}`
+	r := ioutil.NopCloser(bytes.NewReader([]byte(json)))
+	return &http.Response{StatusCode: 401, Body: r}, nil
+}
 
 // just query for the first one
-func getOneByID() TestResource {
-	return available[0]
+func getOneByID(id int) (*http.Response, error) {
+	resource := available[id]
+	out, _ := json.Marshal(resource)
+	r := ioutil.NopCloser(bytes.NewReader([]byte(out)))
+	return &http.Response{StatusCode: 200, Body: r}, nil
 }
 
 // get n items starting at offset o
@@ -162,14 +171,12 @@ func TestRead(t *testing.T) {
 						if req.URL.Path == "/auth/oauth2/v2/token" {
 							return authPassThrough()
 						}
-
-						if req.URL.Path == "test.com/test_resources/0" {
-							resource := getOneByID()
-							out, _ := json.Marshal(resource)
-							r := ioutil.NopCloser(bytes.NewReader([]byte(out)))
-							return &http.Response{StatusCode: 200, Body: r}, nil
+						parts := strings.Split(req.URL.Path, "/")
+						idstr := parts[len(parts)-1]
+						id, err := strconv.Atoi(idstr)
+						if err == nil {
+							return getOneByID(id)
 						}
-
 						tpl := test.resourceRequest.Payload.(TestResourceQuery)
 						if tpl.Limit != "" {
 							n, _ := strconv.Atoi(tpl.Limit)
@@ -308,11 +315,14 @@ func TestDestroy(t *testing.T) {
 
 func TestExecuteHTTP(t *testing.T) {
 	tests := map[string]struct {
-		resourceRequest OLHTTPRequest
-		expectedError   error
-		expectedOut     TestResource
-		staleToken      bool
-		badCredential   bool
+		resourceRequest  OLHTTPRequest
+		expectedError    error
+		expectedOut      TestResource
+		badRequest       bool
+		serviceDown      bool
+		staleToken       bool
+		refreshTokenFail bool
+		badCredential    bool
 	}{
 		"attempts the request": {
 			resourceRequest: OLHTTPRequest{AuthMethod: "bearer", URL: "test.com/test_resources/1"},
@@ -320,15 +330,35 @@ func TestExecuteHTTP(t *testing.T) {
 			expectedOut:     TestResource{Name: "name", ID: "1"},
 		},
 		"attempts bearer token refresh and retries the http request if auth fails and auth method is bearer token": {
-			resourceRequest: OLHTTPRequest{AuthMethod: "bearer", URL: "test.com/test_resources/1"},
-			staleToken:      true,
-			expectedOut:     TestResource{Name: "name", ID: "1"},
+			resourceRequest:  OLHTTPRequest{AuthMethod: "bearer", URL: "test.com/test_resources/1"},
+			staleToken:       true,
+			refreshTokenFail: false,
+			expectedOut:      TestResource{Name: "name", ID: "1"},
+		},
+		"failed bearer token refresh gives unauthorized error": {
+			resourceRequest:  OLHTTPRequest{AuthMethod: "bearer", URL: "test.com/test_resources/1"},
+			staleToken:       true,
+			refreshTokenFail: true,
+			expectedOut:      TestResource{},
+			expectedError:    customerrors.OneloginErrorWrapper("ol http service", errors.New("unauthorized")),
 		},
 		"unauthorized api request returns an error": {
 			resourceRequest: OLHTTPRequest{AuthMethod: "basic", URL: "test.com/test_resources/1"},
 			badCredential:   true,
 			expectedOut:     TestResource{},
-			expectedError:   customerrors.OneloginErrorWrapper("ol request", errors.New("unauthorized")),
+			expectedError:   customerrors.OneloginErrorWrapper("ol http service", errors.New("unauthorized")),
+		},
+		"bad api request returns an error": {
+			resourceRequest: OLHTTPRequest{AuthMethod: "basic", URL: "test.com/test_resources/1"},
+			badRequest:      true,
+			expectedOut:     TestResource{},
+			expectedError:   customerrors.OneloginErrorWrapper("ol http service", errors.New("bad request")),
+		},
+		"service down returns an error": {
+			resourceRequest: OLHTTPRequest{AuthMethod: "basic", URL: "test.com/test_resources/1"},
+			serviceDown:     true,
+			expectedOut:     TestResource{},
+			expectedError:   customerrors.OneloginErrorWrapper("ol http service", errors.New("remote service down")),
 		},
 	}
 	for name, test := range tests {
@@ -337,16 +367,27 @@ func TestExecuteHTTP(t *testing.T) {
 				Client: MockClient{
 					DoFunc: func(req *http.Request) (*http.Response, error) {
 						if req.URL.Path == "/auth/oauth2/v2/token" {
+							if test.refreshTokenFail {
+								return authFailThrough()
+							}
 							return authPassThrough()
 						}
 						if test.staleToken {
-							test.staleToken = false
-							r := ioutil.NopCloser(bytes.NewReader([]byte(``)))
-							return &http.Response{StatusCode: 401, Body: r}, errors.New("unauthorized")
+							test.staleToken = test.refreshTokenFail
+							return authFailThrough()
 						}
 						if test.badCredential {
-							r := ioutil.NopCloser(bytes.NewReader([]byte(``)))
-							return &http.Response{StatusCode: 401, Body: r}, errors.New("unauthorized")
+							return authFailThrough()
+						}
+						if test.badRequest {
+							j, _ := json.Marshal(test.expectedOut)
+							r := ioutil.NopCloser(bytes.NewReader([]byte(j)))
+							return &http.Response{StatusCode: 400, Body: r}, nil
+						}
+						if test.serviceDown {
+							j, _ := json.Marshal(test.expectedOut)
+							r := ioutil.NopCloser(bytes.NewReader([]byte(j)))
+							return &http.Response{StatusCode: 500, Body: r}, nil
 						}
 						j, _ := json.Marshal(test.expectedOut)
 						r := ioutil.NopCloser(bytes.NewReader([]byte(j)))
@@ -451,65 +492,6 @@ func TestAttachHeaders(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			test.service.attachHeaders(test.req, test.olReq)
 			assert.Equal(t, test.expectedHeaders, test.req.Header)
-		})
-	}
-}
-
-func TestAuthorize(t *testing.T) {
-	tests := map[string]struct {
-		service, expectedServiceState OLHTTPService
-	}{
-		"it memoizes the access token on the service": {
-			service: OLHTTPService{
-				Config: services.HTTPServiceConfig{
-					Client: &MockClient{
-						DoFunc: func(*http.Request) (*http.Response, error) {
-							return authPassThrough()
-						},
-					},
-				},
-			},
-			expectedServiceState: OLHTTPService{
-				ClientCredential: ClientCredential{
-					AccessToken: oltypes.String("token"),
-				},
-			},
-		},
-	}
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			err := test.service.authorize()
-			assert.Nil(t, err)
-			assert.Equal(t, *test.expectedServiceState.ClientCredential.AccessToken, *test.service.ClientCredential.AccessToken)
-		})
-	}
-}
-
-func TestSetBearerToken(t *testing.T) {
-	tests := map[string]struct {
-		service, expectedServiceState OLHTTPService
-	}{
-		"it memoizes the access token from the api on the service": {
-			service: OLHTTPService{
-				Config: services.HTTPServiceConfig{
-					Client: &MockClient{
-						DoFunc: func(*http.Request) (*http.Response, error) {
-							return authPassThrough()
-						},
-					},
-				},
-			},
-			expectedServiceState: OLHTTPService{
-				ClientCredential: ClientCredential{
-					AccessToken: oltypes.String("token"),
-				},
-			},
-		},
-	}
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			setBearerToken(&test.service)
-			assert.Equal(t, *test.expectedServiceState.ClientCredential.AccessToken, *test.service.ClientCredential.AccessToken)
 		})
 	}
 }

@@ -58,17 +58,17 @@ func TestQuery(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			svc := New(MockRepository{
 				DoFunc: func(r interface{}) ([]byte, error) {
-					available := map[string]App{
+					availableApps := map[string]App{
 						"name":  App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 						"name2": App{ID: oltypes.Int32(2), Name: oltypes.String("name2")},
 					}
 					var out []byte
 					if test.queryPayload.Limit == "1" {
-						out, _ = json.Marshal([]App{available["name"]})
+						out, _ = json.Marshal([]App{availableApps["name"]})
 						return out, nil
 					} else {
 						apps := []App{}
-						for n, a := range available {
+						for n, a := range availableApps {
 							if test.queryPayload.Name == n || test.queryPayload.Name == "" {
 								apps = append(apps, a)
 							}

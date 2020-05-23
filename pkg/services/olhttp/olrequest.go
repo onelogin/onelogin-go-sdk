@@ -14,7 +14,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 )
 
-const resourceRequestuestContext = "ol request"
+const resourceRequestuestContext = "ol http service"
 
 var errInvalidRequestInput = errors.New("Invalid input for request creation")
 
@@ -78,21 +78,9 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	}
 
 	if resourceRequest.Payload != nil {
-		params := req.URL.Query()
-		b, err := json.Marshal(resourceRequest.Payload)
-		if err != nil {
+		if err := attachQueryParameters(req, resourceRequest); err != nil {
 			return nil, err
 		}
-		var m map[string]string
-		if err = json.Unmarshal(b, &m); err != nil {
-			return nil, err
-		}
-		for k, v := range m {
-			if v != "" {
-				params.Add(utils.ToSnakeCase(k), v)
-			}
-		}
-		req.URL.RawQuery = params.Encode()
 	}
 
 	var (
@@ -161,6 +149,26 @@ func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
 	return data, err
 }
 
+// creates a http query string from the request payload
+func attachQueryParameters(req *http.Request, resourceRequest OLHTTPRequest) error {
+	params := req.URL.Query()
+	b, err := json.Marshal(resourceRequest.Payload)
+	if err != nil {
+		return err
+	}
+	var m map[string]string
+	if err = json.Unmarshal(b, &m); err != nil {
+		return err
+	}
+	for k, v := range m {
+		if v != "" {
+			params.Add(utils.ToSnakeCase(k), v)
+		}
+	}
+	req.URL.RawQuery = params.Encode()
+	return nil
+}
+
 // attaches http request headers supplied by caller and auth headers depending
 // on the request's auth type (e.g. bearer or basic)
 func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTTPRequest) error {
@@ -170,10 +178,14 @@ func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTT
 	}
 	switch strings.ToLower(resourceRequest.AuthMethod) {
 	case "bearer":
-		if err := svc.authorize(); err != nil {
-			return err
+		if (svc.ClientCredential == ClientCredential{}) {
+			if err := setBearerToken(svc); err != nil {
+				return err
+			}
 		}
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *svc.ClientCredential.AccessToken))
+		if svc.ClientCredential.AccessToken != nil {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *svc.ClientCredential.AccessToken))
+		}
 	case "basic":
 		req.SetBasicAuth(svc.Config.ClientID, svc.Config.ClientSecret)
 	default:
@@ -191,20 +203,29 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 	resp, err := svc.Config.Client.Do(req)
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 && resourceRequest.AuthMethod == "bearer" {
-		if err := setBearerToken(svc); err != nil {
+	switch resp.StatusCode {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		if resourceRequest.AuthMethod == "bearer" {
+			if err := setBearerToken(svc); err != nil {
+				return nil, nil, err
+			}
+			return svc.executeHTTP(req, resourceRequest)
+		}
+		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("unauthorized"))
+	case http.StatusBadRequest:
+		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("bad request"))
+	case http.StatusBadGateway, http.StatusInternalServerError, http.StatusServiceUnavailable:
+		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("remote service down"))
+	default:
+		if err != nil {
 			return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
 		}
-		return svc.executeHTTP(req, resourceRequest)
+		responseData, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
+		}
+		return resp, responseData, nil
 	}
-	if err != nil {
-		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
-	}
-	responseData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
-	}
-	return resp, responseData, nil
 }
 
 // requests a fresh access token
@@ -226,22 +247,12 @@ func (svc *OLHTTPService) mintBearerToken() (ClientCredential, error) {
 	return output, nil
 }
 
-// initializes the service's access token memoization
-func (svc *OLHTTPService) authorize() error {
-	if (svc.ClientCredential == ClientCredential{}) {
-		if err := setBearerToken(svc); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // force overwrite the service's memoized access token
 func setBearerToken(svc *OLHTTPService) error {
 	cred, err := svc.mintBearerToken()
+	svc.ClientCredential = cred
 	if err != nil {
 		return err
 	}
-	svc.ClientCredential = cred
 	return nil
 }

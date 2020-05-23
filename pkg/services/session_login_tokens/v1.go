@@ -39,6 +39,9 @@ func (svc *V1Service) Create(request *SessionLoginTokenRequest) (*SessionLoginTo
 		return nil, err
 	}
 	var newSessionToken SessionLoginToken
-	json.Unmarshal(resp, &newSessionToken)
+	err = json.Unmarshal(resp, &newSessionToken)
+	if err != nil {
+		return nil, err
+	}
 	return &newSessionToken, nil
 }

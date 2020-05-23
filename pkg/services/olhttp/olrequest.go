@@ -70,9 +70,14 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 
 	if resourceRequest.Payload != nil {
 		params := req.URL.Query()
-		b, _ := json.Marshal(resourceRequest.Payload)
+		b, err := json.Marshal(resourceRequest.Payload)
+		if err != nil {
+			return nil, err
+		}
 		var m map[string]string
-		json.Unmarshal(b, &m)
+		if err = json.Unmarshal(b, &m); err != nil {
+			return nil, err
+		}
 		for k, v := range m {
 			if v != "" {
 				params.Add(utils.ToSnakeCase(k), v)
@@ -89,8 +94,6 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
-	fmt.Println(req.URL.RawQuery)
-	fmt.Println(req.URL)
 	for {
 		allData = append(allData, data...)
 		next = resp.Header.Get("After-Cursor")
@@ -151,26 +154,31 @@ func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
 
 // attaches http request headers supplied by caller and auth headers depending
 // on the request's auth type (e.g. bearer or basic)
-func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTTPRequest) {
+func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTTPRequest) error {
 	// set headers
 	for key, val := range resourceRequest.Headers {
 		req.Header.Set(key, val)
 	}
 	switch strings.ToLower(resourceRequest.AuthMethod) {
 	case "bearer":
-		svc.authorize()
+		if err := svc.authorize(); err != nil {
+			return err
+		}
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *svc.ClientCredential.AccessToken))
 	case "basic":
 		req.SetBasicAuth(svc.Config.ClientID, svc.Config.ClientSecret)
 	default:
 		// no auth headers
 	}
+	return nil
 }
 
 // executes the http request, initiates retry on expired bearer tokens and returns the
 // response's byte array resource representation
 func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPRequest) (*http.Response, []byte, error) {
-	svc.attachHeaders(req, resourceRequest)
+	if err := svc.attachHeaders(req, resourceRequest); err != nil {
+		return nil, nil, err
+	}
 	resp, err := svc.Config.Client.Do(req)
 	defer resp.Body.Close()
 
@@ -203,7 +211,9 @@ func (svc *OLHTTPService) mintBearerToken() (ClientCredential, error) {
 	}
 
 	var output ClientCredential
-	json.Unmarshal(resp, &output)
+	if err = json.Unmarshal(resp, &output); err != nil {
+		return ClientCredential{}, err
+	}
 	return output, nil
 }
 

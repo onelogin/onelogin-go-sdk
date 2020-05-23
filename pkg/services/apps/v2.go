@@ -36,7 +36,9 @@ func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 	}
 
 	var apps []App
-	json.Unmarshal(resp, &apps)
+	if err = json.Unmarshal(resp, &apps); err != nil {
+		return nil, err
+	}
 	return apps, nil
 }
 
@@ -53,7 +55,9 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	}
 
 	var app App
-	json.Unmarshal(resp, &app)
+	if err = json.Unmarshal(resp, &app); err != nil {
+		return nil, err
+	}
 	return &app, nil
 }
 
@@ -70,7 +74,9 @@ func (svc *V2Service) Create(app *App) (*App, error) {
 		return nil, err
 	}
 	var newApp App
-	json.Unmarshal(resp, &newApp)
+	if err = json.Unmarshal(resp, &newApp); err != nil {
+		return nil, err
+	}
 	return &newApp, nil
 }
 
@@ -88,7 +94,9 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 	}
 
 	var updatedApp App
-	json.Unmarshal(resp, &updatedApp)
+	if err = json.Unmarshal(resp, &updatedApp); err != nil {
+		return nil, err
+	}
 	return &updatedApp, nil
 }
 

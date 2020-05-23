@@ -3,12 +3,12 @@ package apps
 import "time"
 
 type AppsQuery struct {
-	Limit       *string
-	Page        *string
-	Name        *string
-	ConnectorID *string
-	AuthMethod  *string
-	Cursor      *string
+	Limit       string
+	Page        string
+	Name        string
+	ConnectorID string
+	AuthMethod  string
+	Cursor      string
 }
 
 // App is the contract for apps api v2.
@@ -29,6 +29,7 @@ type App struct {
 	Provisioning       *AppProvisioning         `json:"provisioning"`
 	Sso                *AppSso                  `json:"sso"`
 	Configuration      *AppConfiguration        `json:"configuration"`
+	Rules              []AppRule                `json:"rules,omitempty"`
 	Parameters         map[string]AppParameters `json:"parameters"`
 	RoleIDs            []int                    `json:"role_ids"`
 }

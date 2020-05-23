@@ -1,4 +1,11 @@
-package clientcredentials
+package olhttp
+
+type OLHTTPRequest struct {
+	URL        string
+	AuthMethod string
+	Headers    map[string]string
+	Payload    interface{}
+}
 
 // AuthBody is the request payload for authorization.
 type AuthBody struct {

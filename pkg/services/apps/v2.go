@@ -81,13 +81,11 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	if err = json.Unmarshal(resp, &app); err != nil {
 		return nil, err
 	}
-
-	rulesRequest := olhttp.OLHTTPRequest{
+	resp, err = svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-	}
-	resp, err = svc.Repository.Read(rulesRequest)
+	})
 
 	if err != nil {
 		log.Println(err)
@@ -120,13 +118,12 @@ func (svc *V2Service) Create(app *App) (*App, error) {
 	}
 
 	for i := range app.Rules {
-		rulesRequest := olhttp.OLHTTPRequest{
+		resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
 			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *newApp.ID),
 			Headers:    map[string]string{"Content-Type": "application/json"},
 			AuthMethod: "bearer",
 			Payload:    app.Rules[i],
-		}
-		resp, err = svc.Repository.Create(rulesRequest)
+		})
 		if err != nil {
 			return &newApp, err
 		} else {
@@ -166,13 +163,12 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 	updatedApp.Rules = make([]AppRule, len(app.Rules))
 	for i := range app.Rules {
 		if app.Rules[i].ID != nil {
-			rulesRequest := olhttp.OLHTTPRequest{
+			resp, err = svc.Repository.Update(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, id, *app.Rules[i].ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
 				Payload:    app.Rules[i],
-			}
-			resp, err = svc.Repository.Update(rulesRequest)
+			})
 			if err != nil {
 				return &updatedApp, err
 			} else {
@@ -183,13 +179,12 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 				updatedApp.Rules[i] = app.Rules[i]
 			}
 		} else {
-			rulesRequest := olhttp.OLHTTPRequest{
+			resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, id),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
 				Payload:    app.Rules[i],
-			}
-			resp, err = svc.Repository.Create(rulesRequest)
+			})
 			if err != nil {
 				return &updatedApp, err
 			} else {

@@ -3,7 +3,9 @@ package apps
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -43,12 +45,11 @@ func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 		return nil, err
 	}
 
-	for _, app := range apps {
+	for i := range apps {
 		resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
-			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, app.ID),
+			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *apps[i].ID),
 			Headers:    map[string]string{"Content-Type": "application/json"},
 			AuthMethod: "bearer",
-			Payload:    query,
 		})
 		if err != nil {
 			return nil, err
@@ -57,7 +58,8 @@ func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 		if err = json.Unmarshal(resp, &rules); err != nil {
 			return nil, err
 		}
-		app.Rules = rules
+
+		apps[i].Rules = rules
 	}
 
 	return apps, nil
@@ -79,6 +81,24 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	if err = json.Unmarshal(resp, &app); err != nil {
 		return nil, err
 	}
+
+	rulesRequest := olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+	}
+	resp, err = svc.Repository.Read(rulesRequest)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	} else {
+		var rules []AppRule
+		if err = json.Unmarshal(resp, &rules); err != nil {
+			return nil, err
+		}
+		app.Rules = rules
+	}
 	return &app, nil
 }
 
@@ -98,8 +118,33 @@ func (svc *V2Service) Create(app *App) (*App, error) {
 	if err = json.Unmarshal(resp, &newApp); err != nil {
 		return nil, err
 	}
+
+	for i := range app.Rules {
+		rulesRequest := olhttp.OLHTTPRequest{
+			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *newApp.ID),
+			Headers:    map[string]string{"Content-Type": "application/json"},
+			AuthMethod: "bearer",
+			Payload:    app.Rules[i],
+		}
+		resp, err = svc.Repository.Create(rulesRequest)
+		if err != nil {
+			return &newApp, err
+		} else {
+			var ruleID map[string]int
+			if err = json.Unmarshal(resp, &ruleID); err != nil {
+				return &newApp, err
+			}
+
+			app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
+			newApp.Rules = append(newApp.Rules, app.Rules[i])
+		}
+	}
+
 	return &newApp, nil
 }
+
+// needs some remove from list logic
+// can we tee up all these requests and parallelize them?
 
 // Update updates an existing app, and if successful, it returns
 // the http response and the pointer to the updated app.
@@ -117,6 +162,45 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 	var updatedApp App
 	if err = json.Unmarshal(resp, &updatedApp); err != nil {
 		return nil, err
+	}
+	updatedApp.Rules = make([]AppRule, len(app.Rules))
+	for i := range app.Rules {
+		if app.Rules[i].ID != nil {
+			rulesRequest := olhttp.OLHTTPRequest{
+				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, id, *app.Rules[i].ID),
+				Headers:    map[string]string{"Content-Type": "application/json"},
+				AuthMethod: "bearer",
+				Payload:    app.Rules[i],
+			}
+			resp, err = svc.Repository.Update(rulesRequest)
+			if err != nil {
+				return &updatedApp, err
+			} else {
+				var ruleID map[string]int // response comes from api as {"id": 234}
+				if err = json.Unmarshal(resp, &ruleID); err != nil {
+					return &updatedApp, err
+				}
+				updatedApp.Rules[i] = app.Rules[i]
+			}
+		} else {
+			rulesRequest := olhttp.OLHTTPRequest{
+				URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, id),
+				Headers:    map[string]string{"Content-Type": "application/json"},
+				AuthMethod: "bearer",
+				Payload:    app.Rules[i],
+			}
+			resp, err = svc.Repository.Create(rulesRequest)
+			if err != nil {
+				return &updatedApp, err
+			} else {
+				var ruleID map[string]int // response comes from api as {"id": 234}
+				if err = json.Unmarshal(resp, &ruleID); err != nil {
+					return &updatedApp, err
+				}
+				app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
+				updatedApp.Rules[i] = app.Rules[i]
+			}
+		}
 	}
 	return &updatedApp, nil
 }

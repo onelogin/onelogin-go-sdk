@@ -339,26 +339,22 @@ func TestExecuteHTTP(t *testing.T) {
 			resourceRequest:  OLHTTPRequest{AuthMethod: "bearer", URL: "test.com/test_resources/1"},
 			staleToken:       true,
 			refreshTokenFail: true,
-			expectedOut:      TestResource{},
 			expectedError:    customerrors.OneloginErrorWrapper("ol http service", errors.New("unauthorized")),
 		},
 		"unauthorized api request returns an error": {
 			resourceRequest: OLHTTPRequest{AuthMethod: "basic", URL: "test.com/test_resources/1"},
 			badCredential:   true,
-			expectedOut:     TestResource{},
 			expectedError:   customerrors.OneloginErrorWrapper("ol http service", errors.New("unauthorized")),
 		},
 		"bad api request returns an error": {
 			resourceRequest: OLHTTPRequest{AuthMethod: "basic", URL: "test.com/test_resources/1"},
 			badRequest:      true,
-			expectedOut:     TestResource{},
 			expectedError:   customerrors.OneloginErrorWrapper("ol http service", errors.New("bad request")),
 		},
 		"service down returns an error": {
 			resourceRequest: OLHTTPRequest{AuthMethod: "basic", URL: "test.com/test_resources/1"},
 			serviceDown:     true,
-			expectedOut:     TestResource{},
-			expectedError:   customerrors.OneloginErrorWrapper("ol http service", errors.New("remote service down")),
+			expectedError:   customerrors.OneloginErrorWrapper("ol http service", errors.New("unable to connect")),
 		},
 	}
 	for name, test := range tests {
@@ -380,13 +376,11 @@ func TestExecuteHTTP(t *testing.T) {
 							return authFailThrough()
 						}
 						if test.badRequest {
-							j, _ := json.Marshal(test.expectedOut)
-							r := ioutil.NopCloser(bytes.NewReader([]byte(j)))
+							r := ioutil.NopCloser(bytes.NewReader([]byte(`bad request`)))
 							return &http.Response{StatusCode: 400, Body: r}, nil
 						}
 						if test.serviceDown {
-							j, _ := json.Marshal(test.expectedOut)
-							r := ioutil.NopCloser(bytes.NewReader([]byte(j)))
+							r := ioutil.NopCloser(bytes.NewReader([]byte(`unable to connect`)))
 							return &http.Response{StatusCode: 500, Body: r}, nil
 						}
 						j, _ := json.Marshal(test.expectedOut)

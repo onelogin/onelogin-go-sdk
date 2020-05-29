@@ -60,11 +60,9 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 	return data, err
 }
 
-// Read retrieves a resource from remote over HTTP. If a payload is supplied as part of the
-// request, it will be sent as query parameters to the HTTP service. If no parameters are given,
-// the Read method will pull all the resources out of the remote store. The Read method will
-// pull all resources from the remote up to the 'limit' if one is given, up to the remote's
-// per-response limit if the remote is not using pagination or all resources using pagination
+// Read exectues the HTTP GET method with the given url and query parameters passed in the payload.
+// It will retrieve all available resources from the remote, up to the specified "limit" if given, that meet the query criteria.
+// This also implies that if a url is for one resource i.e. /resources/:id then only that resource will be returned
 
 // This assumes pagination is implemented using a After-Cursor response header and the Read method
 // will use this until the remote stops responding with the After-Cursor header, indicating we have
@@ -200,11 +198,16 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 	if err := svc.attachHeaders(req, resourceRequest); err != nil {
 		return nil, nil, err
 	}
+
 	resp, err := svc.Config.Client.Do(req)
+	responseData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
+	}
 	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	case http.StatusUnauthorized, http.StatusForbidden:
+	switch {
+	case resp.StatusCode == http.StatusUnauthorized, resp.StatusCode == http.StatusForbidden:
 		if resourceRequest.AuthMethod == "bearer" {
 			if err := setBearerToken(svc); err != nil {
 				return nil, nil, err
@@ -212,18 +215,11 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 			return svc.executeHTTP(req, resourceRequest)
 		}
 		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("unauthorized"))
-	case http.StatusBadRequest:
-		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("bad request"))
-	case http.StatusBadGateway, http.StatusInternalServerError, http.StatusServiceUnavailable:
-		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("remote service down"))
+	case resp.StatusCode >= 400 && resp.StatusCode <= 499:
+		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New(string(responseData)))
+	case resp.StatusCode >= 500 && resp.StatusCode <= 599:
+		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("unable to connect"))
 	default:
-		if err != nil {
-			return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, err)
-		}
-		responseData, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
-		}
 		return resp, responseData, nil
 	}
 }

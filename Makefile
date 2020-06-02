@@ -5,7 +5,8 @@ build:
 	go build './...'
 
 test:
-	go test './...'
+	go get github.com/jpoles1/gopherbadger
+	gopherbadger -md="readme.md" -png=false
 
 secure:
 	# or install it into ./bin/

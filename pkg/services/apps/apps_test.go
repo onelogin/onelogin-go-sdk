@@ -51,6 +51,9 @@ func (mr MockRepository) Create(r interface{}) ([]byte, error) {
 }
 
 func (mr MockRepository) Update(r interface{}) ([]byte, error) {
+	if mr.DoFunc != nil {
+		return mr.DoFunc(r)
+	}
 	req := r.(olhttp.OLHTTPRequest)
 	if req.URL == "test.com/api/2/apps/1" {
 		app := req.Payload.(*App)
@@ -63,7 +66,7 @@ func (mr MockRepository) Update(r interface{}) ([]byte, error) {
 		out, _ := json.Marshal(resp)
 		return out, nil
 	}
-	return mr.DoFunc(r)
+	return nil, nil
 }
 
 func (mr MockRepository) Destroy(r interface{}) ([]byte, error) {
@@ -214,7 +217,7 @@ func TestUpdate(t *testing.T) {
 		},
 		"it returns an error if there is a problem finding the app": {
 			id:               int32(2),
-			expectedResponse: nil,
+			expectedResponse: &App{},
 			expectedError:    errors.New("not found"),
 			repository: MockRepository{
 				DoFunc: func(r interface{}) ([]byte, error) { return nil, errors.New("not found") },
@@ -281,11 +284,36 @@ func TestCreate(t *testing.T) {
 		},
 		"it returns an error if there is a bad request": {
 			createPayload:    &App{ID: oltypes.Int32(1), Name: oltypes.String("not allowed value")},
-			expectedResponse: nil,
+			expectedResponse: &App{},
 			expectedError:    errors.New("bad request"),
 			repository: MockRepository{
 				DoFunc: func(r interface{}) ([]byte, error) {
 					return nil, errors.New("bad request")
+				},
+			},
+		},
+		"it returns the app with error if there is a bad rules request": {
+			createPayload:    &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("not allowed value")}}},
+			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
+			expectedError:    errors.New("bad request"),
+			repository: MockRepository{
+				DoFunc: func(r interface{}) ([]byte, error) {
+					req := r.(olhttp.OLHTTPRequest)
+					if req.URL == "test.com/api/2/apps/1/rules/1" {
+						return nil, errors.New("bad request")
+					}
+					if req.URL == "test.com/api/2/apps/1/rules" {
+						out, _ := json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+						return out, nil
+					}
+					if req.URL == "test.com/api/2/apps" {
+						app := req.Payload.(*App)
+						app.ID = oltypes.Int32(int32(1))
+						resp := App{Name: app.Name, ID: app.ID}
+						out, _ := json.Marshal(resp)
+						return out, nil
+					}
+					return nil, nil
 				},
 			},
 		},

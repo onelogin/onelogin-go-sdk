@@ -103,6 +103,7 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 // Create creates a new app, and if successful, it returns
 // the http response and the pointer to the app.
 func (svc *V2Service) Create(app *App) (*App, error) {
+	var newApp App
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -110,42 +111,23 @@ func (svc *V2Service) Create(app *App) (*App, error) {
 		Payload:    app,
 	})
 	if err != nil {
-		return nil, err
+		return &newApp, err
 	}
-	var newApp App
 	if err = json.Unmarshal(resp, &newApp); err != nil {
-		return nil, err
+		return &newApp, err
 	}
-
-	for i := range app.Rules {
-		resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
-			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *newApp.ID),
-			Headers:    map[string]string{"Content-Type": "application/json"},
-			AuthMethod: "bearer",
-			Payload:    app.Rules[i],
-		})
-		if err != nil {
-			return &newApp, err
-		} else {
-			var ruleID map[string]int
-			if err = json.Unmarshal(resp, &ruleID); err != nil {
-				return &newApp, err
-			}
-
-			app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
-			newApp.Rules = append(newApp.Rules, app.Rules[i])
-		}
+	newApp.Rules = app.Rules
+	if err = svc.saveAppRules(&newApp); err != nil {
+		return &newApp, err
 	}
 
 	return &newApp, nil
 }
 
-// needs some remove from list logic
-// can we tee up all these requests and parallelize them?
-
 // Update updates an existing app, and if successful, it returns
 // the http response and the pointer to the updated app.
 func (svc *V2Service) Update(id int32, app *App) (*App, error) {
+	var updatedApp App
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -153,63 +135,122 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 		Payload:    app,
 	})
 	if err != nil {
-		return nil, err
+		return &updatedApp, err
 	}
-
-	var updatedApp App
 	if err = json.Unmarshal(resp, &updatedApp); err != nil {
-		return nil, err
+		return &updatedApp, err
 	}
-	updatedApp.Rules = make([]AppRule, len(app.Rules))
-	for i := range app.Rules {
-		if app.Rules[i].ID != nil {
-			resp, err = svc.Repository.Update(olhttp.OLHTTPRequest{
-				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, id, *app.Rules[i].ID),
-				Headers:    map[string]string{"Content-Type": "application/json"},
-				AuthMethod: "bearer",
-				Payload:    app.Rules[i],
-			})
-			if err != nil {
-				return &updatedApp, err
-			} else {
-				var ruleID map[string]int // response comes from api as {"id": 234}
-				if err = json.Unmarshal(resp, &ruleID); err != nil {
-					return &updatedApp, err
-				}
-				updatedApp.Rules[i] = app.Rules[i]
-			}
-		} else {
-			resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
-				URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, id),
-				Headers:    map[string]string{"Content-Type": "application/json"},
-				AuthMethod: "bearer",
-				Payload:    app.Rules[i],
-			})
-			if err != nil {
-				return &updatedApp, err
-			} else {
-				var ruleID map[string]int // response comes from api as {"id": 234}
-				if err = json.Unmarshal(resp, &ruleID); err != nil {
-					return &updatedApp, err
-				}
-				app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
-				updatedApp.Rules[i] = app.Rules[i]
-			}
-		}
+	updatedApp.Rules = app.Rules
+	if err = svc.saveAppRules(&updatedApp); err != nil {
+		return &updatedApp, err
 	}
+	svc.pruneAppRules(&app.Rules, &updatedApp)
+	svc.pruneParameters(&app.Parameters, &updatedApp)
 	return &updatedApp, nil
 }
 
 // Destroy deletes the app for the id, and if successful, it returns nil
 func (svc *V2Service) Destroy(id int32) error {
-	_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
+	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
+	return nil
+}
 
+// given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
+// request list. Rules not on the request list are assumed to be removed by the caller.
+func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters, app *App) error {
+
+	keepMap := make(map[int32]bool, len(*requestedParams))
+	for _, param := range *requestedParams {
+		if param.ID != nil {
+			keepMap[*param.ID] = true
+		}
+	}
+	// no need to call down app parameters specifically like we do for rules. parameters returned as part of app update
+	for _, delCandidate := range app.Parameters{
+		if !keepMap[*delCandidate.ID]{
+			svc.Repository.Destroy(olhttp.OLHTTPRequest{
+				URL:        fmt.Sprintf("%s/%d/parameters/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
+				Headers:    map[string]string{"Content-Type": "application/json"},
+				AuthMethod: "bearer",
+			})
+		}
+	}
+	return nil
+}
+
+// given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
+// request list. Rules not on the request list are assumed to be removed by the caller.
+func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
+	resp, _ := svc.Repository.Read(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+	})
+
+	var savedRules []AppRule
+	json.Unmarshal(resp, &savedRules)
+
+	keepMap := make(map[int32]bool, len(*requestedRules))
+	for _, rule := range *requestedRules {
+		keepMap[*rule.ID] = true
+	}
+	for _, delCandidate := range savedRules{
+		if !keepMap[*delCandidate.ID]{
+			svc.Repository.Destroy(olhttp.OLHTTPRequest{
+				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
+				Headers:    map[string]string{"Content-Type": "application/json"},
+				AuthMethod: "bearer",
+			})
+		}
+	}
+	return nil
+}
+
+// create or update (upsert if you will) the rules tied to this app. If an upsert fails, the rest will continue, then the saved
+// rules will be tied to the app and the app + error will be returned for the caller to decide what to do
+func (svc *V2Service) saveAppRules(app *App) error {
+	var (
+		err  error
+		resp []byte
+	)
+	for i := range (*app).Rules {
+		if app.Rules[i].ID != nil {
+			resp, err = svc.Repository.Update(olhttp.OLHTTPRequest{
+				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *app.ID, *app.Rules[i].ID),
+				Headers:    map[string]string{"Content-Type": "application/json"},
+				AuthMethod: "bearer",
+				Payload:    app.Rules[i],
+			})
+		} else {
+			resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
+				URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
+				Headers:    map[string]string{"Content-Type": "application/json"},
+				AuthMethod: "bearer",
+				Payload:    app.Rules[i],
+			})
+		}
+		if err == nil {
+			var ruleID map[string]int
+			json.Unmarshal(resp, &ruleID)
+			app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
+		}
+	}
+	if err != nil {
+		resp, _ = svc.Repository.Read(olhttp.OLHTTPRequest{
+			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
+			Headers:    map[string]string{"Content-Type": "application/json"},
+			AuthMethod: "bearer",
+		})
+		var savedRules []AppRule
+		json.Unmarshal(resp, &savedRules)
+		app.Rules = savedRules
+		return err
+	}
 	return nil
 }

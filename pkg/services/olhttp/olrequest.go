@@ -34,32 +34,6 @@ func New(cfg services.HTTPServiceConfig) *OLHTTPService {
 	}
 }
 
-// Create creates a new resource in the remote location over HTTP
-func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
-	var (
-		req    *http.Request
-		reqErr error
-	)
-	if resourceRequest.Payload != nil {
-		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
-		if marshErr != nil {
-			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
-		}
-		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
-	} else {
-		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer([]byte("")))
-	}
-	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
-	}
-	_, data, err := svc.executeHTTP(req, resourceRequest)
-	if err != nil {
-		return []byte{}, err
-	}
-	return data, err
-}
-
 // Read exectues the HTTP GET method with the given url and query parameters passed in the payload.
 // It will retrieve all available resources from the remote, up to the specified "limit" if given, that meet the query criteria.
 // This also implies that if a url is for one resource i.e. /resources/:id then only that resource will be returned
@@ -101,6 +75,32 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 		resp, data, err = svc.executeHTTP(req, resourceRequest)
 	}
 
+	if err != nil {
+		return []byte{}, err
+	}
+	return data, err
+}
+
+// Create creates a new resource in the remote location over HTTP
+func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
+	resourceRequest := r.(OLHTTPRequest)
+	var (
+		req    *http.Request
+		reqErr error
+	)
+	if resourceRequest.Payload != nil {
+		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
+		if marshErr != nil {
+			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
+		}
+		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
+	} else {
+		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer([]byte("")))
+	}
+	if reqErr != nil {
+		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+	}
+	_, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
 		return []byte{}, err
 	}

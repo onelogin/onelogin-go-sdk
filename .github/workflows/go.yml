@@ -17,6 +17,4 @@ jobs:
     - name: Test
       run: go test ./...
     - name: Secure
-      uses: securego/gosec@master
-      with:
-        args: ./...
+      run: make secure

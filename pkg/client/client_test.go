@@ -67,7 +67,6 @@ func TestNewClient(t *testing.T) {
 			assert.Equal(t, test.expectedTimeout, cl.client.Timeout)
 			assert.NotNil(t, cl.Services)
 			assert.NotNil(t, cl.Services.AppsV2)
-			assert.NotNil(t, cl.Services.AuthV2)
 		})
 	}
 }

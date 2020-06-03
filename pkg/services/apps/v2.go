@@ -142,10 +142,17 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 	}
 	updatedApp.Rules = app.Rules
 	if err = svc.saveAppRules(&updatedApp); err != nil {
-		return &updatedApp, err
+		partialStateApp, err := svc.GetOne(*updatedApp.ID)
+		return partialStateApp, err
 	}
-	svc.pruneAppRules(&app.Rules, &updatedApp)
-	svc.pruneParameters(&app.Parameters, &updatedApp)
+	if err = svc.pruneAppRules(&app.Rules, &updatedApp); err != nil {
+		partialStateApp, err := svc.GetOne(*updatedApp.ID)
+		return partialStateApp, err
+	}
+	if err = svc.pruneParameters(&app.Parameters, &updatedApp); err != nil {
+		partialStateApp, err := svc.GetOne(*updatedApp.ID)
+		return partialStateApp, err
+	}
 	return &updatedApp, nil
 }
 
@@ -164,7 +171,7 @@ func (svc *V2Service) Destroy(id int32) error {
 // given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
 // request list. Rules not on the request list are assumed to be removed by the caller.
 func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters, app *App) error {
-
+	var err error
 	keepMap := make(map[int32]bool, len(*requestedParams))
 	for _, param := range *requestedParams {
 		if param.ID != nil {
@@ -172,44 +179,47 @@ func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters,
 		}
 	}
 	// no need to call down app parameters specifically like we do for rules. parameters returned as part of app update
-	for _, delCandidate := range app.Parameters{
-		if !keepMap[*delCandidate.ID]{
-			svc.Repository.Destroy(olhttp.OLHTTPRequest{
+	for _, delCandidate := range app.Parameters {
+		if !keepMap[*delCandidate.ID] {
+			_, err = svc.Repository.Destroy(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/parameters/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
 			})
 		}
 	}
-	return nil
+	return err
 }
 
 // given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
 // request list. Rules not on the request list are assumed to be removed by the caller.
 func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
+	var (
+		savedRules []AppRule
+		err        error
+	)
 	resp, _ := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 	})
 
-	var savedRules []AppRule
 	json.Unmarshal(resp, &savedRules)
 
 	keepMap := make(map[int32]bool, len(*requestedRules))
 	for _, rule := range *requestedRules {
 		keepMap[*rule.ID] = true
 	}
-	for _, delCandidate := range savedRules{
-		if !keepMap[*delCandidate.ID]{
-			svc.Repository.Destroy(olhttp.OLHTTPRequest{
+	for _, delCandidate := range savedRules {
+		if !keepMap[*delCandidate.ID] {
+			_, err = svc.Repository.Destroy(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
 			})
 		}
 	}
-	return nil
+	return err
 }
 
 // create or update (upsert if you will) the rules tied to this app. If an upsert fails, the rest will continue, then the saved
@@ -241,16 +251,5 @@ func (svc *V2Service) saveAppRules(app *App) error {
 			app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
 		}
 	}
-	if err != nil {
-		resp, _ = svc.Repository.Read(olhttp.OLHTTPRequest{
-			URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
-			Headers:    map[string]string{"Content-Type": "application/json"},
-			AuthMethod: "bearer",
-		})
-		var savedRules []AppRule
-		json.Unmarshal(resp, &savedRules)
-		app.Rules = savedRules
-		return err
-	}
-	return nil
+	return err
 }

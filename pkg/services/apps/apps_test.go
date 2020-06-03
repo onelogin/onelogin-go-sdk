@@ -294,7 +294,7 @@ func TestCreate(t *testing.T) {
 		},
 		"it returns the app with error if there is a bad rules request": {
 			createPayload:    &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("not allowed value")}}},
-			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
+			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("not allowed value")}}},
 			expectedError:    errors.New("bad request"),
 			repository: MockRepository{
 				DoFunc: func(r interface{}) ([]byte, error) {
@@ -302,11 +302,14 @@ func TestCreate(t *testing.T) {
 					if req.URL == "test.com/api/2/apps/1/rules/1" {
 						return nil, errors.New("bad request")
 					}
-					if req.URL == "test.com/api/2/apps/1/rules" {
-						out, _ := json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+					if req.URL == "test.com/api/2/apps" {
+						app := req.Payload.(*App)
+						app.ID = oltypes.Int32(int32(1))
+						resp := App{Name: app.Name, ID: app.ID}
+						out, _ := json.Marshal(resp)
 						return out, nil
 					}
-					if req.URL == "test.com/api/2/apps" {
+					if req.URL == "test.com/api/2/apps/1" {
 						app := req.Payload.(*App)
 						app.ID = oltypes.Int32(int32(1))
 						resp := App{Name: app.Name, ID: app.ID}

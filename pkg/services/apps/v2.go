@@ -237,6 +237,9 @@ func (svc *V2Service) saveAppRules(app *App) error {
 				AuthMethod: "bearer",
 				Payload:    app.Rules[i],
 			})
+			if err != nil {
+				log.Println("Partial Rules State:", err)
+			}
 		} else {
 			resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
@@ -244,6 +247,9 @@ func (svc *V2Service) saveAppRules(app *App) error {
 				AuthMethod: "bearer",
 				Payload:    app.Rules[i],
 			})
+			if err != nil {
+				log.Println("Partial Rules State:", err)
+			}
 		}
 		if err == nil {
 			var ruleID map[string]int

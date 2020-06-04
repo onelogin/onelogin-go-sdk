@@ -5,7 +5,13 @@ build:
 	go build './...'
 
 test:
-	go test './...'
+	go get github.com/jpoles1/gopherbadger
+	gopherbadger -md="readme.md" -png=false
+
+secure:
+	# or install it into ./bin/
+	curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s
+	./bin/gosec -exclude=G104 ./...
 
 link:
 	ln -s ${GOPATH}/src/github.com/onelogin/onelogin-go-sdk .

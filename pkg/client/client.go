@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/services"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
 )
 
 // APIClient is used to communicate with the available api services.
@@ -13,7 +16,6 @@ type APIClient struct {
 	clientID     string
 	clientSecret string
 	region       string
-	token        string
 	baseURL      string
 	client       *http.Client
 	Services     *Services
@@ -21,9 +23,9 @@ type APIClient struct {
 
 // Services contains all the available api services.
 type Services struct {
-	AppsV2               *services.AppsV2
-	AuthV2               *services.AuthV2
-	SessionLoginTokensV1 *services.SessionLoginTokenV1
+	HTTPService          olhttp.OLHTTPService
+	AppsV2               apps.V2Service
+	SessionLoginTokensV1 sessionlogintokens.V1Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -38,24 +40,15 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		Timeout: time.Second * time.Duration(cfg.Timeout),
 	}
 
-	authV2Service := services.NewAuthV2(&services.AuthConfigV2{
+	repo := olhttp.New(services.HTTPServiceConfig{
 		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
 		BaseURL:      cfg.Url,
 		Client:       httpClient,
 	})
 
-	appV2Service := services.NewAppsV2(&services.AppsV2Config{
-		BaseURL: cfg.Url,
-		Client:  httpClient,
-		Auth:    authV2Service,
-	})
-
-	sessionLoginTokenV1Service := services.NewSessionLoginTokenV1(&services.SessionLoginTokenV1Config{
-		BaseURL: cfg.Url,
-		Client:  httpClient,
-		Auth:    authV2Service,
-	})
+	appV2Service := apps.New(repo, cfg.Url)
+	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
 
 	return &APIClient{
 		clientID:     cfg.ClientID,
@@ -64,8 +57,8 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		baseURL:      cfg.Url,
 		client:       httpClient,
 		Services: &Services{
+			HTTPService:          *repo,
 			AppsV2:               appV2Service,
-			AuthV2:               authV2Service,
 			SessionLoginTokensV1: sessionLoginTokenV1Service,
 		},
 	}, nil

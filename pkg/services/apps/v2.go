@@ -41,9 +41,7 @@ func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 	}
 
 	var apps []App
-	if err = json.Unmarshal(resp, &apps); err != nil {
-		return nil, err
-	}
+	json.Unmarshal(resp, &apps)
 
 	for i := range apps {
 		resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
@@ -52,12 +50,10 @@ func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
 			AuthMethod: "bearer",
 		})
 		if err != nil {
-			return nil, err
+			return apps, err
 		}
 		var rules []AppRule
-		if err = json.Unmarshal(resp, &rules); err != nil {
-			return nil, err
-		}
+		json.Unmarshal(resp, &rules)
 
 		apps[i].Rules = rules
 	}
@@ -78,9 +74,7 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	}
 
 	var app App
-	if err = json.Unmarshal(resp, &app); err != nil {
-		return nil, err
-	}
+	json.Unmarshal(resp, &app)
 	resp, err = svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -88,15 +82,12 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	})
 
 	if err != nil {
-		log.Println(err)
-		return nil, err
-	} else {
-		var rules []AppRule
-		if err = json.Unmarshal(resp, &rules); err != nil {
-			return nil, err
-		}
-		app.Rules = rules
+		return &app, err
 	}
+	var rules []AppRule
+	json.Unmarshal(resp, &rules)
+	app.Rules = rules
+
 	return &app, nil
 }
 
@@ -113,15 +104,17 @@ func (svc *V2Service) Create(app *App) (*App, error) {
 	if err != nil {
 		return &newApp, err
 	}
-	if err = json.Unmarshal(resp, &newApp); err != nil {
-		return &newApp, err
-	}
+	json.Unmarshal(resp, &newApp)
 	newApp.Rules = app.Rules
 	if err = svc.saveAppRules(&newApp); err != nil {
-		return &newApp, err
+		recoveredAppState, recoverErr := svc.GetOne(*newApp.ID)
+		if recoverErr != nil {
+			return nil, err
+		}
+		return recoveredAppState, err
 	}
 
-	return &newApp, nil
+	return svc.GetOne(*newApp.ID)
 }
 
 // Update updates an existing app, and if successful, it returns
@@ -137,23 +130,33 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 	if err != nil {
 		return &updatedApp, err
 	}
-	if err = json.Unmarshal(resp, &updatedApp); err != nil {
-		return &updatedApp, err
-	}
-	updatedApp.Rules = app.Rules
+	json.Unmarshal(resp, &updatedApp)
+	updatedApp.Rules = app.Rules // attach app rules here since rules are not returned with the app request
+
 	if err = svc.saveAppRules(&updatedApp); err != nil {
-		partialStateApp, err := svc.GetOne(*updatedApp.ID)
-		return partialStateApp, err
+		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
+		if recoverErr != nil {
+			return nil, err
+		}
+		return recoveredAppState, err
 	}
 	if err = svc.pruneAppRules(&app.Rules, &updatedApp); err != nil {
-		partialStateApp, err := svc.GetOne(*updatedApp.ID)
-		return partialStateApp, err
+		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
+		if recoverErr != nil {
+			return nil, err
+		}
+		return recoveredAppState, err
 	}
 	if err = svc.pruneParameters(&app.Parameters, &updatedApp); err != nil {
-		partialStateApp, err := svc.GetOne(*updatedApp.ID)
-		return partialStateApp, err
+		// parameters must be deleted
+		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
+		if recoverErr != nil {
+			return nil, err
+		}
+		return recoveredAppState, err
 	}
-	return &updatedApp, nil
+	// re-read the app so we return one with all the parameters changes made via each individual parameters call
+	return svc.GetOne(*updatedApp.ID)
 }
 
 // Destroy deletes the app for the id, and if successful, it returns nil
@@ -168,8 +171,9 @@ func (svc *V2Service) Destroy(id int32) error {
 	return nil
 }
 
-// given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
-// request list. Rules not on the request list are assumed to be removed by the caller.
+// Given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
+// request list. At this point the app holds all existing rules in the API.
+// Rules not on the request list are assumed to be removed by the caller.
 func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters, app *App) error {
 	var err error
 	keepMap := make(map[int32]bool, len(*requestedParams))
@@ -191,8 +195,9 @@ func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters,
 	return err
 }
 
-// given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
-// request list. Rules not on the request list are assumed to be removed by the caller.
+// Given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
+// request list. At this point, the app holds all the existing rules in the API.
+// Rules not on the request list are assumed to be removed by the caller.
 func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
 	var (
 		savedRules []AppRule
@@ -223,7 +228,7 @@ func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
 }
 
 // create or update (upsert if you will) the rules tied to this app. If an upsert fails, the rest will continue, then the saved
-// rules will be tied to the app and the app + error will be returned for the caller to decide what to do
+// rules will be tied to the app an error will be returned for the caller to decide what to do
 func (svc *V2Service) saveAppRules(app *App) error {
 	var (
 		err  error
@@ -237,6 +242,9 @@ func (svc *V2Service) saveAppRules(app *App) error {
 				AuthMethod: "bearer",
 				Payload:    app.Rules[i],
 			})
+			if err != nil {
+				log.Println("Partial Rules State:", err)
+			}
 		} else {
 			resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
@@ -244,6 +252,9 @@ func (svc *V2Service) saveAppRules(app *App) error {
 				AuthMethod: "bearer",
 				Payload:    app.Rules[i],
 			})
+			if err != nil {
+				log.Println("Partial Rules State:", err)
+			}
 		}
 		if err == nil {
 			var ruleID map[string]int

@@ -92,8 +92,8 @@ type AppRule struct {
 	Match      *string             `json:"match,omitempty"`
 	Enabled    *bool               `json:"enabled,omitempty"`
 	Position   *int32              `json:"position,omitempty"`
-	Conditions []AppRuleConditions `json:"conditions,omitempty"`
-	Actions    []AppRuleActions    `json:"actions,omitempty"`
+	Conditions []AppRuleConditions `json:"conditions"`
+	Actions    []AppRuleActions    `json:"actions"`
 }
 
 type AppRuleConditions struct {

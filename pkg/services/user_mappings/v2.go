@@ -9,7 +9,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
 
-const errUserMappingsV2Context = "user muserMappingings v2 service"
+const errUserMappingsV2Context = "user mappings v2 service"
 
 // V2Service holds the information needed to interface with a repository
 type V2Service struct {
@@ -20,7 +20,7 @@ type V2Service struct {
 // New creates the new svc service v2.
 func New(repo services.Repository, host string) V2Service {
 	return V2Service{
-		Endpoint:     fmt.Sprintf("%s/api/2/muserMappingings", host),
+		Endpoint:     fmt.Sprintf("%s/api/2/mappings", host),
 		Repository:   repo,
 		ErrorContext: errUserMappingsV2Context,
 	}

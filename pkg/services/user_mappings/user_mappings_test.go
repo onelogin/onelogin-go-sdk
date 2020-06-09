@@ -7,7 +7,6 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -117,14 +116,11 @@ func TestUpdate(t *testing.T) {
 	}{
 		"it updates one user mapping": {
 			id:               int32(1),
-			updatePayload:    &UserMapping{ID: oltypes.Int32(1), Name: oltypes.String("original")},
+			updatePayload:    &UserMapping{ID: oltypes.Int32(1), Name: oltypes.String("updated")},
 			expectedResponse: &UserMapping{ID: oltypes.Int32(1), Name: oltypes.String("updated")},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(UserMapping{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
-				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(UserMapping{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
+					return json.Marshal(map[string]int32{"id": 1})
 				},
 			},
 		},
@@ -153,16 +149,12 @@ func TestCreate(t *testing.T) {
 		expectedError    error
 		repository       *test.MockRepository
 	}{
-		"it creates one app": {
+		"it creates one mapping": {
 			createPayload:    &UserMapping{Name: oltypes.String("rule")},
 			expectedResponse: &UserMapping{ID: oltypes.Int32(1), Name: oltypes.String("rule")},
 			repository: &test.MockRepository{
 				CreateFunc: func(r interface{}) ([]byte, error) {
-					req := r.(olhttp.OLHTTPRequest)
-					mapping := req.Payload.(*UserMapping)
-					mapping.ID = oltypes.Int32(int32(1))
-					resp := UserMapping{Name: mapping.Name, ID: mapping.ID}
-					return json.Marshal(resp)
+					return json.Marshal(map[string]int32{"id": 1})
 				},
 			},
 		},

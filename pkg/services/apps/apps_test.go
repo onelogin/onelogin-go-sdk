@@ -177,17 +177,17 @@ func TestUpdate(t *testing.T) {
 				Name: oltypes.String("updated"),
 				Rules: []AppRule{
 					AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")},
-					AppRule{ID: oltypes.Int32(1), Name: oltypes.String("new_rule")},
+					AppRule{ID: oltypes.Int32(2), Name: oltypes.String("new_rule")},
 				},
 			},
 			repository: &test.MockRepository{
 				CreateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(map[string]int32{"id": 1})
+					return json.Marshal(map[string]int32{"id": 2})
 				},
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal(AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")})
+						return json.Marshal(map[string]int32{"id": 1})
 					}
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
 				},
@@ -196,7 +196,7 @@ func TestUpdate(t *testing.T) {
 					if req.URL == "test.com/api/2/apps/1/rules" {
 						return json.Marshal([]AppRule{
 							AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")},
-							AppRule{ID: oltypes.Int32(1), Name: oltypes.String("new_rule")},
+							AppRule{ID: oltypes.Int32(2), Name: oltypes.String("new_rule")},
 						})
 					}
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
@@ -352,9 +352,7 @@ func TestCreate(t *testing.T) {
 				CreateFunc: func(r interface{}) ([]byte, error) {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						resp := map[string]int32{"id": 1}
-						out, _ := json.Marshal(resp)
-						return out, nil
+						return json.Marshal(map[string]int32{"id": 1})
 					}
 					app := req.Payload.(*App)
 					app.ID = oltypes.Int32(int32(1))

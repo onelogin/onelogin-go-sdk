@@ -66,7 +66,7 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	for {
 		allData = append(allData, data...)
 		next = resp.Header.Get("After-Cursor")
-		if next == "" || err != nil {
+		if next == "" {
 			break
 		}
 		params := req.URL.Query()

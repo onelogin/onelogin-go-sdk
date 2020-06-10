@@ -184,17 +184,19 @@ func TestDestroy(t *testing.T) {
 		expectedError    error
 	}{
 		"it destroys one user mapping": {
-			id:               int32(1),
-			repository:       &test.MockRepository{},
+			id: int32(1),
+			repository: &test.MockRepository{
+				DestroyFunc: func(r interface{}) ([]byte, error) {
+					return nil, nil
+				},
+			},
 			expectedResponse: &UserMapping{},
 		},
 		"it returns an error if there is a problem finding the user mapping": {
-			id: int32(2),
-			repository: &test.MockRepository{
-				DoFunc: func(r interface{}) ([]byte, error) { return nil, errors.New("not found") },
-			},
+			id:               int32(2),
+			repository:       &test.MockRepository{},
 			expectedResponse: nil,
-			expectedError:    errors.New("not found"),
+			expectedError:    errors.New("error"),
 		},
 	}
 	for name, test := range tests {

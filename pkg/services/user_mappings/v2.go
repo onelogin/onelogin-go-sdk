@@ -3,7 +3,6 @@ package usermappings
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
@@ -66,6 +65,57 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 // Update updates an existing user mapping, and if successful, it returns
 // the http response and the pointer to the updated user mapping.
 func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, error) {
+	// url := fmt.Sprintf("%s/conditions", svc.Endpoint)
+	// validConditions, err := validationutils.GetLegalValues(url, svc.Repository)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for _, condition := range mapping.Conditions {
+	// 	err := validationutils.OneOf(*mapping.Name, *condition.Source, validConditions)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	url := fmt.Sprintf("%s/conditions/%s/values", svc.Endpoint, *condition.Source)
+	// 	validConditionValues, err := validationutils.GetLegalValues(url, svc.Repository)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	err = validationutils.OneOf(*mapping.Name, *condition.Value, validConditionValues)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	url = fmt.Sprintf("%s/conditions/%s/operators", svc.Endpoint, *condition.Source)
+	// 	validConditionOperators, err := validationutils.GetLegalValues(url, svc.Repository)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	err = validationutils.OneOf(*mapping.Name, *condition.Operator, validConditionOperators)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+	// url = fmt.Sprintf("%s/actions", svc.Endpoint)
+	// validActions, err := validationutils.GetLegalValues(url, svc.Repository)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for _, action := range mapping.Actions {
+	// 	err := validationutils.OneOf(*mapping.Name, *action.Action, validActions)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	url = fmt.Sprintf("%s/actions/%s/values", svc.Endpoint, *action.Action)
+	// 	validActionValues, err := validationutils.GetLegalValues(url, svc.Repository)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	for _, val := range action.Value {
+	// 		err = validationutils.OneOf(*mapping.Name, val, validActionValues)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 	}
+	// }
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -87,6 +137,57 @@ func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, erro
 // Create creates a new user mapping, and if successful, it returns
 // the http response and the pointer to the user mapping.
 func (svc *V2Service) Create(mapping *UserMapping) (*UserMapping, error) {
+	// url := fmt.Sprintf("%s/conditions", svc.Endpoint)
+	// validConditions, err := validationutils.GetLegalValues(url, svc.Repository)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for _, condition := range mapping.Conditions {
+	// 	err := validationutils.OneOf(*mapping.Name, *condition.Source, validConditions)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	url := fmt.Sprintf("%s/conditions/%s/values", svc.Endpoint, *condition.Source)
+	// 	validConditionValues, err := validationutils.GetLegalValues(url, svc.Repository)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	err = validationutils.OneOf(*mapping.Name, *condition.Value, validConditionValues)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	url = fmt.Sprintf("%s/conditions/%s/operators", svc.Endpoint, *condition.Source)
+	// 	validConditionOperators, err := validationutils.GetLegalValues(url, svc.Repository)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	err = validationutils.OneOf(*mapping.Name, *condition.Operator, validConditionOperators)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+	// url = fmt.Sprintf("%s/actions", svc.Endpoint)
+	// validActions, err := validationutils.GetLegalValues(url, svc.Repository)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for _, action := range mapping.Actions {
+	// 	err := validationutils.OneOf(*mapping.Name, *action.Action, validActions)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	url = fmt.Sprintf("%s/actions/%s/values", svc.Endpoint, *action.Action)
+	// 	validActionValues, err := validationutils.GetLegalValues(url, svc.Repository)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	for _, val := range action.Value {
+	// 		err = validationutils.OneOf(*mapping.Name, val, validActionValues)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 	}
+	// }
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},

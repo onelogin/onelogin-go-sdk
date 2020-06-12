@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -25,4 +26,20 @@ func ToSnakeCase(str string) string {
 	snake = cleanUpHack.ReplaceAllString(snake, "ids")
 
 	return snake
+}
+
+// OneOf takes the name of a field to analyze, the field's value, and a list of allowed values.
+// Returns an error if a field's value is not in the list of legal values.
+func OneOf(key string, v string, opts []string) error {
+	isValid := false
+	for _, o := range opts {
+		isValid = v == o
+		if isValid {
+			break
+		}
+	}
+	if !isValid {
+		return fmt.Errorf("%s must be one of %v, got: %s", key, opts, v)
+	}
+	return nil
 }

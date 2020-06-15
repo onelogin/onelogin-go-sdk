@@ -12,6 +12,14 @@ type Repository interface {
 	Destroy(r interface{}) ([]byte, error)
 }
 
+type SimpleQuery interface {
+	Query(address string, o interface{}) error
+}
+
+type ResponseData struct {
+	Data interface{}
+}
+
 // HTTPClient is a thing that implements the Do method. This enables mocking a
 // HTTPService's Client for testing
 type HTTPClient interface {

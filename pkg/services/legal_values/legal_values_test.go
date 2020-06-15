@@ -11,7 +11,7 @@ import (
 func TestGetLegalValues(t *testing.T) {
 	tests := map[string]struct {
 		TestClient    *test.MockRepository
-		ExpectedOut   []string
+		ExpectedOut   []map[string]string
 		ExpectedError error
 	}{
 		"retrieves list of legal values": {
@@ -20,7 +20,7 @@ func TestGetLegalValues(t *testing.T) {
 					return json.Marshal([]map[string]string{{"key": "key", "value": "value"}, {"key": "key2", "value": "value2"}})
 				},
 			},
-			ExpectedOut: []string{"value", "value2"},
+			ExpectedOut: []map[string]string{{"key": "key", "value": "value"}, {"key": "key2", "value": "value2"}},
 		},
 		"returns an empty array and error when api call fails": {
 			TestClient: &test.MockRepository{
@@ -28,7 +28,7 @@ func TestGetLegalValues(t *testing.T) {
 					return nil, errors.New("error")
 				},
 			},
-			ExpectedOut:   []string{},
+			ExpectedOut:   []map[string]string{},
 			ExpectedError: errors.New("error"),
 		},
 		"returns an empty array and error when api response is not expected shape": {
@@ -37,13 +37,14 @@ func TestGetLegalValues(t *testing.T) {
 					return json.Marshal(map[string]string{"key": "key"})
 				},
 			},
-			ExpectedOut: []string{},
+			ExpectedOut: []map[string]string{},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.TestClient, "test.com")
-			actual, err := svc.GetLegalValues("stuff")
+			actual := make([]map[string]string, 0)
+			err := svc.Query("stuff", &actual)
 			assert.Equal(t, test.ExpectedOut, actual)
 			if test.ExpectedError != nil {
 				assert.Equal(t, test.ExpectedError, err)

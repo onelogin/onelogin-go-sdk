@@ -25,24 +25,19 @@ func New(repo services.Repository, host string) LegalValuesService {
 	}
 }
 
-func (svc LegalValuesService) GetLegalValues(endpoint string) ([]string, error) {
+func (svc LegalValuesService) Query(address string, outShape interface{}) error {
 	respBytes, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		AuthMethod: "bearer",
-		URL:        fmt.Sprintf("%s/%s", svc.BaseURL, endpoint),
+		URL:        fmt.Sprintf("%s/%s", svc.BaseURL, address),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 	})
 	if err != nil {
-		return []string{}, err
+		return err
 	}
 
-	var respStruct []map[string]string
-	if err := json.Unmarshal(respBytes, &respStruct); err != nil {
-		return []string{}, errors.New("Unexpected data shape given")
+	if err := json.Unmarshal(respBytes, outShape); err != nil {
+		return errors.New("Unable to unpack response")
 	}
 
-	legalVals := make([]string, len(respStruct))
-	for i, legalVal := range respStruct {
-		legalVals[i] = legalVal["value"]
-	}
-	return legalVals, nil
+	return nil
 }

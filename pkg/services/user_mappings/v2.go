@@ -6,6 +6,10 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
+	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
+	"log"
+
+	"sync"
 )
 
 const errUserMappingsV2Context = "user mappings v2 service"
@@ -14,20 +18,22 @@ const errUserMappingsV2Context = "user mappings v2 service"
 type V2Service struct {
 	Endpoint, ErrorContext string
 	Repository             services.Repository
+	LegalValuesService     services.SimpleQuery
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) V2Service {
+func New(repo services.Repository, legalValues services.SimpleQuery, host string) V2Service {
 	return V2Service{
-		Endpoint:     fmt.Sprintf("%s/api/2/mappings", host),
-		Repository:   repo,
-		ErrorContext: errUserMappingsV2Context,
+		Endpoint:           fmt.Sprintf("%s/api/2/mappings", host),
+		Repository:         repo,
+		ErrorContext:       errUserMappingsV2Context,
+		LegalValuesService: legalValues,
 	}
 }
 
 // Query retrieves all the userMappings from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all userMappings
-func (svc V2Service) Query(query *UserMappingsQuery) ([]UserMapping, error) {
+func (svc *V2Service) Query(query *UserMappingsQuery) ([]UserMapping, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "userMappinglication/json"},
@@ -65,57 +71,10 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 // Update updates an existing user mapping, and if successful, it returns
 // the http response and the pointer to the updated user mapping.
 func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, error) {
-	// url := fmt.Sprintf("%s/conditions", svc.Endpoint)
-	// validConditions, err := validationutils.GetLegalValues(url, svc.Repository)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for _, condition := range mapping.Conditions {
-	// 	err := validationutils.OneOf(*mapping.Name, *condition.Source, validConditions)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	url := fmt.Sprintf("%s/conditions/%s/values", svc.Endpoint, *condition.Source)
-	// 	validConditionValues, err := validationutils.GetLegalValues(url, svc.Repository)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	err = validationutils.OneOf(*mapping.Name, *condition.Value, validConditionValues)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	url = fmt.Sprintf("%s/conditions/%s/operators", svc.Endpoint, *condition.Source)
-	// 	validConditionOperators, err := validationutils.GetLegalValues(url, svc.Repository)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	err = validationutils.OneOf(*mapping.Name, *condition.Operator, validConditionOperators)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-	// url = fmt.Sprintf("%s/actions", svc.Endpoint)
-	// validActions, err := validationutils.GetLegalValues(url, svc.Repository)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for _, action := range mapping.Actions {
-	// 	err := validationutils.OneOf(*mapping.Name, *action.Action, validActions)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	url = fmt.Sprintf("%s/actions/%s/values", svc.Endpoint, *action.Action)
-	// 	validActionValues, err := validationutils.GetLegalValues(url, svc.Repository)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	for _, val := range action.Value {
-	// 		err = validationutils.OneOf(*mapping.Name, val, validActionValues)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 	}
-	// }
+	validationErr := validateMappingValues(svc.Endpoint, mapping, svc.LegalValuesService)
+	if validationErr != nil {
+		return nil, validationErr
+	}
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -137,57 +96,10 @@ func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, erro
 // Create creates a new user mapping, and if successful, it returns
 // the http response and the pointer to the user mapping.
 func (svc *V2Service) Create(mapping *UserMapping) (*UserMapping, error) {
-	// url := fmt.Sprintf("%s/conditions", svc.Endpoint)
-	// validConditions, err := validationutils.GetLegalValues(url, svc.Repository)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for _, condition := range mapping.Conditions {
-	// 	err := validationutils.OneOf(*mapping.Name, *condition.Source, validConditions)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	url := fmt.Sprintf("%s/conditions/%s/values", svc.Endpoint, *condition.Source)
-	// 	validConditionValues, err := validationutils.GetLegalValues(url, svc.Repository)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	err = validationutils.OneOf(*mapping.Name, *condition.Value, validConditionValues)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	url = fmt.Sprintf("%s/conditions/%s/operators", svc.Endpoint, *condition.Source)
-	// 	validConditionOperators, err := validationutils.GetLegalValues(url, svc.Repository)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	err = validationutils.OneOf(*mapping.Name, *condition.Operator, validConditionOperators)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-	// url = fmt.Sprintf("%s/actions", svc.Endpoint)
-	// validActions, err := validationutils.GetLegalValues(url, svc.Repository)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for _, action := range mapping.Actions {
-	// 	err := validationutils.OneOf(*mapping.Name, *action.Action, validActions)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	url = fmt.Sprintf("%s/actions/%s/values", svc.Endpoint, *action.Action)
-	// 	validActionValues, err := validationutils.GetLegalValues(url, svc.Repository)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	for _, val := range action.Value {
-	// 		err = validationutils.OneOf(*mapping.Name, val, validActionValues)
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 	}
-	// }
+	validationErr := validateMappingValues(svc.Endpoint, mapping, svc.LegalValuesService)
+	if validationErr != nil {
+		return nil, validationErr
+	}
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -216,4 +128,81 @@ func (svc *V2Service) Destroy(id int32) error {
 		return err
 	}
 	return nil
+}
+
+func validateMappingValues(baseURL string, mapping *UserMapping, svc services.SimpleQuery) error {
+	legalValRequests := map[string][]string{}
+	legalValRequests[fmt.Sprintf("%s/conditions", baseURL)] = []string{}
+	legalValRequests[fmt.Sprintf("%s/actions", baseURL)] = []string{}
+	for _, condition := range mapping.Conditions {
+		legalValRequests[fmt.Sprintf("%s/conditions/%s/values", baseURL, *condition.Source)] = []string{}
+		legalValRequests[fmt.Sprintf("%s/conditions/%s/operators", baseURL, *condition.Source)] = []string{}
+	}
+	for _, action := range mapping.Actions {
+		legalValRequests[fmt.Sprintf("%s/actions/%s/values", baseURL, *action.Action)] = []string{}
+	}
+
+	var wg sync.WaitGroup
+	for reqURL := range legalValRequests {
+		wg.Add(1)
+		go func(reqURL string, legalValRequest map[string][]string) {
+			defer wg.Done()
+			legalValResp := []map[string]string{}
+			err := svc.Query(reqURL, &legalValResp)
+			if err != nil {
+				log.Println("Problem validating mapping", err)
+			}
+			legalVals := make([]string, len(legalValResp))
+			for i, legalVal := range legalValResp {
+				legalVals[i] = legalVal["value"]
+			}
+			legalValRequests[reqURL] = legalVals
+		}(reqURL, legalValRequests)
+	}
+	wg.Wait()
+
+	var validationErr error
+	for _, condition := range mapping.Conditions {
+		if len(legalValRequests[fmt.Sprintf("%s/conditions", baseURL)]) > 0 {
+			err := utils.OneOf(*mapping.Name, *condition.Source, legalValRequests[fmt.Sprintf("%s/conditions", baseURL)])
+			if err != nil {
+				log.Println("Illegal value given for condition source")
+				validationErr = err
+			}
+		}
+		if len(legalValRequests[fmt.Sprintf("%s/conditions/%s/values", baseURL, *condition.Source)]) > 0 {
+			err := utils.OneOf(*mapping.Name, *condition.Value, legalValRequests[fmt.Sprintf("%s/conditions/%s/values", baseURL, *condition.Source)])
+			if err != nil {
+				log.Println("Illegal value given for condition value")
+				validationErr = err
+			}
+		}
+		if len(legalValRequests[fmt.Sprintf("%s/conditions/%s/operators", baseURL, *condition.Source)]) > 0 {
+			err := utils.OneOf(*mapping.Name, *condition.Operator, legalValRequests[fmt.Sprintf("%s/conditions/%s/operators", baseURL, *condition.Source)])
+			if err != nil {
+				log.Println("Illegal value given for condition operator")
+				validationErr = err
+			}
+		}
+	}
+
+	for _, action := range mapping.Actions {
+		if len(legalValRequests[fmt.Sprintf("%s/actions", baseURL)]) > 0 {
+			err := utils.OneOf(*mapping.Name, *action.Action, legalValRequests[fmt.Sprintf("%s/actions", baseURL)])
+			if err != nil {
+				log.Println("Illegal value given for action")
+				validationErr = err
+			}
+		}
+		for _, val := range action.Value {
+			if len(legalValRequests[fmt.Sprintf("%s/actions/%s/values", baseURL, *action.Action)]) > 0 {
+				err := utils.OneOf(*mapping.Name, val, legalValRequests[fmt.Sprintf("%s/actions/%s/values", baseURL, *action.Action)])
+				if err != nil {
+					log.Println("Illegal value given for action value")
+					validationErr = err
+				}
+			}
+		}
+	}
+	return validationErr
 }

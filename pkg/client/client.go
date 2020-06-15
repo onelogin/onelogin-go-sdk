@@ -7,6 +7,7 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
@@ -50,7 +51,8 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 	})
 
 	appV2Service := apps.New(repo, cfg.Url)
-	userMappingsV2Service := usermappings.New(repo, cfg.Url)
+	legalMappingValuesService := legalvalues.New(repo, cfg.Url)
+	userMappingsV2Service := usermappings.New(repo, legalMappingValuesService, cfg.Url)
 	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
 
 	return &APIClient{

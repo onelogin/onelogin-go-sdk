@@ -388,7 +388,6 @@ func TestValidateMappingValues(t *testing.T) {
 		inputMapping    *UserMapping
 		mockLegalValues  *MockLegalValuesService
 		expectedError    error
-		repository       *test.MockRepository
 	}{
 		"it returns nil for valid mapping values": {
 			inputMapping: &UserMapping{
@@ -401,11 +400,6 @@ func TestValidateMappingValues(t *testing.T) {
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[{"value":"ri"}, {"value":"has_role"}, {"value": "12345"}, {"value": "set_status"}]`), o)
 					return nil
-				},
-			},
-			repository: &test.MockRepository{
-				UpdateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(map[string]int32{"id": 1})
 				},
 			},
 		},
@@ -427,11 +421,6 @@ func TestValidateMappingValues(t *testing.T) {
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[]`), o)
 					return nil
-				},
-			},
-			repository: &test.MockRepository{
-				UpdateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(map[string]int32{"id": 1})
 				},
 			},
 		},
@@ -456,13 +445,11 @@ func TestValidateMappingValues(t *testing.T) {
 					return nil
 				},
 			},
-			repository: &test.MockRepository{},
 		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			svc := New(test.repository, test.mockLegalValues, "test.com")
-			actualErr := validateMappingValues(svc.Endpoint, test.inputMapping, test.mockLegalValues)
+			actualErr := validateMappingValues(test.inputMapping, test.mockLegalValues)
 			assert.Equal(t, test.expectedError, actualErr)
 		})
 	}

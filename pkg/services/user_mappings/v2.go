@@ -71,7 +71,7 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 // Update updates an existing user mapping, and if successful, it returns
 // the http response and the pointer to the updated user mapping.
 func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, error) {
-	validationErr := validateMappingValues(svc.Endpoint, mapping, svc.LegalValuesService)
+	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
 	if validationErr != nil {
 		return nil, validationErr
 	}
@@ -96,7 +96,7 @@ func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, erro
 // Create creates a new user mapping, and if successful, it returns
 // the http response and the pointer to the user mapping.
 func (svc *V2Service) Create(mapping *UserMapping) (*UserMapping, error) {
-	validationErr := validateMappingValues(svc.Endpoint, mapping, svc.LegalValuesService)
+	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
 	if validationErr != nil {
 		return nil, validationErr
 	}
@@ -130,16 +130,16 @@ func (svc *V2Service) Destroy(id int32) error {
 	return nil
 }
 
-func validateMappingValues(baseURL string, mapping *UserMapping, svc services.SimpleQuery) error {
+func validateMappingValues(mapping *UserMapping, svc services.SimpleQuery) error {
 	legalValRequests := map[string][]string{}
-	legalValRequests[fmt.Sprintf("%s/conditions", baseURL)] = []string{}
-	legalValRequests[fmt.Sprintf("%s/actions", baseURL)] = []string{}
+	legalValRequests["mappings/conditions"] = []string{}
+	legalValRequests["mappings/actions"] = []string{}
 	for _, condition := range mapping.Conditions {
-		legalValRequests[fmt.Sprintf("%s/conditions/%s/values", baseURL, *condition.Source)] = []string{}
-		legalValRequests[fmt.Sprintf("%s/conditions/%s/operators", baseURL, *condition.Source)] = []string{}
+		legalValRequests[fmt.Sprintf("mappings/conditions/%s/values", *condition.Source)] = []string{}
+		legalValRequests[fmt.Sprintf("mappings/conditions/%s/operators", *condition.Source)] = []string{}
 	}
 	for _, action := range mapping.Actions {
-		legalValRequests[fmt.Sprintf("%s/actions/%s/values", baseURL, *action.Action)] = []string{}
+		legalValRequests[fmt.Sprintf("mappings/actions/%s/values", *action.Action)] = []string{}
 	}
 
 	var wg sync.WaitGroup
@@ -150,7 +150,7 @@ func validateMappingValues(baseURL string, mapping *UserMapping, svc services.Si
 			legalValResp := []map[string]string{}
 			err := svc.Query(reqURL, &legalValResp)
 			if err != nil {
-				log.Println("Problem validating mapping", err)
+				log.Println("Problem validating mapping", reqURL, err)
 			}
 			legalVals := make([]string, len(legalValResp))
 			for i, legalVal := range legalValResp {
@@ -163,22 +163,22 @@ func validateMappingValues(baseURL string, mapping *UserMapping, svc services.Si
 
 	var validationErr error
 	for _, condition := range mapping.Conditions {
-		if len(legalValRequests[fmt.Sprintf("%s/conditions", baseURL)]) > 0 {
-			err := utils.OneOf(*mapping.Name, *condition.Source, legalValRequests[fmt.Sprintf("%s/conditions", baseURL)])
+		if len(legalValRequests["mappings/conditions"]) > 0 {
+			err := utils.OneOf(*mapping.Name, *condition.Source, legalValRequests["mappings/conditions"])
 			if err != nil {
 				log.Println("Illegal value given for condition source")
 				validationErr = err
 			}
 		}
-		if len(legalValRequests[fmt.Sprintf("%s/conditions/%s/values", baseURL, *condition.Source)]) > 0 {
-			err := utils.OneOf(*mapping.Name, *condition.Value, legalValRequests[fmt.Sprintf("%s/conditions/%s/values", baseURL, *condition.Source)])
+		if len(legalValRequests[fmt.Sprintf("mappings/conditions/%s/values", *condition.Source)]) > 0 {
+			err := utils.OneOf(*mapping.Name, *condition.Value, legalValRequests[fmt.Sprintf("mappings/conditions/%s/values", *condition.Source)])
 			if err != nil {
 				log.Println("Illegal value given for condition value")
 				validationErr = err
 			}
 		}
-		if len(legalValRequests[fmt.Sprintf("%s/conditions/%s/operators", baseURL, *condition.Source)]) > 0 {
-			err := utils.OneOf(*mapping.Name, *condition.Operator, legalValRequests[fmt.Sprintf("%s/conditions/%s/operators", baseURL, *condition.Source)])
+		if len(legalValRequests[fmt.Sprintf("mappings/conditions/%s/operators", *condition.Source)]) > 0 {
+			err := utils.OneOf(*mapping.Name, *condition.Operator, legalValRequests[fmt.Sprintf("mappings/conditions/%s/operators", *condition.Source)])
 			if err != nil {
 				log.Println("Illegal value given for condition operator")
 				validationErr = err
@@ -187,16 +187,16 @@ func validateMappingValues(baseURL string, mapping *UserMapping, svc services.Si
 	}
 
 	for _, action := range mapping.Actions {
-		if len(legalValRequests[fmt.Sprintf("%s/actions", baseURL)]) > 0 {
-			err := utils.OneOf(*mapping.Name, *action.Action, legalValRequests[fmt.Sprintf("%s/actions", baseURL)])
+		if len(legalValRequests["mappings/actions"]) > 0 {
+			err := utils.OneOf(*mapping.Name, *action.Action, legalValRequests["mappings/actions"])
 			if err != nil {
 				log.Println("Illegal value given for action")
 				validationErr = err
 			}
 		}
 		for _, val := range action.Value {
-			if len(legalValRequests[fmt.Sprintf("%s/actions/%s/values", baseURL, *action.Action)]) > 0 {
-				err := utils.OneOf(*mapping.Name, val, legalValRequests[fmt.Sprintf("%s/actions/%s/values", baseURL, *action.Action)])
+			if len(legalValRequests[fmt.Sprintf("mappings/actions/%s/values", *action.Action)]) > 0 {
+				err := utils.OneOf(*mapping.Name, val, legalValRequests[fmt.Sprintf("mappings/actions/%s/values", *action.Action)])
 				if err != nil {
 					log.Println("Illegal value given for action value")
 					validationErr = err

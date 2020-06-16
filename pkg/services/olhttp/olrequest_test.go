@@ -5,16 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
-
-	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services"
-	"github.com/stretchr/testify/assert"
 )
 
 type MockClient struct {
@@ -26,8 +25,8 @@ func (c MockClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 type TestResource struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
+	Name string `json:"name,omitempty"`
+	ID   string `json:"id,omitempty"`
 }
 
 type TestResourceQuery struct {
@@ -74,6 +73,7 @@ func TestCreate(t *testing.T) {
 	tests := map[string]struct {
 		resourceRequest OLHTTPRequest
 		expectedOut     TestResource
+		expectedError   error
 	}{
 		"Create with payload": {
 			resourceRequest: OLHTTPRequest{
@@ -91,6 +91,22 @@ func TestCreate(t *testing.T) {
 			},
 			expectedOut: TestResource{},
 		},
+		"HTTP Service Errors": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedOut:   TestResource{},
+			expectedError: customerrors.OneloginErrorWrapper(resourceRequestuestContext, errors.New("service fail")),
+		},
+		"HTTP Service returns Non-Json response": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedOut:   TestResource{},
+			expectedError: errors.New("Unable to unpack response"),
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -100,23 +116,36 @@ func TestCreate(t *testing.T) {
 						if req.URL.Path == "/auth/oauth2/v2/token" {
 							return authPassThrough()
 						}
+						if test.expectedError != nil {
+							if test.expectedError.Error() == "error: context: [ol http service], error_message: [service fail]" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("service fail")))
+								return &http.Response{StatusCode: 400, Body: r}, nil
+							}
+							if fmt.Sprintf("%s", test.expectedError) == "Unable to unpack response" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("[")))
+								return &http.Response{StatusCode: 200, Body: r}, nil
+							}
+						}
 						if test.resourceRequest.Payload != nil {
 							tpl := test.resourceRequest.Payload.(TestResource)
 							tpl.ID = "1"
 							j, _ := json.Marshal(tpl)
-							r := ioutil.NopCloser(bytes.NewReader([]byte(j)))
+							r := ioutil.NopCloser(bytes.NewReader(j))
 							return &http.Response{StatusCode: 200, Body: r}, nil
 						}
-						r := ioutil.NopCloser(bytes.NewReader([]byte{}))
+						r := ioutil.NopCloser(bytes.NewReader([]byte("{}")))
 						return &http.Response{StatusCode: 200, Body: r}, nil
 					},
 				},
 			})
-			actual, err := svc.Create(test.resourceRequest)
-			var actualOut TestResource
-			json.Unmarshal(actual, &actualOut)
-			assert.Equal(t, test.expectedOut, actualOut)
-			assert.Nil(t, err)
+			actual := TestResource{}
+			err := svc.Create(test.resourceRequest, &actual)
+			if test.expectedError == nil {
+				assert.Equal(t, test.expectedOut, actual)
+				assert.Nil(t, err)
+			} else {
+				assert.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -126,6 +155,7 @@ func TestRead(t *testing.T) {
 		resourceRequest  OLHTTPRequest
 		expectedReadOut  TestResource
 		expectedQueryOut []TestResource
+		expectedError    error
 	}{
 		"Get n resources according to limit": {
 			resourceRequest: OLHTTPRequest{
@@ -162,6 +192,20 @@ func TestRead(t *testing.T) {
 				TestResource{Name: "name3", ID: "3"},
 			},
 		},
+		"HTTP Service Errors": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedError: customerrors.OneloginErrorWrapper(resourceRequestuestContext, errors.New("service fail")),
+		},
+		"HTTP Service returns Non-Json response": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedError: errors.New("Unable to unpack response"),
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -170,6 +214,16 @@ func TestRead(t *testing.T) {
 					DoFunc: func(req *http.Request) (*http.Response, error) {
 						if req.URL.Path == "/auth/oauth2/v2/token" {
 							return authPassThrough()
+						}
+						if test.expectedError != nil {
+							if test.expectedError.Error() == "error: context: [ol http service], error_message: [service fail]" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("service fail")))
+								return &http.Response{StatusCode: 400, Body: r}, nil
+							}
+							if fmt.Sprintf("%s", test.expectedError) == "Unable to unpack response" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("[")))
+								return &http.Response{StatusCode: 200, Body: r}, nil
+							}
 						}
 						parts := strings.Split(req.URL.Path, "/")
 						idstr := parts[len(parts)-1]
@@ -200,24 +254,18 @@ func TestRead(t *testing.T) {
 					},
 				},
 			})
-
+			actual := []TestResource{}
+			err := svc.Read(test.resourceRequest, &actual)
 			if test.expectedQueryOut != nil {
-				actual, err := svc.Read(test.resourceRequest)
-
-				var actualOut []TestResource
-				err = json.Unmarshal(actual, &actualOut)
-				if err != nil {
-					fmt.Println("ASDF", name, err)
-				}
-
-				assert.Equal(t, test.expectedQueryOut, actualOut)
+				assert.Equal(t, test.expectedQueryOut, actual)
+				assert.Nil(t, err)
+			} else if test.expectedError == nil {
+				actual := TestResource{}
+				err := svc.Read(test.resourceRequest, &actual)
+				assert.Equal(t, test.expectedReadOut, actual)
 				assert.Nil(t, err)
 			} else {
-				actual, err := svc.Read(test.resourceRequest)
-				var actualOut TestResource
-				json.Unmarshal(actual, &actualOut)
-				assert.Equal(t, test.expectedReadOut, actualOut)
-				assert.Nil(t, err)
+				assert.Equal(t, test.expectedError, err)
 			}
 
 		})
@@ -229,6 +277,7 @@ func TestUpdate(t *testing.T) {
 		resourceRequest  OLHTTPRequest
 		originalResource TestResource
 		expectedOut      TestResource
+		expectedError    error
 	}{
 		"Update with payload": {
 			originalResource: TestResource{Name: "unchanged", ID: "1"},
@@ -249,6 +298,20 @@ func TestUpdate(t *testing.T) {
 			},
 			expectedOut: TestResource{Name: "unchanged", ID: "1"},
 		},
+		"HTTP Service Errors": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedError: customerrors.OneloginErrorWrapper(resourceRequestuestContext, errors.New("service fail")),
+		},
+		"HTTP Service returns Non-Json response": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedError: errors.New("Unable to unpack response"),
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -257,6 +320,16 @@ func TestUpdate(t *testing.T) {
 					DoFunc: func(req *http.Request) (*http.Response, error) {
 						if req.URL.Path == "/auth/oauth2/v2/token" {
 							return authPassThrough()
+						}
+						if test.expectedError != nil {
+							if test.expectedError.Error() == "error: context: [ol http service], error_message: [service fail]" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("service fail")))
+								return &http.Response{StatusCode: 400, Body: r}, nil
+							}
+							if fmt.Sprintf("%s", test.expectedError) == "Unable to unpack response" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("[")))
+								return &http.Response{StatusCode: 200, Body: r}, nil
+							}
 						}
 						if test.resourceRequest.Payload != nil {
 							tpl := test.resourceRequest.Payload.(TestResource)
@@ -272,11 +345,14 @@ func TestUpdate(t *testing.T) {
 					},
 				},
 			})
-			actual, err := svc.Update(test.resourceRequest)
-			var actualOut TestResource
-			json.Unmarshal(actual, &actualOut)
-			assert.Equal(t, test.expectedOut, actualOut)
-			assert.Nil(t, err)
+			actual := TestResource{}
+			err := svc.Update(test.resourceRequest, &actual)
+			if test.expectedError == nil {
+				assert.Equal(t, test.expectedOut, actual)
+				assert.Nil(t, err)
+			} else {
+				assert.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -285,10 +361,25 @@ func TestDestroy(t *testing.T) {
 	tests := map[string]struct {
 		resourceRequest OLHTTPRequest
 		expectedOut     TestResource
+		expectedError   error
 	}{
 		"Destroy": {
 			resourceRequest: OLHTTPRequest{AuthMethod: "bearer", URL: "test.com/test_resources/1"},
 			expectedOut:     TestResource{},
+		},
+		"HTTP Service Errors": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedError: customerrors.OneloginErrorWrapper(resourceRequestuestContext, errors.New("service fail")),
+		},
+		"HTTP Service returns Non-Json response": {
+			resourceRequest: OLHTTPRequest{
+				AuthMethod: "bearer",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedError: errors.New("Unable to unpack response"),
 		},
 	}
 	for name, test := range tests {
@@ -299,16 +390,29 @@ func TestDestroy(t *testing.T) {
 						if req.URL.Path == "/auth/oauth2/v2/token" {
 							return authPassThrough()
 						}
-						r := ioutil.NopCloser(bytes.NewReader([]byte(``)))
+						if test.expectedError != nil {
+							if test.expectedError.Error() == "error: context: [ol http service], error_message: [service fail]" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("service fail")))
+								return &http.Response{StatusCode: 400, Body: r}, nil
+							}
+							if fmt.Sprintf("%s", test.expectedError) == "Unable to unpack response" {
+								r := ioutil.NopCloser(bytes.NewReader([]byte("[")))
+								return &http.Response{StatusCode: 200, Body: r}, nil
+							}
+						}
+						r := ioutil.NopCloser(bytes.NewReader([]byte("{}")))
 						return &http.Response{StatusCode: 200, Body: r}, nil
 					},
 				},
 			})
-			actual, err := svc.Destroy(test.resourceRequest)
-			var actualOut TestResource
-			json.Unmarshal(actual, &actualOut)
-			assert.Equal(t, test.expectedOut, actualOut)
-			assert.Nil(t, err)
+			actual := TestResource{}
+			err := svc.Destroy(test.resourceRequest, &actual)
+			if test.expectedError == nil {
+				assert.Equal(t, test.expectedOut, actual)
+				assert.Nil(t, err)
+			} else {
+				assert.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }

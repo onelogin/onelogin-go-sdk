@@ -6,10 +6,10 @@ import "net/http"
 // could represent a HTTP backend service or a local database or file where business
 // entities live such as apps or users
 type Repository interface {
-	Create(r interface{}) ([]byte, error)
-	Read(r interface{}) ([]byte, error)
-	Update(r interface{}) ([]byte, error)
-	Destroy(r interface{}) ([]byte, error)
+	Create(r interface{}, o interface{}) error
+	Read(r interface{}, o interface{}) error
+	Update(r interface{}, o interface{}) error
+	Destroy(r interface{}, o interface{}) error
 }
 
 type SimpleQuery interface {

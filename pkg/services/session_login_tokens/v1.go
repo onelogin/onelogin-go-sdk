@@ -1,7 +1,6 @@
 package sessionlogintokens
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
@@ -28,19 +27,16 @@ func New(repo services.Repository, host string) V1Service {
 // Create takes a SessionLoginToken request that represents an end-user's credentials
 // and returns a Session Token that represents an authenticated session
 func (svc *V1Service) Create(request *SessionLoginTokenRequest) (*SessionLoginToken, error) {
-
-	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
+	var (
+		newSessionToken SessionLoginToken
+		err             error
+	)
+	if err = svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    request,
-	})
-	if err != nil {
-		return nil, err
-	}
-	var newSessionToken SessionLoginToken
-	err = json.Unmarshal(resp, &newSessionToken)
-	if err != nil {
+	}, &newSessionToken); err != nil {
 		return nil, err
 	}
 	return &newSessionToken, nil

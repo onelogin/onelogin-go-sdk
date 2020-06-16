@@ -1,7 +1,6 @@
 package usermappings
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
@@ -18,52 +17,49 @@ const errUserMappingsV2Context = "user mappings v2 service"
 type V2Service struct {
 	Endpoint, ErrorContext string
 	Repository             services.Repository
-	LegalValuesService     services.SimpleQuery
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, legalValues services.SimpleQuery, host string) V2Service {
+func New(repo services.Repository, host string) V2Service {
 	return V2Service{
-		Endpoint:           fmt.Sprintf("%s/api/2/mappings", host),
-		Repository:         repo,
-		ErrorContext:       errUserMappingsV2Context,
-		LegalValuesService: legalValues,
+		Endpoint:     fmt.Sprintf("%s/api/2/mappings", host),
+		Repository:   repo,
+		ErrorContext: errUserMappingsV2Context,
 	}
 }
 
 // Query retrieves all the userMappings from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all userMappings
 func (svc *V2Service) Query(query *UserMappingsQuery) ([]UserMapping, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+	var (
+		userMappings []UserMapping
+		err          error
+	)
+	if err = svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "userMappinglication/json"},
 		AuthMethod: "bearer",
 		Payload:    query,
-	})
-	if err != nil {
+	}, &userMappings); err != nil {
 		return nil, err
 	}
-
-	var userMappings []UserMapping
-	json.Unmarshal(resp, &userMappings)
-
 	return userMappings, nil
 }
 
 // GetOne retrieves the user mapping by id, and if successful, it returns
 // the http response and the pointer to the user mapping.
 func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+	var (
+		mapping UserMapping
+		err     error
+	)
+	if err = svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-	})
-	if err != nil {
+	}, &mapping); err != nil {
 		return nil, err
 	}
-
-	var mapping UserMapping
-	json.Unmarshal(resp, &mapping)
 
 	return &mapping, nil
 }
@@ -71,66 +67,62 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 // Update updates an existing user mapping, and if successful, it returns
 // the http response and the pointer to the updated user mapping.
 func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, error) {
-	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
+	validationErr := svc.ValidateMappingValues(mapping)
 	if validationErr != nil {
 		return nil, validationErr
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
+	var (
+		mappingID map[string]int32
+		err       error
+	)
+	if err = svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    mapping,
-	})
-	if err != nil {
+	}, &mappingID); err != nil {
 		return nil, err
 	}
-
-	var mappingID map[string]int
-	json.Unmarshal(resp, &mappingID)
-
 	mapping.ID = oltypes.Int32(int32(mappingID["id"]))
-
 	return mapping, nil
 }
 
 // Create creates a new user mapping, and if successful, it returns
 // the http response and the pointer to the user mapping.
 func (svc *V2Service) Create(mapping *UserMapping) (*UserMapping, error) {
-	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
+	validationErr := svc.ValidateMappingValues(mapping)
 	if validationErr != nil {
 		return nil, validationErr
 	}
-	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
+	var (
+		mappingID map[string]int32
+		err       error
+	)
+	if err = svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    mapping,
-	})
-
-	if err != nil {
+	}, &mappingID); err != nil {
 		return nil, err
 	}
-	var mappingID map[string]int
-	json.Unmarshal(resp, &mappingID)
-
 	mapping.ID = oltypes.Int32(int32(mappingID["id"]))
-
 	return mapping, nil
 }
 
 // Destroy deletes the user mapping for the id, and if successful, it returns nil
 func (svc *V2Service) Destroy(id int32) error {
-	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
+	if err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-	}); err != nil {
+	}, nil); err != nil {
 		return err
 	}
 	return nil
 }
 
-func validateMappingValues(mapping *UserMapping, svc services.SimpleQuery) error {
+func (svc *V2Service) ValidateMappingValues(mapping *UserMapping) error {
 	legalValRequests := map[string][]string{}
 	legalValRequests["mappings/conditions"] = []string{}
 	legalValRequests["mappings/actions"] = []string{}
@@ -147,9 +139,15 @@ func validateMappingValues(mapping *UserMapping, svc services.SimpleQuery) error
 		wg.Add(1)
 		go func(reqURL string, legalValRequest map[string][]string) {
 			defer wg.Done()
-			legalValResp := []map[string]string{}
-			err := svc.Query(reqURL, &legalValResp)
-			if err != nil {
+			var (
+				legalValResp []map[string]string
+				err          error
+			)
+			if err = svc.Repository.Read(olhttp.OLHTTPRequest{
+				AuthMethod: "bearer",
+				URL:        fmt.Sprintf("%s/%s", svc.Endpoint, reqURL),
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			}, &legalValResp); err != nil {
 				log.Println("Problem validating mapping", reqURL, err)
 			}
 			legalVals := make([]string, len(legalValResp))

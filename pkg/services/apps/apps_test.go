@@ -1,14 +1,12 @@
 package apps
 
 import (
-	"encoding/json"
 	"errors"
-	"testing"
-
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestQuery(t *testing.T) {
@@ -24,12 +22,14 @@ func TestQuery(t *testing.T) {
 				App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+						*o.(*[]AppRule) = []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}
+					} else {
+						*o.(*[]App) = []App{App{ID: oltypes.Int32(1), Name: oltypes.String("name")}}
 					}
-					return json.Marshal([]App{App{ID: oltypes.Int32(1), Name: oltypes.String("name")}})
+					return nil
 				},
 			},
 		},
@@ -40,16 +40,17 @@ func TestQuery(t *testing.T) {
 				App{ID: oltypes.Int32(1), Name: oltypes.String("name2"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+						*o.(*[]AppRule) = []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}
+					} else {
+						*o.(*[]App) = []App{
+							App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
+							App{ID: oltypes.Int32(1), Name: oltypes.String("name2")},
+						}
 					}
-					availableApps := []App{
-						App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
-						App{ID: oltypes.Int32(1), Name: oltypes.String("name2")},
-					}
-					return json.Marshal(availableApps)
+					return nil
 				},
 			},
 		},
@@ -61,16 +62,16 @@ func TestQuery(t *testing.T) {
 				App{ID: oltypes.Int32(1), Name: oltypes.String("name2")},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return nil, errors.New("error")
+						return errors.New("error")
 					}
-					availableApps := []App{
+					*o.(*[]App) = []App{
 						App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 						App{ID: oltypes.Int32(1), Name: oltypes.String("name2")},
 					}
-					return json.Marshal(availableApps)
+					return nil
 				},
 			},
 		},
@@ -84,8 +85,9 @@ func TestQuery(t *testing.T) {
 			queryPayload:     &AppsQuery{Name: "???"},
 			expectedResponse: []App{},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]App{})
+				ReadFunc: func(r interface{}, o interface{}) error {
+					*o.(*[]App) = []App{}
+					return nil
 				},
 			},
 		},
@@ -113,12 +115,14 @@ func TestGetOne(t *testing.T) {
 			id:               int32(1),
 			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+						*o.(*[]AppRule) = []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return nil
 				},
 			},
 		},
@@ -126,12 +130,13 @@ func TestGetOne(t *testing.T) {
 			expectedError:    errors.New("error"),
 			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return nil, errors.New("error")
+						return errors.New("error")
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
+					return nil
 				},
 			},
 		},
@@ -181,25 +186,31 @@ func TestUpdate(t *testing.T) {
 				},
 			},
 			repository: &test.MockRepository{
-				CreateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(map[string]int32{"id": 2})
+				CreateFunc: func(r interface{}, o interface{}) error {
+					*o.(*map[string]int32) = map[string]int32{"id": 2}
+					return nil
 				},
-				UpdateFunc: func(r interface{}) ([]byte, error) {
+				UpdateFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
-					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal(map[string]int32{"id": 1})
+					if req.URL == "test.com/api/2/apps/1/rules/1" {
+						*o.(*map[string]int32) = map[string]int32{"id": 1}
+						return nil
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("updated")}
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
+					return nil
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal([]AppRule{
+						*o.(*[]AppRule) = []AppRule{
 							AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")},
 							AppRule{ID: oltypes.Int32(2), Name: oltypes.String("new_rule")},
-						})
+						}
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("updated")}
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
+					return nil
 				},
 			},
 		},
@@ -211,28 +222,37 @@ func TestUpdate(t *testing.T) {
 		},
 		"it returns the app and error if call to /rules fails": {
 			updatePayload: &App{
-				ID:   oltypes.Int32(1),
-				Name: oltypes.String("original"),
-				Rules: []AppRule{
-					AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")},
-					AppRule{Name: oltypes.String("new_rule")},
-				},
+				ID:    oltypes.Int32(1),
+				Name:  oltypes.String("original"),
+				Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")}},
 			},
-			expectedError:    errors.New("error"),
-			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
+			expectedError: errors.New("error"),
+			expectedResponse: &App{
+				ID:    oltypes.Int32(1),
+				Name:  oltypes.String("name"),
+				Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")}},
+			},
 			repository: &test.MockRepository{
-				CreateFunc: func(r interface{}) ([]byte, error) {
-					return nil, errors.New("error")
+				CreateFunc: func(r interface{}, o interface{}) error {
+					return errors.New("error")
 				},
-				UpdateFunc: func(r interface{}) ([]byte, error) {
+				UpdateFunc: func(r interface{}, o interface{}) error {
+					req := r.(olhttp.OLHTTPRequest)
+					if req.URL == "test.com/api/2/apps/1/rules/1" {
+						*o.(*map[string]int32) = map[string]int32{}
+						return errors.New("error")
+					}
+					*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
+					return nil
+				},
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return nil, errors.New("error")
+						*o.(*[]AppRule) = []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("updated_rule")}}
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
-				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return nil
 				},
 			},
 		},
@@ -248,15 +268,17 @@ func TestUpdate(t *testing.T) {
 			expectedError:    errors.New("error"),
 			expectedResponse: nil,
 			repository: &test.MockRepository{
-				CreateFunc: func(r interface{}) ([]byte, error) {
-					return nil, errors.New("error")
+				CreateFunc: func(r interface{}, o interface{}) error {
+					return errors.New("error")
 				},
-				UpdateFunc: func(r interface{}) ([]byte, error) {
+				UpdateFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
-					if req.URL == "test.com/api/2/apps/1/rules" {
-						return nil, errors.New("error")
+					if req.URL == "test.com/api/2/apps/1/rules/1" {
+						*o.(*map[string]int32) = map[string]int32{}
+						return errors.New("error")
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
+					return nil
 				},
 			},
 		},
@@ -269,25 +291,30 @@ func TestUpdate(t *testing.T) {
 			},
 			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{}},
 			repository: &test.MockRepository{
-				UpdateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+				UpdateFunc: func(r interface{}, o interface{}) error {
+					*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}}
+					return nil
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+						*o.(*[]AppRule) = []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return nil
 				},
-				ReReadFunc: func(r interface{}) ([]byte, error) {
+				ReReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal([]AppRule{})
+						*o.(*[]AppRule) = []AppRule{}
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return nil
 				},
-				DestroyFunc: func(r interface{}) ([]byte, error) {
-					return nil, nil
+				DestroyFunc: func(r interface{}, o interface{}) error {
+					return nil
 				},
 			},
 		},
@@ -314,8 +341,8 @@ func TestDestroy(t *testing.T) {
 		"it destroys one app": {
 			id: int32(1),
 			repository: &test.MockRepository{
-				DestroyFunc: func(r interface{}) ([]byte, error) {
-					return nil, nil
+				DestroyFunc: func(r interface{}, o interface{}) error {
+					return nil
 				},
 			},
 			expectedResponse: &App{},
@@ -351,22 +378,24 @@ func TestCreate(t *testing.T) {
 			createPayload:    &App{Name: oltypes.String("name"), Rules: []AppRule{AppRule{Name: oltypes.String("rule")}}},
 			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Rules: []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
 			repository: &test.MockRepository{
-				CreateFunc: func(r interface{}) ([]byte, error) {
+				CreateFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal(map[string]int32{"id": 1})
+						*o.(*map[string]int32) = map[string]int32{"id": 1}
+					} else {
+						app := req.Payload.(*App)
+						*o.(*App) = App{Name: app.Name, ID: oltypes.Int32(int32(1))}
 					}
-					app := req.Payload.(*App)
-					app.ID = oltypes.Int32(int32(1))
-					resp := App{Name: app.Name, ID: app.ID}
-					return json.Marshal(resp)
+					return nil
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+						*o.(*[]AppRule) = []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return nil
 				},
 			},
 		},
@@ -381,15 +410,22 @@ func TestCreate(t *testing.T) {
 			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 			expectedError:    errors.New("error"),
 			repository: &test.MockRepository{
-				CreateFunc: func(r interface{}) ([]byte, error) {
+				CreateFunc: func(r interface{}, o interface{}) error {
 					req := r.(olhttp.OLHTTPRequest)
 					if req.URL == "test.com/api/2/apps/1/rules" {
-						return nil, errors.New("error")
+						return errors.New("error")
 					}
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
+					return nil
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+				ReadFunc: func(r interface{}, o interface{}) error {
+					req := r.(olhttp.OLHTTPRequest)
+					if req.URL == "test.com/api/2/apps/1/rules" {
+						*o.(*[]AppRule) = nil
+					} else {
+						*o.(*App) = App{ID: oltypes.Int32(1), Name: oltypes.String("name")}
+					}
+					return nil
 				},
 			},
 		},

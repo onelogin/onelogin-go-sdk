@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 
@@ -42,16 +43,16 @@ func New(cfg services.HTTPServiceConfig) *OLHTTPService {
 // will use this until the remote stops responding with the After-Cursor header, indicating we have
 // run out of pages. This is not to be confused with the Cursor header which can be set by the
 // caller in the request to Read which will offset the remote query starting at that page.
-func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
+func (svc OLHTTPService) Read(r interface{}, o interface{}) error {
 	resourceRequest := r.(OLHTTPRequest)
 	req, reqErr := http.NewRequest(http.MethodGet, resourceRequest.URL, nil)
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 
 	if resourceRequest.Payload != nil {
 		if err := attachQueryParameters(req, resourceRequest); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -61,7 +62,7 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	)
 	resp, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
 	for {
 		allData = append(allData, data...)
@@ -76,13 +77,19 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	}
 
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
-	return data, err
+
+	if err := json.Unmarshal(data, o); err != nil {
+		log.Println("Unable to unpack response", err, string(data))
+		return errors.New("Unable to unpack response")
+	}
+
+	return err
 }
 
 // Create creates a new resource in the remote location over HTTP
-func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
+func (svc OLHTTPService) Create(r interface{}, o interface{}) error {
 	resourceRequest := r.(OLHTTPRequest)
 	var (
 		req    *http.Request
@@ -91,24 +98,28 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 	if resourceRequest.Payload != nil {
 		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
 		if marshErr != nil {
-			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
+			return customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
 		}
 		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
 	} else {
 		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer([]byte("")))
 	}
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 	_, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
-	return data, err
+	if err := json.Unmarshal(data, o); err != nil {
+		log.Println("Unable to unpack response", err)
+		return errors.New("Unable to unpack response")
+	}
+	return err
 }
 
 // Update updates a resource in its remote location over HTTP
-func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
+func (svc OLHTTPService) Update(r interface{}, o interface{}) error {
 	resourceRequest := r.(OLHTTPRequest)
 	var (
 		req    *http.Request
@@ -117,34 +128,42 @@ func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
 	if resourceRequest.Payload != nil {
 		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
 		if marshErr != nil {
-			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
+			return customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
 		}
 		req, reqErr = http.NewRequest(http.MethodPut, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
 	} else {
 		req, reqErr = http.NewRequest(http.MethodPut, resourceRequest.URL, bytes.NewBuffer([]byte("")))
 	}
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 	_, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
-	return data, err
+	if err := json.Unmarshal(data, o); err != nil {
+		log.Println("Unable to unpack response", err)
+		return errors.New("Unable to unpack response")
+	}
+	return err
 }
 
 // Destroy executes a HTTP destroy and removes the resource from its location in a remote
-func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
+func (svc OLHTTPService) Destroy(r interface{}, o interface{}) error {
 	resourceRequest := r.(OLHTTPRequest)
 	req, reqErr := http.NewRequest(http.MethodDelete, resourceRequest.URL, nil)
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 	_, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
-		return []byte{}, err
+		return err
 	}
-	return data, err
+	if err := json.Unmarshal(data, o); err != nil {
+		log.Println("Unable to unpack response", err)
+		return errors.New("Unable to unpack response")
+	}
+	return err
 }
 
 // creates a http query string from the request payload
@@ -226,18 +245,14 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 
 // requests a fresh access token
 func (svc *OLHTTPService) mintBearerToken() (ClientCredential, error) {
-	resp, err := svc.Create(OLHTTPRequest{
+	output := ClientCredential{}
+	err := svc.Create(OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/auth/oauth2/v2/token", svc.Config.BaseURL),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		Payload:    AuthBody{GrantType: "client_credentials"},
 		AuthMethod: "basic",
-	})
+	}, &output)
 	if err != nil {
-		return ClientCredential{}, err
-	}
-
-	var output ClientCredential
-	if err = json.Unmarshal(resp, &output); err != nil {
 		return ClientCredential{}, err
 	}
 	return output, nil

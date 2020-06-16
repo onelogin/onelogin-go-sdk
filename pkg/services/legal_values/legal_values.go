@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
-	"log"
 )
 
 const errLegalValuesContext = "legal values service"
@@ -33,7 +32,6 @@ func (svc LegalValuesService) Query(address string, outShape interface{}) error 
 		Headers:    map[string]string{"Content-Type": "application/json"},
 	})
 	if err != nil {
-		log.Println("fuck", fmt.Sprintf("%s/%s", svc.BaseURL, address))
 		return err
 	}
 

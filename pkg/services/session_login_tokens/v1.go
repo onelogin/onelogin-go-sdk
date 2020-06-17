@@ -8,7 +8,6 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
 
-// #nosec
 const errSessionLoginTokenV1Context = "Session Login Tokens v2 service"
 
 type V1Service struct {
@@ -28,7 +27,6 @@ func New(repo services.Repository, host string) V1Service {
 // Create takes a SessionLoginToken request that represents an end-user's credentials
 // and returns a Session Token that represents an authenticated session
 func (svc *V1Service) Create(request *SessionLoginTokenRequest) (*SessionLoginToken, error) {
-
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -39,9 +37,6 @@ func (svc *V1Service) Create(request *SessionLoginTokenRequest) (*SessionLoginTo
 		return nil, err
 	}
 	var newSessionToken SessionLoginToken
-	err = json.Unmarshal(resp, &newSessionToken)
-	if err != nil {
-		return nil, err
-	}
+	json.Unmarshal(resp, &newSessionToken)
 	return &newSessionToken, nil
 }

@@ -3,10 +3,10 @@ package usermappings
 import (
 	"encoding/json"
 	"errors"
-	"testing"
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type MockLegalValuesService struct {
@@ -29,7 +29,7 @@ func TestQuery(t *testing.T) {
 		repository       *test.MockRepository
 	}{
 		"it gets one mapping": {
-			queryPayload: &UserMappingsQuery{Limit: "1"},
+			queryPayload:    &UserMappingsQuery{Limit: "1"},
 			mockLegalValues: &MockLegalValuesService{},
 			expectedResponse: []UserMapping{
 				UserMapping{ID: oltypes.Int32(1), Name: oltypes.String("mapping")},
@@ -130,16 +130,16 @@ func TestUpdate(t *testing.T) {
 		"it updates one user mapping": {
 			id: int32(1),
 			updatePayload: &UserMapping{
-				ID:   oltypes.Int32(1),
-				Name: oltypes.String("updated"),
-				Conditions: []UserMappingConditions{{ Operator: oltypes.String("ri"), Source: oltypes.String("has_role"), Value: oltypes.String("12345") }},
-				Actions: []UserMappingActions{{ Value: []string{"12345"}, Action: oltypes.String("set_status") }},
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("updated"),
+				Conditions: []UserMappingConditions{{Operator: oltypes.String("ri"), Source: oltypes.String("has_role"), Value: oltypes.String("12345")}},
+				Actions:    []UserMappingActions{{Value: []string{"12345"}, Action: oltypes.String("set_status")}},
 			},
 			expectedResponse: &UserMapping{
-				ID:   oltypes.Int32(1),
-				Name: oltypes.String("updated"),
-				Conditions: []UserMappingConditions{{	Operator: oltypes.String("ri"),	Source: oltypes.String("has_role"),	Value: oltypes.String("12345") }},
-				Actions: []UserMappingActions{{	Value: []string{"12345"},	Action: oltypes.String("set_status") }},
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("updated"),
+				Conditions: []UserMappingConditions{{Operator: oltypes.String("ri"), Source: oltypes.String("has_role"), Value: oltypes.String("12345")}},
+				Actions:    []UserMappingActions{{Value: []string{"12345"}, Action: oltypes.String("set_status")}},
 			},
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
@@ -208,7 +208,7 @@ func TestUpdate(t *testing.T) {
 					Action: oltypes.String("asdf"),
 				}},
 			},
-			expectedError: errors.New("updated must be one of [ri has_role 12345], got: 2"),
+			expectedError: errors.New("updated.actions.values must be one of [ri has_role 12345], got: 2"),
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[{"value":"ri"}, {"value":"has_role"}, {"value": "12345"}]`), o)
@@ -239,7 +239,7 @@ func TestUpdate(t *testing.T) {
 					return nil
 				},
 			},
-			repository:    &test.MockRepository{},
+			repository: &test.MockRepository{},
 		},
 	}
 	for name, test := range tests {
@@ -263,7 +263,7 @@ func TestCreate(t *testing.T) {
 		repository       *test.MockRepository
 	}{
 		"it creates one mapping": {
-			createPayload:    &UserMapping{
+			createPayload: &UserMapping{
 				Name: oltypes.String("rule"),
 				Conditions: []UserMappingConditions{{
 					Operator: oltypes.String("ri"),
@@ -276,7 +276,7 @@ func TestCreate(t *testing.T) {
 				}},
 			},
 			expectedResponse: &UserMapping{
-				ID: oltypes.Int32(1),
+				ID:   oltypes.Int32(1),
 				Name: oltypes.String("rule"),
 				Conditions: []UserMappingConditions{{
 					Operator: oltypes.String("ri"),
@@ -313,7 +313,7 @@ func TestCreate(t *testing.T) {
 					Action: oltypes.String("asdf"),
 				}},
 			},
-			expectedError: errors.New("updated must be one of [ri has_role 12345], got: 2"),
+			expectedError: errors.New("updated.actions.values must be one of [ri has_role 12345], got: 2"),
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[{"value":"ri"}, {"value":"has_role"}, {"value": "12345"}]`), o)
@@ -386,15 +386,15 @@ func TestDestroy(t *testing.T) {
 func TestValidateMappingValues(t *testing.T) {
 	tests := map[string]struct {
 		inputMapping    *UserMapping
-		mockLegalValues  *MockLegalValuesService
-		expectedError    error
+		mockLegalValues *MockLegalValuesService
+		expectedError   error
 	}{
 		"it returns nil for valid mapping values": {
 			inputMapping: &UserMapping{
-				ID:   oltypes.Int32(1),
-				Name: oltypes.String("updated"),
-				Conditions: []UserMappingConditions{{ Operator: oltypes.String("ri"), Source: oltypes.String("has_role"), Value: oltypes.String("12345") }},
-				Actions: []UserMappingActions{{ Value: []string{"12345"}, Action: oltypes.String("set_status") }},
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("updated"),
+				Conditions: []UserMappingConditions{{Operator: oltypes.String("ri"), Source: oltypes.String("has_role"), Value: oltypes.String("12345")}},
+				Actions:    []UserMappingActions{{Value: []string{"12345"}, Action: oltypes.String("set_status")}},
 			},
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
@@ -438,7 +438,7 @@ func TestValidateMappingValues(t *testing.T) {
 					Action: oltypes.String("asdf"),
 				}},
 			},
-			expectedError: errors.New("updated must be one of [ri has_role 12345], got: 2"),
+			expectedError: errors.New("updated.actions.values must be one of [ri has_role 12345], got: 2"),
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[{"value":"ri"}, {"value":"has_role"}, {"value": "12345"}]`), o)

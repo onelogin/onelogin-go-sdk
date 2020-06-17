@@ -208,7 +208,7 @@ func TestUpdate(t *testing.T) {
 					Action: oltypes.String("asdf"),
 				}},
 			},
-			expectedError: errors.New("updated.actions.values must be one of [ri has_role 12345], got: 2"),
+			expectedError: errors.New("updated.conditions.source must be one of [ri has_role 12345], got: asdf, updated.conditions.value must be one of [ri has_role 12345], got: asdf, updated.conditions.operator must be one of [ri has_role 12345], got: asdf, updated.actions.action must be one of [ri has_role 12345], got: asdf, updated.actions.values must be one of [ri has_role 12345], got: 2"),
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[{"value":"ri"}, {"value":"has_role"}, {"value": "12345"}]`), o)
@@ -313,7 +313,7 @@ func TestCreate(t *testing.T) {
 					Action: oltypes.String("asdf"),
 				}},
 			},
-			expectedError: errors.New("updated.actions.values must be one of [ri has_role 12345], got: 2"),
+			expectedError: errors.New("updated.conditions.source must be one of [ri has_role 12345], got: asdf, updated.conditions.value must be one of [ri has_role 12345], got: asdf, updated.conditions.operator must be one of [ri has_role 12345], got: asdf, updated.actions.action must be one of [ri has_role 12345], got: asdf, updated.actions.values must be one of [ri has_role 12345], got: 2"),
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[{"value":"ri"}, {"value":"has_role"}, {"value": "12345"}]`), o)
@@ -438,7 +438,7 @@ func TestValidateMappingValues(t *testing.T) {
 					Action: oltypes.String("asdf"),
 				}},
 			},
-			expectedError: errors.New("updated.actions.values must be one of [ri has_role 12345], got: 2"),
+			expectedError: errors.New("updated.conditions.source must be one of [ri has_role 12345], got: asdf, updated.conditions.value must be one of [ri has_role 12345], got: asdf, updated.conditions.operator must be one of [ri has_role 12345], got: asdf, updated.actions.action must be one of [ri has_role 12345], got: asdf, updated.actions.values must be one of [ri has_role 12345], got: 2"),
 			mockLegalValues: &MockLegalValuesService{
 				DoFunc: func(addr string, o interface{}) error {
 					json.Unmarshal([]byte(`[{"value":"ri"}, {"value":"has_role"}, {"value": "12345"}]`), o)

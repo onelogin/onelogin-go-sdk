@@ -3,11 +3,11 @@ package apps
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
+	"log"
 )
 
 const errAppsV2Context = "apps v2 service"
@@ -174,7 +174,7 @@ func (svc *V2Service) Destroy(id int32) error {
 // request list. At this point the app holds all existing rules in the API.
 // Rules not on the request list are assumed to be removed by the caller.
 func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters, app *App) error {
-	var err error
+	var delErrors []error
 	keepMap := make(map[int32]bool, len(*requestedParams))
 	for _, param := range *requestedParams {
 		keepMap[*param.ID] = true
@@ -182,14 +182,16 @@ func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters,
 	// no need to call down app parameters specifically like we do for rules. parameters returned as part of app update
 	for _, delCandidate := range app.Parameters {
 		if !keepMap[*delCandidate.ID] {
-			_, err = svc.Repository.Destroy(olhttp.OLHTTPRequest{
+			if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/parameters/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
-			})
+			}); err != nil {
+				delErrors = append(delErrors, err)
+			}
 		}
 	}
-	return err
+	return customerrors.StackErrors(delErrors)
 }
 
 // Given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
@@ -198,7 +200,7 @@ func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters,
 func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
 	var (
 		savedRules []AppRule
-		err        error
+		delErrors  []error
 	)
 	resp, _ := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
@@ -214,22 +216,26 @@ func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
 	}
 	for _, delCandidate := range savedRules {
 		if !keepMap[*delCandidate.ID] {
-			_, err = svc.Repository.Destroy(olhttp.OLHTTPRequest{
+			if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
-			})
+			}); err != nil {
+				delErrors = append(delErrors, err)
+			}
+
 		}
 	}
-	return err
+	return customerrors.StackErrors(delErrors)
 }
 
 // create or update (upsert if you will) the rules tied to this app. If an upsert fails, the rest will continue, then the saved
 // rules will be tied to the app an error will be returned for the caller to decide what to do
 func (svc *V2Service) saveAppRules(app *App) error {
 	var (
-		err  error
-		resp []byte
+		err         error
+		resp        []byte
+		writeErrors []error
 	)
 	for i := range (*app).Rules {
 		if app.Rules[i].ID != nil {
@@ -241,6 +247,7 @@ func (svc *V2Service) saveAppRules(app *App) error {
 			})
 			if err != nil {
 				log.Println("Partial Rules State:", err)
+				writeErrors = append(writeErrors, err)
 			}
 		} else {
 			resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
@@ -251,6 +258,7 @@ func (svc *V2Service) saveAppRules(app *App) error {
 			})
 			if err != nil {
 				log.Println("Partial Rules State:", err)
+				writeErrors = append(writeErrors, err)
 			}
 		}
 		if err == nil {
@@ -259,5 +267,5 @@ func (svc *V2Service) saveAppRules(app *App) error {
 			app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
 		}
 	}
-	return err
+	return customerrors.StackErrors(writeErrors)
 }

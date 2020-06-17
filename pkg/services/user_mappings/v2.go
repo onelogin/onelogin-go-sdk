@@ -142,7 +142,10 @@ func validateMappingValues(mapping *UserMapping, svc services.SimpleQuery) error
 		legalValRequests[fmt.Sprintf("mappings/actions/%s/values", *action.Action)] = []string{}
 	}
 
-	var wg sync.WaitGroup
+	var (
+		wg    sync.WaitGroup
+		mutex = &sync.Mutex{}
+	)
 	for reqURL := range legalValRequests {
 		wg.Add(1)
 		go func(reqURL string, legalValRequest map[string][]string) {
@@ -156,7 +159,9 @@ func validateMappingValues(mapping *UserMapping, svc services.SimpleQuery) error
 			for i, legalVal := range legalValResp {
 				legalVals[i] = legalVal["value"]
 			}
+			mutex.Lock()
 			legalValRequests[reqURL] = legalVals
+			mutex.Unlock()
 		}(reqURL, legalValRequests)
 	}
 	wg.Wait()

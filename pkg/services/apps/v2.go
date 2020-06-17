@@ -131,7 +131,7 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 		return &updatedApp, err
 	}
 	json.Unmarshal(resp, &updatedApp)
-	updatedApp.Rules = app.Rules // attach app rules here since rules are not returned with the app request
+	updatedApp.Rules = app.Rules // attach rules to updated app here since rules are not returned with the app request
 
 	if err = svc.saveAppRules(&updatedApp); err != nil {
 		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
@@ -140,20 +140,19 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 		}
 		return recoveredAppState, err
 	}
-	if err = svc.pruneAppRules(&app.Rules, &updatedApp); err != nil {
+
+	pruneRuleErr := svc.pruneAppRules(&app.Rules, &updatedApp)
+	pruneParamErr := svc.pruneParameters(&app.Parameters, &updatedApp)
+
+	if pruneRuleErr != nil || pruneParamErr != nil {
 		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
 		if recoverErr != nil {
 			return nil, err
 		}
-		return recoveredAppState, err
-	}
-	if err = svc.pruneParameters(&app.Parameters, &updatedApp); err != nil {
-		// parameters must be deleted
-		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
-		if recoverErr != nil {
-			return nil, err
+		if pruneRuleErr != nil {
+			return recoveredAppState, pruneRuleErr
 		}
-		return recoveredAppState, err
+		return recoveredAppState, pruneParamErr
 	}
 	// re-read the app so we return one with all the parameters changes made via each individual parameters call
 	return svc.GetOne(*updatedApp.ID)
@@ -178,9 +177,7 @@ func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters,
 	var err error
 	keepMap := make(map[int32]bool, len(*requestedParams))
 	for _, param := range *requestedParams {
-		if param.ID != nil {
-			keepMap[*param.ID] = true
-		}
+		keepMap[*param.ID] = true
 	}
 	// no need to call down app parameters specifically like we do for rules. parameters returned as part of app update
 	for _, delCandidate := range app.Parameters {

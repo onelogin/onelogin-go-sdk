@@ -17,15 +17,15 @@ type LegalValuesService struct {
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) LegalValuesService {
-	return LegalValuesService{
+func New(repo services.Repository, host string) *LegalValuesService {
+	return &LegalValuesService{
 		BaseURL:      fmt.Sprintf("%s/api/2", host),
 		Repository:   repo,
 		ErrorContext: errLegalValuesContext,
 	}
 }
 
-func (svc LegalValuesService) Query(address string, outShape interface{}) error {
+func (svc *LegalValuesService) Query(address string, outShape interface{}) error {
 	respBytes, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		AuthMethod: "bearer",
 		URL:        fmt.Sprintf("%s/%s", svc.BaseURL, address),

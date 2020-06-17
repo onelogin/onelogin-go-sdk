@@ -16,8 +16,8 @@ type V1Service struct {
 }
 
 // New creates the new apps service v2.
-func New(repo services.Repository, host string) V1Service {
-	return V1Service{
+func New(repo services.Repository, host string) *V1Service {
+	return &V1Service{
 		Endpoint:     fmt.Sprintf("%s/api/1/login/auth", host),
 		Repository:   repo,
 		ErrorContext: errSessionLoginTokenV1Context,

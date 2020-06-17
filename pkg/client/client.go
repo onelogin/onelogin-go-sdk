@@ -25,10 +25,10 @@ type APIClient struct {
 
 // Services contains all the available api services.
 type Services struct {
-	HTTPService          olhttp.OLHTTPService
-	AppsV2               apps.V2Service
-	UserMappingsV2       usermappings.V2Service
-	SessionLoginTokensV1 sessionlogintokens.V1Service
+	HTTPService          *olhttp.OLHTTPService
+	AppsV2               *apps.V2Service
+	UserMappingsV2       *usermappings.V2Service
+	SessionLoginTokensV1 *sessionlogintokens.V1Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -62,7 +62,7 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		baseURL:      cfg.Url,
 		client:       httpClient,
 		Services: &Services{
-			HTTPService:          *repo,
+			HTTPService:          repo,
 			AppsV2:               appV2Service,
 			UserMappingsV2:       userMappingsV2Service,
 			SessionLoginTokensV1: sessionLoginTokenV1Service,

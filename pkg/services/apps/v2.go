@@ -19,8 +19,8 @@ type V2Service struct {
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) V2Service {
-	return V2Service{
+func New(repo services.Repository, host string) *V2Service {
+	return &V2Service{
 		Endpoint:     fmt.Sprintf("%s/api/2/apps", host),
 		Repository:   repo,
 		ErrorContext: errAppsV2Context,
@@ -29,7 +29,7 @@ func New(repo services.Repository, host string) V2Service {
 
 // Query retrieves all the apps from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all apps
-func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
+func (svc *V2Service) Query(query *AppsQuery) ([]App, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},

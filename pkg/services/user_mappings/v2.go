@@ -23,8 +23,8 @@ type V2Service struct {
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, legalValues services.SimpleQuery, host string) V2Service {
-	return V2Service{
+func New(repo services.Repository, legalValues services.SimpleQuery, host string) *V2Service {
+	return &V2Service{
 		Endpoint:           fmt.Sprintf("%s/api/2/mappings", host),
 		Repository:         repo,
 		ErrorContext:       errUserMappingsV2Context,

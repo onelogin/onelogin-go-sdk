@@ -291,6 +291,41 @@ func TestUpdate(t *testing.T) {
 				},
 			},
 		},
+		"it recovers if delete rule or delete parameters fails": {
+			updatePayload: &App{
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("original"),
+				Parameters: map[string]AppParameters{},
+				Rules:      []AppRule{},
+			},
+			expectedResponse: &App{
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("name"),
+				Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}},
+				Rules:      []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					req := r.(olhttp.OLHTTPRequest)
+					if req.URL == "test.com/api/2/apps/1/rules" {
+						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+					}
+					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+				},
+				ReReadFunc: func(r interface{}) ([]byte, error) {
+					req := r.(olhttp.OLHTTPRequest)
+					if req.URL == "test.com/api/2/apps/1/rules" {
+						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+					}
+					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+				},
+				DestroyFunc: func(r interface{}) ([]byte, error) {
+					return nil, errors.New("error")
+				},
+			},
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {

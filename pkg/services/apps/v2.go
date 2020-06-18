@@ -3,11 +3,11 @@ package apps
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
+	"log"
 )
 
 const errAppsV2Context = "apps v2 service"
@@ -19,8 +19,8 @@ type V2Service struct {
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) V2Service {
-	return V2Service{
+func New(repo services.Repository, host string) *V2Service {
+	return &V2Service{
 		Endpoint:     fmt.Sprintf("%s/api/2/apps", host),
 		Repository:   repo,
 		ErrorContext: errAppsV2Context,
@@ -29,7 +29,7 @@ func New(repo services.Repository, host string) V2Service {
 
 // Query retrieves all the apps from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all apps
-func (svc V2Service) Query(query *AppsQuery) ([]App, error) {
+func (svc *V2Service) Query(query *AppsQuery) ([]App, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -131,7 +131,7 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 		return &updatedApp, err
 	}
 	json.Unmarshal(resp, &updatedApp)
-	updatedApp.Rules = app.Rules // attach app rules here since rules are not returned with the app request
+	updatedApp.Rules = app.Rules // attach rules to updated app here since rules are not returned with the app request
 
 	if err = svc.saveAppRules(&updatedApp); err != nil {
 		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
@@ -140,20 +140,19 @@ func (svc *V2Service) Update(id int32, app *App) (*App, error) {
 		}
 		return recoveredAppState, err
 	}
-	if err = svc.pruneAppRules(&app.Rules, &updatedApp); err != nil {
+
+	pruneRuleErr := svc.pruneAppRules(&app.Rules, &updatedApp)
+	pruneParamErr := svc.pruneParameters(&app.Parameters, &updatedApp)
+
+	if pruneRuleErr != nil || pruneParamErr != nil {
 		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
 		if recoverErr != nil {
 			return nil, err
 		}
-		return recoveredAppState, err
-	}
-	if err = svc.pruneParameters(&app.Parameters, &updatedApp); err != nil {
-		// parameters must be deleted
-		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
-		if recoverErr != nil {
-			return nil, err
+		if pruneRuleErr != nil {
+			return recoveredAppState, pruneRuleErr
 		}
-		return recoveredAppState, err
+		return recoveredAppState, pruneParamErr
 	}
 	// re-read the app so we return one with all the parameters changes made via each individual parameters call
 	return svc.GetOne(*updatedApp.ID)
@@ -175,24 +174,24 @@ func (svc *V2Service) Destroy(id int32) error {
 // request list. At this point the app holds all existing rules in the API.
 // Rules not on the request list are assumed to be removed by the caller.
 func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters, app *App) error {
-	var err error
+	var delErrors []error
 	keepMap := make(map[int32]bool, len(*requestedParams))
 	for _, param := range *requestedParams {
-		if param.ID != nil {
-			keepMap[*param.ID] = true
-		}
+		keepMap[*param.ID] = true
 	}
 	// no need to call down app parameters specifically like we do for rules. parameters returned as part of app update
 	for _, delCandidate := range app.Parameters {
 		if !keepMap[*delCandidate.ID] {
-			_, err = svc.Repository.Destroy(olhttp.OLHTTPRequest{
+			if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/parameters/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
-			})
+			}); err != nil {
+				delErrors = append(delErrors, err)
+			}
 		}
 	}
-	return err
+	return customerrors.StackErrors(delErrors)
 }
 
 // Given a list of requested rules, go to the API, and pluck (delete) all the rules that are not on the
@@ -201,7 +200,7 @@ func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters,
 func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
 	var (
 		savedRules []AppRule
-		err        error
+		delErrors  []error
 	)
 	resp, _ := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *app.ID),
@@ -217,22 +216,26 @@ func (svc *V2Service) pruneAppRules(requestedRules *[]AppRule, app *App) error {
 	}
 	for _, delCandidate := range savedRules {
 		if !keepMap[*delCandidate.ID] {
-			_, err = svc.Repository.Destroy(olhttp.OLHTTPRequest{
+			if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
-			})
+			}); err != nil {
+				delErrors = append(delErrors, err)
+			}
+
 		}
 	}
-	return err
+	return customerrors.StackErrors(delErrors)
 }
 
 // create or update (upsert if you will) the rules tied to this app. If an upsert fails, the rest will continue, then the saved
 // rules will be tied to the app an error will be returned for the caller to decide what to do
 func (svc *V2Service) saveAppRules(app *App) error {
 	var (
-		err  error
-		resp []byte
+		err         error
+		resp        []byte
+		writeErrors []error
 	)
 	for i := range (*app).Rules {
 		if app.Rules[i].ID != nil {
@@ -244,6 +247,7 @@ func (svc *V2Service) saveAppRules(app *App) error {
 			})
 			if err != nil {
 				log.Println("Partial Rules State:", err)
+				writeErrors = append(writeErrors, err)
 			}
 		} else {
 			resp, err = svc.Repository.Create(olhttp.OLHTTPRequest{
@@ -254,6 +258,7 @@ func (svc *V2Service) saveAppRules(app *App) error {
 			})
 			if err != nil {
 				log.Println("Partial Rules State:", err)
+				writeErrors = append(writeErrors, err)
 			}
 		}
 		if err == nil {
@@ -262,5 +267,5 @@ func (svc *V2Service) saveAppRules(app *App) error {
 			app.Rules[i].ID = oltypes.Int32(int32(ruleID["id"]))
 		}
 	}
-	return err
+	return customerrors.StackErrors(writeErrors)
 }

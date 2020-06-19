@@ -7,6 +7,7 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
@@ -24,10 +25,10 @@ type APIClient struct {
 
 // Services contains all the available api services.
 type Services struct {
-	HTTPService          olhttp.OLHTTPService
-	AppsV2               apps.V2Service
-	UserMappingsV2       usermappings.V2Service
-	SessionLoginTokensV1 sessionlogintokens.V1Service
+	HTTPService          *olhttp.OLHTTPService
+	AppsV2               *apps.V2Service
+	UserMappingsV2       *usermappings.V2Service
+	SessionLoginTokensV1 *sessionlogintokens.V1Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -50,7 +51,8 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 	})
 
 	appV2Service := apps.New(repo, cfg.Url)
-	userMappingsV2Service := usermappings.New(repo, cfg.Url)
+	legalMappingValuesService := legalvalues.New(repo, cfg.Url)
+	userMappingsV2Service := usermappings.New(repo, legalMappingValuesService, cfg.Url)
 	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
 
 	return &APIClient{
@@ -60,7 +62,7 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		baseURL:      cfg.Url,
 		client:       httpClient,
 		Services: &Services{
-			HTTPService:          *repo,
+			HTTPService:          repo,
 			AppsV2:               appV2Service,
 			UserMappingsV2:       userMappingsV2Service,
 			SessionLoginTokensV1: sessionLoginTokenV1Service,

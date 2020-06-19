@@ -3,10 +3,14 @@ package usermappings
 import (
 	"encoding/json"
 	"fmt"
-
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
+	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
+	"log"
+
+	"sync"
 )
 
 const errUserMappingsV2Context = "user mappings v2 service"
@@ -15,20 +19,22 @@ const errUserMappingsV2Context = "user mappings v2 service"
 type V2Service struct {
 	Endpoint, ErrorContext string
 	Repository             services.Repository
+	LegalValuesService     services.SimpleQuery
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) V2Service {
-	return V2Service{
-		Endpoint:     fmt.Sprintf("%s/api/2/mappings", host),
-		Repository:   repo,
-		ErrorContext: errUserMappingsV2Context,
+func New(repo services.Repository, legalValues services.SimpleQuery, host string) *V2Service {
+	return &V2Service{
+		Endpoint:           fmt.Sprintf("%s/api/2/mappings", host),
+		Repository:         repo,
+		ErrorContext:       errUserMappingsV2Context,
+		LegalValuesService: legalValues,
 	}
 }
 
 // Query retrieves all the userMappings from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all userMappings
-func (svc V2Service) Query(query *UserMappingsQuery) ([]UserMapping, error) {
+func (svc *V2Service) Query(query *UserMappingsQuery) ([]UserMapping, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "userMappinglication/json"},
@@ -66,6 +72,10 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 // Update updates an existing user mapping, and if successful, it returns
 // the http response and the pointer to the updated user mapping.
 func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, error) {
+	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
+	if validationErr != nil {
+		return nil, validationErr
+	}
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -87,6 +97,10 @@ func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, erro
 // Create creates a new user mapping, and if successful, it returns
 // the http response and the pointer to the user mapping.
 func (svc *V2Service) Create(mapping *UserMapping) (*UserMapping, error) {
+	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
+	if validationErr != nil {
+		return nil, validationErr
+	}
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -115,4 +129,86 @@ func (svc *V2Service) Destroy(id int32) error {
 		return err
 	}
 	return nil
+}
+
+func validateMappingValues(mapping *UserMapping, svc services.SimpleQuery) error {
+	legalValRequests := map[string][]string{}
+	legalValRequests["mappings/conditions"] = []string{}
+	legalValRequests["mappings/actions"] = []string{}
+	for _, condition := range mapping.Conditions {
+		legalValRequests[fmt.Sprintf("mappings/conditions/%s/values", *condition.Source)] = []string{}
+		legalValRequests[fmt.Sprintf("mappings/conditions/%s/operators", *condition.Source)] = []string{}
+	}
+	for _, action := range mapping.Actions {
+		legalValRequests[fmt.Sprintf("mappings/actions/%s/values", *action.Action)] = []string{}
+	}
+
+	var (
+		wg    sync.WaitGroup
+		mutex = &sync.Mutex{}
+	)
+	for reqURL := range legalValRequests {
+		wg.Add(1)
+		go func(reqURL string, legalValRequest map[string][]string) {
+			defer wg.Done()
+			legalValResp := []map[string]string{}
+			err := svc.Query(reqURL, &legalValResp)
+			if err != nil {
+				log.Println("Problem validating mapping", reqURL, err)
+			}
+			legalVals := make([]string, len(legalValResp))
+			for i, legalVal := range legalValResp {
+				legalVals[i] = legalVal["value"]
+			}
+			mutex.Lock()
+			legalValRequests[reqURL] = legalVals
+			mutex.Unlock()
+		}(reqURL, legalValRequests)
+	}
+	wg.Wait()
+
+	errorMsgs := make([]error, 0)
+	for _, condition := range mapping.Conditions {
+		if len(legalValRequests["mappings/conditions"]) > 0 {
+			err := utils.OneOf(fmt.Sprintf("%s.conditions.source", *mapping.Name), *condition.Source, legalValRequests["mappings/conditions"])
+			if err != nil {
+				log.Println("Illegal value given for condition source")
+				errorMsgs = append(errorMsgs, err)
+			}
+		}
+		if len(legalValRequests[fmt.Sprintf("mappings/conditions/%s/values", *condition.Source)]) > 0 {
+			err := utils.OneOf(fmt.Sprintf("%s.conditions.value", *mapping.Name), *condition.Value, legalValRequests[fmt.Sprintf("mappings/conditions/%s/values", *condition.Source)])
+			if err != nil {
+				log.Println("Illegal value given for condition value")
+				errorMsgs = append(errorMsgs, err)
+			}
+		}
+		if len(legalValRequests[fmt.Sprintf("mappings/conditions/%s/operators", *condition.Source)]) > 0 {
+			err := utils.OneOf(fmt.Sprintf("%s.conditions.operator", *mapping.Name), *condition.Operator, legalValRequests[fmt.Sprintf("mappings/conditions/%s/operators", *condition.Source)])
+			if err != nil {
+				log.Println("Illegal value given for condition operator")
+				errorMsgs = append(errorMsgs, err)
+			}
+		}
+	}
+
+	for _, action := range mapping.Actions {
+		if len(legalValRequests["mappings/actions"]) > 0 {
+			err := utils.OneOf(fmt.Sprintf("%s.actions.action", *mapping.Name), *action.Action, legalValRequests["mappings/actions"])
+			if err != nil {
+				log.Println("Illegal value given for action")
+				errorMsgs = append(errorMsgs, err)
+			}
+		}
+		for _, val := range action.Value {
+			if len(legalValRequests[fmt.Sprintf("mappings/actions/%s/values", *action.Action)]) > 0 {
+				err := utils.OneOf(fmt.Sprintf("%s.actions.values", *mapping.Name), val, legalValRequests[fmt.Sprintf("mappings/actions/%s/values", *action.Action)])
+				if err != nil {
+					log.Println("Illegal value given for action value")
+					errorMsgs = append(errorMsgs, err)
+				}
+			}
+		}
+	}
+	return customerrors.StackErrors(errorMsgs)
 }

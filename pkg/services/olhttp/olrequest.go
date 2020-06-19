@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
-
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strings"
 )
 
 const resourceRequestuestContext = "ol http service"
@@ -200,6 +200,10 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 	}
 
 	resp, err := svc.Config.Client.Do(req)
+	if err != nil {
+		log.Println("HTTP Transport Error", err)
+		return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
+	}
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)

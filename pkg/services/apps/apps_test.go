@@ -286,8 +286,43 @@ func TestUpdate(t *testing.T) {
 					}
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
 				},
-				DeleteFunc: func(r interface{}) ([]byte, error) {
+				DestroyFunc: func(r interface{}) ([]byte, error) {
 					return nil, nil
+				},
+			},
+		},
+		"it recovers if delete rule or delete parameters fails": {
+			updatePayload: &App{
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("original"),
+				Parameters: map[string]AppParameters{},
+				Rules:      []AppRule{},
+			},
+			expectedResponse: &App{
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("name"),
+				Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}},
+				Rules:      []AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}}},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					req := r.(olhttp.OLHTTPRequest)
+					if req.URL == "test.com/api/2/apps/1/rules" {
+						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+					}
+					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+				},
+				ReReadFunc: func(r interface{}) ([]byte, error) {
+					req := r.(olhttp.OLHTTPRequest)
+					if req.URL == "test.com/api/2/apps/1/rules" {
+						return json.Marshal([]AppRule{AppRule{ID: oltypes.Int32(1), Name: oltypes.String("rule")}})
+					}
+					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+				},
+				DestroyFunc: func(r interface{}) ([]byte, error) {
+					return nil, errors.New("error")
 				},
 			},
 		},
@@ -312,17 +347,19 @@ func TestDestroy(t *testing.T) {
 		expectedError    error
 	}{
 		"it destroys one app": {
-			id:               int32(1),
-			repository:       &test.MockRepository{},
+			id: int32(1),
+			repository: &test.MockRepository{
+				DestroyFunc: func(r interface{}) ([]byte, error) {
+					return nil, nil
+				},
+			},
 			expectedResponse: &App{},
 		},
 		"it returns an error if there is a problem finding the app": {
-			id: int32(2),
-			repository: &test.MockRepository{
-				DoFunc: func(r interface{}) ([]byte, error) { return nil, errors.New("not found") },
-			},
+			id:               int32(2),
+			repository:       &test.MockRepository{},
 			expectedResponse: nil,
-			expectedError:    errors.New("not found"),
+			expectedError:    errors.New("error"),
 		},
 	}
 	for name, test := range tests {

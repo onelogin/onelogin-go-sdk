@@ -29,7 +29,6 @@ type App struct {
 	Provisioning       *AppProvisioning         `json:"provisioning"`
 	Sso                *AppSso                  `json:"sso"`
 	Configuration      *AppConfiguration        `json:"configuration"`
-	Rules              []AppRule                `json:"rules,omitempty"`
 	Parameters         map[string]AppParameters `json:"parameters"`
 	RoleIDs            []int                    `json:"role_ids"`
 }
@@ -83,27 +82,4 @@ type AppParameters struct {
 	ProvisionedEntitlements   *bool   `json:"provisioned_entitlements,omitempty"`
 	SafeEntitlementsEnabled   *bool   `json:"safe_entitlements_enabled,omitempty"`
 	IncludeInSamlAssertion    *bool   `json:"include_in_saml_assertion,omitempty"`
-}
-
-// AppRule is the contract for App Rules.
-type AppRule struct {
-	ID         *int32              `json:"id,omitempty"`
-	Name       *string             `json:"name,omitempty"`
-	Match      *string             `json:"match,omitempty"`
-	Enabled    *bool               `json:"enabled,omitempty"`
-	Position   *int32              `json:"position,omitempty"`
-	Conditions []AppRuleConditions `json:"conditions"`
-	Actions    []AppRuleActions    `json:"actions"`
-}
-
-type AppRuleConditions struct {
-	Source   *string `json:"source,omitempty"`
-	Operator *string `json:"operator,omitempty"`
-	Value    *string `json:"value,omitempty"`
-}
-
-type AppRuleActions struct {
-	Action     *string  `json:"action,omitempty"`
-	Value      []string `json:"value,omitempty"`
-	Expression *string  `json:"expression,omitempty"`
 }

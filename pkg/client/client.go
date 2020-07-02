@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/app_rules"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
@@ -30,6 +31,7 @@ type Services struct {
 	HTTPService          *olhttp.OLHTTPService
 	AppsV2               *apps.V2Service
 	UsersV2              *users.V2Service
+	AppRulesV2           *apprules.V2Service
 	UserMappingsV2       *usermappings.V2Service
 	SessionLoginTokensV1 *sessionlogintokens.V1Service
 	AuthServersV2        *authservers.V2Service
@@ -54,7 +56,6 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		Client:       httpClient,
 	})
 
-	appV2Service := apps.New(repo, cfg.Url)
 	legalMappingValuesService := legalvalues.New(repo, cfg.Url)
 	userMappingsV2Service := usermappings.New(repo, legalMappingValuesService, cfg.Url)
 	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
@@ -74,6 +75,10 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 			UsersV2:              usersV2Service,
 			SessionLoginTokensV1: sessionLoginTokenV1Service,
 			AuthServersV2:        authServersV2Service,
+			AppsV2:               apps.New(repo, cfg.Url),
+			UserMappingsV2:       usermappings.New(repo, legalMappingValuesService, cfg.Url),
+			SessionLoginTokensV1: sessionlogintokens.New(repo, cfg.Url),
+			AppRulesV2:           apprules.New(repo, cfg.Url),
 		},
 	}, nil
 }

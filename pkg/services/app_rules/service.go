@@ -70,10 +70,10 @@ func (svc *V2Service) Create(appRule *AppRule) (*AppRule, error) {
 	return &newAppRule, nil
 }
 
-func (svc *V2Service) Update(id int32, appRule *AppRule) (*AppRule, error) {
+func (svc *V2Service) Update(appRule *AppRule) (*AppRule, error) {
 	var updatedAppRule AppRule
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *appRule.AppID, id),
+		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *appRule.AppID, *appRule.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    appRule,

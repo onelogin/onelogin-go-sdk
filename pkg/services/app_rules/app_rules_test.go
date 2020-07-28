@@ -181,7 +181,7 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, "test.com")
-			actual, err := svc.Update(&test.updatePayload)
+			actual, err := svc.Update(1, &test.updatePayload)
 			assert.Equal(t, test.expectedResponse, actual)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)

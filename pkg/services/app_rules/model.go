@@ -1,16 +1,17 @@
 package apprules
 
 type AppRuleQuery struct {
-  AppID string
+	AppID string
 }
+
 // AppRule is the contract for App Rules.
 type AppRule struct {
 	ID         *int32              `json:"id,omitempty"`
-  AppID      *int32              `json:"app_id,omitempty"`
+	AppID      *int32              `json:"app_id,omitempty"`
 	Name       *string             `json:"name,omitempty"`
 	Match      *string             `json:"match,omitempty"`
 	Enabled    *bool               `json:"enabled,omitempty"`
-	Position   *int32              `json:"position,omitempty"`
+	Position   *string             `json:"position,omitempty"`
 	Conditions []AppRuleConditions `json:"conditions"`
 	Actions    []AppRuleActions    `json:"actions"`
 }

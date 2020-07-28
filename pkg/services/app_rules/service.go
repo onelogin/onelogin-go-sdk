@@ -3,7 +3,6 @@ package apprules
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -58,7 +57,7 @@ func (svc *V2Service) GetOne(appId int32, id int32) (*AppRule, error) {
 func (svc *V2Service) Create(appRule *AppRule) (*AppRule, error) {
 	var newAppRule AppRule
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf(""),
+		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *appRule.AppID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    appRule,
@@ -70,10 +69,10 @@ func (svc *V2Service) Create(appRule *AppRule) (*AppRule, error) {
 	return &newAppRule, nil
 }
 
-func (svc *V2Service) Update(appRule *AppRule) (*AppRule, error) {
+func (svc *V2Service) Update(ruleID int32, appRule *AppRule) (*AppRule, error) {
 	var updatedAppRule AppRule
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *appRule.AppID, *appRule.ID),
+		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *appRule.AppID, ruleID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    appRule,

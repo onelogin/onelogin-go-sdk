@@ -11,7 +11,7 @@ type AppRule struct {
 	Name       *string             `json:"name,omitempty"`
 	Match      *string             `json:"match,omitempty"`
 	Enabled    *bool               `json:"enabled,omitempty"`
-	Position   *string             `json:"position,omitempty"`
+	Position   *int32              `json:"position,omitempty"`
 	Conditions []AppRuleConditions `json:"conditions"`
 	Actions    []AppRuleActions    `json:"actions"`
 }

@@ -50,7 +50,7 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	}
 
 	if resourceRequest.Payload != nil {
-		if err := attachQueryParameters(req, resourceRequest); err != nil {
+		if err := attachQueryParameters(req, resourceRequest.Payload); err != nil {
 			return nil, err
 		}
 	}
@@ -148,9 +148,9 @@ func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
 }
 
 // creates a http query string from the request payload
-func attachQueryParameters(req *http.Request, resourceRequest OLHTTPRequest) error {
+func attachQueryParameters(req *http.Request, payload interface{}) error {
 	params := req.URL.Query()
-	b, err := json.Marshal(resourceRequest.Payload)
+	b, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 	if err := svc.attachHeaders(req, resourceRequest); err != nil {
 		return nil, nil, err
 	}
-
+	log.Println("Executing Request To", req.URL, "With", resourceRequest.Payload)
 	resp, err := svc.Config.Client.Do(req)
 	if err != nil {
 		log.Println("HTTP Transport Error", err)

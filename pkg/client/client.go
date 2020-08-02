@@ -11,6 +11,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/users"
 )
 
 // APIClient is used to communicate with the available api services.
@@ -27,6 +28,7 @@ type APIClient struct {
 type Services struct {
 	HTTPService          *olhttp.OLHTTPService
 	AppsV2               *apps.V2Service
+	UsersV2              *users.V2Service
 	UserMappingsV2       *usermappings.V2Service
 	SessionLoginTokensV1 *sessionlogintokens.V1Service
 }
@@ -54,6 +56,7 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 	legalMappingValuesService := legalvalues.New(repo, cfg.Url)
 	userMappingsV2Service := usermappings.New(repo, legalMappingValuesService, cfg.Url)
 	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
+	usersV2Service := users.New(repo, cfg.Url)
 
 	return &APIClient{
 		clientID:     cfg.ClientID,
@@ -65,6 +68,7 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 			HTTPService:          repo,
 			AppsV2:               appV2Service,
 			UserMappingsV2:       userMappingsV2Service,
+			UsersV2:              usersV2Service,
 			SessionLoginTokensV1: sessionLoginTokenV1Service,
 		},
 	}, nil

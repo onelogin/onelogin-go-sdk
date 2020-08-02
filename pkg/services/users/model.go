@@ -32,7 +32,7 @@ type User struct {
 	Email                *string   `json:"email,omitempty"`
 	DistinguishedName    *string   `json:"distinguished_name,omitempty"`
 	Samaccountname       *string   `json:"samaccountname,omitempty"`
-	UserPrincipalName    *string   `json:"user_principal_name,omitempty"`
+	UserPrincipalName    *string   `json:"userprincipalname,omitempty"`
 	MemberOf             *string   `json:"member_of,omitempty"`
 	Phone                *string   `json:"phone,omitemepty"`
 	Password             *string   `json:"password,omitempty"`
@@ -52,7 +52,7 @@ type User struct {
 	InvitationSentAt     time.Time `json:"invitation_sent_at,omitempty"`
 	State                *int32    `json:"state,omitempty"`
 	Status               *int32    `json:"status,omitempty"`
-	InvalidLoginAttepmts *int32    `json:"invalid_login_attempts,omitempty"`
+	InvalidLoginAttempts *int32    `json:"invalid_login_attempts,omitempty"`
 	GroupID              *int32    `json:"group_id,omitempty"`
 	DirectoryID          *int32    `json:"directory_id,omitempty"`
 	TrustedIDPID         *int32    `json:"trusted_idp_id,omitempty"`

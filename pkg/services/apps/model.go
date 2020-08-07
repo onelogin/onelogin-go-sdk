@@ -67,6 +67,24 @@ type AppConfiguration struct {
 	AccessTokenExpirationMinutes  *int32  `json:"access_token_expiration_minutes,omitempty"`
 	ProviderArn                   *string `json:"provider_arn,omitempty"`
 	SignatureAlgorithm            *string `json:"signature_algorithm,omitempty"`
+
+	LogoutURL                    *string `json:"logout_url,omitempty"`
+	Audience                     *string `json:"audience,omitempty"`
+	ConsumerURL                  *string `json:"consumer_url,omitempty"`
+	Login                        *string `json:"login,omitempty"`
+	Recepient                    *string `json:"recipient,omitempty"`
+	Validator                    *string `json:"validator,omitempty"`
+	RelayState                   *string `json:"relaystate,omitempty"`
+	SAMLNotValidOnOrAafter       *string `json:"saml_notonorafter,omitempty"`
+	GenerateAttributeValueTags   *string `json:"generate_attribute_value_tags,omitempty"`
+	SAMLInitiaterID              *string `json:"saml_initiater_id,omitempty"`
+	SAMLNotValidBefore           *string `json:"saml_notbefore,omitempty"`
+	SAMLIssuerType               *string `json:"saml_issuer_type,omitempty"`
+	SAMLSignElement              *string `json:"saml_sign_element,omitempty"`
+	EncryptAssertion             *string `json:"encrypt_assertion,omitempty"`
+	SAMLSessionNotValidOnOrAfter *string `json:"saml_sessionnotonorafter,omitempty"`
+	SAMLEncryptionMethodID       *string `json:"saml_encryption_method_id,omitempty"`
+	SAMLNameIDFormatID           *string `json:"saml_nameid_format_id,omitempty"`
 }
 
 // AppParameters is the contract for parameters.

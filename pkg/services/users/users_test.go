@@ -5,9 +5,8 @@ import (
 	"errors"
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
-	"testing"
-	// "github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestQuery(t *testing.T) {

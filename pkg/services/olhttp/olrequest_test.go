@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -43,7 +44,7 @@ var available = []TestResource{
 }
 
 func authPassThrough() (*http.Response, error) {
-	json := `{"access_token":"token"}`
+	json := fmt.Sprintf("{\"access_token\":\"%d\"}", rand.Intn(100))
 	r := ioutil.NopCloser(bytes.NewReader([]byte(json)))
 	return &http.Response{StatusCode: 200, Body: r}, nil
 }
@@ -399,7 +400,6 @@ func TestExecuteHTTP(t *testing.T) {
 			} else {
 				assert.Equal(t, test.expectedError, err)
 			}
-
 		})
 	}
 }
@@ -486,6 +486,56 @@ func TestAttachHeaders(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			test.service.attachHeaders(test.req, test.olReq)
 			assert.Equal(t, test.expectedHeaders, test.req.Header)
+		})
+	}
+}
+
+func TestAuthHeaderMemoization(t *testing.T) {
+	tests := map[string]struct {
+		req           *http.Request
+		olReq         OLHTTPRequest
+		service       OLHTTPService
+		tokenRequests int
+	}{
+		"": {
+			req: &http.Request{
+				Header: http.Header{},
+			},
+			olReq: OLHTTPRequest{
+				URL:        "test.com/test_resources/1",
+				AuthMethod: "bearer",
+				Headers: map[string]string{
+					"Content-type": "application/json",
+				},
+			},
+			service: OLHTTPService{
+				Config: services.HTTPServiceConfig{
+					ClientID:     "test",
+					ClientSecret: "sec",
+				},
+				ClientCredential: ClientCredential{},
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			svc := New(services.HTTPServiceConfig{
+				Client: MockClient{
+					DoFunc: func(req *http.Request) (*http.Response, error) {
+						if req.URL.Path == "/auth/oauth2/v2/token" {
+							test.tokenRequests++
+							return authPassThrough()
+						}
+						r := ioutil.NopCloser(bytes.NewReader([]byte("{'stuff': 'thing'}")))
+						return &http.Response{StatusCode: 200, Body: r}, nil
+					},
+				},
+			})
+			req, _ := http.NewRequest(http.MethodGet, test.olReq.URL, nil)
+			svc.executeHTTP(req, test.olReq)
+			svc.executeHTTP(req, test.olReq)
+			svc.Read(test.olReq)
+			assert.Equal(t, 1, test.tokenRequests)
 		})
 	}
 }

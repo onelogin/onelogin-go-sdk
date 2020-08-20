@@ -198,9 +198,9 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 	if err := svc.attachHeaders(req, resourceRequest); err != nil {
 		return nil, nil, err
 	}
-	log.Println("Executing Request To", req.URL, "With", resourceRequest.Payload)
 	resp, err := svc.Config.Client.Do(req)
 	if err != nil {
+		log.Println("Executing Request To", req.URL, "With", resourceRequest.Payload)
 		log.Println("HTTP Transport Error", err)
 		return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
 	}

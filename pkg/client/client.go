@@ -58,9 +58,10 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 
 	legalMappingValuesService := legalvalues.New(repo, cfg.Url)
 	userMappingsV2Service := usermappings.New(repo, legalMappingValuesService, cfg.Url)
-	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
-	usersV2Service := users.New(repo, cfg.Url)
 	authServersV2Service := authservers.New(repo, cfg.Url)
+	appsV2Service := apps.New(repo, cfg.Url)
+	sessionLoginTokensV1Service := sessionlogintokens.New(repo, cfg.Url)
+	appRulesV2Service := apprules.New(repo, cfg.Url)
 
 	return &APIClient{
 		clientID:     cfg.ClientID,
@@ -70,15 +71,11 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		client:       httpClient,
 		Services: &Services{
 			HTTPService:          repo,
-			AppsV2:               appV2Service,
 			UserMappingsV2:       userMappingsV2Service,
-			UsersV2:              usersV2Service,
-			SessionLoginTokensV1: sessionLoginTokenV1Service,
 			AuthServersV2:        authServersV2Service,
-			AppsV2:               apps.New(repo, cfg.Url),
-			UserMappingsV2:       usermappings.New(repo, legalMappingValuesService, cfg.Url),
-			SessionLoginTokensV1: sessionlogintokens.New(repo, cfg.Url),
-			AppRulesV2:           apprules.New(repo, cfg.Url),
+			AppsV2:               appsV2Service,
+			SessionLoginTokensV1: sessionLoginTokensV1Service,
+			AppRulesV2:           appRulesV2Service,
 		},
 	}, nil
 }

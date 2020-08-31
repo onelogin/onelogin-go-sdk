@@ -56,10 +56,10 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		Client:       httpClient,
 	})
 
+	legalValuesService := legalvalues.New(repo, cfg.Url)
 	appV2Service := apps.New(repo, cfg.Url)
-	appRulesV2Service := apprules.New(repo, cfg.Url)
-	legalMappingValuesService := legalvalues.New(repo, cfg.Url)
-	userMappingsV2Service := usermappings.New(repo, legalMappingValuesService, cfg.Url)
+	appRulesV2Service := apprules.New(repo, legalValuesService, cfg.Url)
+	userMappingsV2Service := usermappings.New(repo, legalValuesService, cfg.Url)
 	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
 	usersV2Service := users.New(repo, cfg.Url)
 	authServersV2Service := authservers.New(repo, cfg.Url)

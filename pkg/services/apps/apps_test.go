@@ -145,7 +145,6 @@ func TestUpdate(t *testing.T) {
 				ID:         oltypes.Int32(1),
 				Name:       oltypes.String("original"),
 				Parameters: map[string]AppParameters{},
-				Rules:      []AppRule{},
 			},
 			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 			repository: &test.MockRepository{
@@ -168,7 +167,6 @@ func TestUpdate(t *testing.T) {
 				ID:         oltypes.Int32(1),
 				Name:       oltypes.String("original"),
 				Parameters: map[string]AppParameters{},
-				Rules:      []AppRule{},
 			},
 			expectedResponse: &App{
 				ID:         oltypes.Int32(1),

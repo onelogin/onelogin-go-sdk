@@ -29,15 +29,17 @@
       "github.com/onelogin/onelogin-go-sdk/pkg/client"
     )
 
-    sdkClient := client.New(&client.ApiClientConfig{
-      TimeoutInSeconds: 5,
-      ClientId: "your_onelogin_developer_client_id",
+    sdkClient, err := client.NewClient(&client.APIClientConfig{
+      Timeout:      5,
+      ClientID:     "your_onelogin_developer_client_id",
       ClientSecret: "your_onelogin_developer_client_secret",
-      Region: "us",
+      Region:       "us",
     })
+    if err != nil {
+      // handle error
+    }
 
-    resp, app, err := sdkClient.Services.AppsV2.GetAppById(11111)
-
+    app, err := sdkClient.Services.AppsV2.GetOne(12345)
     if err != nil {
       // handle error
     }

@@ -2,6 +2,7 @@ package usermappings
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
@@ -71,19 +72,22 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 
 // Update updates an existing user mapping, and if successful, it returns
 // the http response and the pointer to the updated user mapping.
-func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, error) {
+func (svc *V2Service) Update(mapping *UserMapping) error {
+	if mapping.ID == nil {
+		return errors.New("No ID Given")
+	}
 	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
 	if validationErr != nil {
-		return nil, validationErr
+		return validationErr
 	}
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *mapping.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    mapping,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var mappingID map[string]int
@@ -91,15 +95,15 @@ func (svc *V2Service) Update(id int32, mapping *UserMapping) (*UserMapping, erro
 
 	mapping.ID = oltypes.Int32(int32(mappingID["id"]))
 
-	return mapping, nil
+	return nil
 }
 
 // Create creates a new user mapping, and if successful, it returns
 // the http response and the pointer to the user mapping.
-func (svc *V2Service) Create(mapping *UserMapping) (*UserMapping, error) {
+func (svc *V2Service) Create(mapping *UserMapping) error {
 	validationErr := validateMappingValues(mapping, svc.LegalValuesService)
 	if validationErr != nil {
-		return nil, validationErr
+		return validationErr
 	}
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
@@ -109,14 +113,14 @@ func (svc *V2Service) Create(mapping *UserMapping) (*UserMapping, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var mappingID map[string]int
 	json.Unmarshal(resp, &mappingID)
 
 	mapping.ID = oltypes.Int32(int32(mappingID["id"]))
 
-	return mapping, nil
+	return nil
 }
 
 // Destroy deletes the user mapping for the id, and if successful, it returns nil

@@ -2,6 +2,7 @@ package authservers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
@@ -42,7 +43,7 @@ func (svc *V2Service) Query(query *AuthServerQuery) ([]AuthServer, error) {
 	return auth_servers, nil
 }
 
-// GetOne retrieves the user by id and returns it
+// GetOne retrieves the authServer by id and returns it
 func (svc *V2Service) GetOne(id int32) (*AuthServer, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
@@ -52,44 +53,47 @@ func (svc *V2Service) GetOne(id int32) (*AuthServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	var user AuthServer
-	json.Unmarshal(resp, &user)
-	return &user, nil
+	var authServer AuthServer
+	json.Unmarshal(resp, &authServer)
+	return &authServer, nil
 }
 
-// Create takes a user without an id and attempts to use the parameters to create it
-// in the API. Modifies the user in place, or returns an error if one occurs
-func (svc *V2Service) Create(user *AuthServer) error {
+// Create takes a authServer without an id and attempts to use the parameters to create it
+// in the API. Modifies the authServer in place, or returns an error if one occurs
+func (svc *V2Service) Create(authServer *AuthServer) error {
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-		Payload:    user,
+		Payload:    authServer,
 	})
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(resp, user)
+	json.Unmarshal(resp, authServer)
 	return nil
 }
 
-// Update takes a user and an id and attempts to use the parameters to update it
-// in the API. Modifies the user in place, or returns an error if one occurs
-func (svc *V2Service) Update(id int32, user *AuthServer) error {
+// Update takes a authServer and an id and attempts to use the parameters to update it
+// in the API. Modifies the authServer in place, or returns an error if one occurs
+func (svc *V2Service) Update(authServer *AuthServer) error {
+	if authServer.ID == nil {
+		return errors.New("No ID Given")
+	}
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *authServer.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-		Payload:    user,
+		Payload:    authServer,
 	})
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(resp, user)
+	json.Unmarshal(resp, authServer)
 	return nil
 }
 
-// Destroy deletes the user with the given id, and if successful, it returns nil
+// Destroy deletes the authServer with the given id, and if successful, it returns nil
 func (svc *V2Service) Destroy(id int32) error {
 	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),

@@ -218,7 +218,6 @@ func TestUpdate(t *testing.T) {
 			repository: &test.MockRepository{},
 		},
 		"it returns an error if there is a problem finding the mapping": {
-			id: int32(2),
 			updatePayload: &UserMapping{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("updated"),
@@ -245,10 +244,11 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, test.mockLegalValues, "test.com")
-			actual, err := svc.Update(test.id, test.updatePayload)
-			assert.Equal(t, test.expectedResponse, actual)
+			err := svc.Update(test.updatePayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
+			} else {
+				assert.Equal(t, test.expectedResponse, test.updatePayload)
 			}
 		})
 	}
@@ -337,10 +337,11 @@ func TestCreate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, test.mockLegalValues, "test.com")
-			actual, err := svc.Create(test.createPayload)
-			assert.Equal(t, test.expectedResponse, actual)
+			err := svc.Create(test.createPayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
+			} else {
+				assert.Equal(t, test.expectedResponse, test.createPayload)
 			}
 		})
 	}

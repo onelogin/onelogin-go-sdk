@@ -102,14 +102,20 @@ func TestUpdate(t *testing.T) {
 		repository     *test.MockRepository
 	}{
 		"it updates a user": {
-			id:             int32(1),
-			updatePayload:  &User{Firstname: oltypes.String("update")},
+			updatePayload:  &User{Firstname: oltypes.String("update"), ID: oltypes.Int32(int32(1))},
 			expectedResult: &User{ID: oltypes.Int32(1), Firstname: oltypes.String("update")},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(User{ID: oltypes.Int32(1), Firstname: oltypes.String("update")})
 				},
 			},
+		},
+		"it returns an error if no id on resource": {
+			id:             int32(2),
+			updatePayload:  &User{Firstname: oltypes.String("update")},
+			expectedResult: &User{},
+			expectedError:  errors.New("No ID Given"),
+			repository:     &test.MockRepository{},
 		},
 		"it returns an error if something went wrong": {
 			id:             int32(2),
@@ -122,7 +128,7 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, "test.com")
-			err := svc.Update(test.id, test.updatePayload)
+			err := svc.Update(test.updatePayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
 			} else {

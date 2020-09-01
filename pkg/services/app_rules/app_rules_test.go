@@ -147,7 +147,6 @@ func TestGetOne(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
-		appRuleID        int32
 		mockLegalValues  *MockLegalValuesService
 		updatePayload    *AppRule
 		expectedResponse *AppRule
@@ -247,6 +246,22 @@ func TestUpdate(t *testing.T) {
 			},
 			mockLegalValues:  &MockLegalValuesService{},
 			expectedError:    errors.New("error"),
+			expectedResponse: &AppRule{},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					return nil, errors.New("error")
+				},
+			},
+		},
+		"it returns an error if the appID not given": {
+			updatePayload: &AppRule{
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("update me"),
+				Conditions: []AppRuleConditions{{Source: oltypes.String("test"), Operator: oltypes.String(">"), Value: oltypes.String("90")}},
+				Actions:    []AppRuleActions{{Action: oltypes.String("test"), Value: []string{"test"}, Expression: oltypes.String(".*")}},
+			},
+			mockLegalValues:  &MockLegalValuesService{},
+			expectedError:    errors.New("Both ID and AppID are required on the payload"),
 			expectedResponse: &AppRule{},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {

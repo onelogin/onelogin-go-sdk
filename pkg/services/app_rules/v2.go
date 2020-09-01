@@ -82,8 +82,8 @@ func (svc *V2Service) Create(appRule *AppRule) error {
 
 // Update updates an existing app rule in place or returns an error if something went wrong
 func (svc *V2Service) Update(appRule *AppRule) error {
-	if appRule.ID == nil {
-		return errors.New("No ID Given")
+	if appRule.ID == nil || appRule.AppID == nil {
+		return errors.New("Both ID and AppID are required on the payload")
 	}
 	validationErr := validateRuleValues(appRule, svc.LegalValuesService)
 	if validationErr != nil {

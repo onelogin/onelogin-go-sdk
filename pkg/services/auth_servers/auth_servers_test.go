@@ -161,7 +161,14 @@ func TestUpdate(t *testing.T) {
 		repository     *test.MockRepository
 	}{
 		"it updates a auth server": {
-			updatePayload: &AuthServer{ID: oltypes.Int32(1), Name: oltypes.String("update")},
+			updatePayload: &AuthServer{
+				ID:   oltypes.Int32(1),
+				Name: oltypes.String("update"),
+				Configuration: &AuthServerConfiguration{
+					ResourceIdentifier: oltypes.String("example.com/contacts"),
+					Audiences:          []string{"example.com/contacts", "example.com/people"},
+				},
+			},
 			expectedResult: &AuthServer{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("update"),
@@ -172,14 +179,7 @@ func TestUpdate(t *testing.T) {
 			},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(AuthServer{
-						ID:   oltypes.Int32(1),
-						Name: oltypes.String("update"),
-						Configuration: &AuthServerConfiguration{
-							ResourceIdentifier: oltypes.String("example.com/contacts"),
-							Audiences:          []string{"example.com/contacts", "example.com/people"},
-						},
-					})
+					return json.Marshal(map[string]int32{"id": int32(1)})
 				},
 			},
 		},
@@ -211,7 +211,13 @@ func TestCreate(t *testing.T) {
 		repository     *test.MockRepository
 	}{
 		"it creates a auth server": {
-			createPayload: &AuthServer{Name: oltypes.String("name")},
+			createPayload: &AuthServer{
+				Name: oltypes.String("name"),
+				Configuration: &AuthServerConfiguration{
+					ResourceIdentifier: oltypes.String("example.com/contacts"),
+					Audiences:          []string{"example.com/contacts", "example.com/people"},
+				},
+			},
 			expectedResult: &AuthServer{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("name"),
@@ -222,14 +228,7 @@ func TestCreate(t *testing.T) {
 			},
 			repository: &test.MockRepository{
 				CreateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(AuthServer{
-						ID:   oltypes.Int32(1),
-						Name: oltypes.String("name"),
-						Configuration: &AuthServerConfiguration{
-							ResourceIdentifier: oltypes.String("example.com/contacts"),
-							Audiences:          []string{"example.com/contacts", "example.com/people"},
-						},
-					})
+					return json.Marshal(map[string]int32{"id": int32(1)})
 				},
 			},
 		},

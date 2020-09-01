@@ -109,14 +109,12 @@ func TestGetOne(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
-		id               int32
 		updatePayload    *App
 		expectedResponse *App
 		expectedError    error
 		repository       *test.MockRepository
 	}{
 		"it updates one app": {
-			id: int32(1),
 			updatePayload: &App{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("original"),

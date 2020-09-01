@@ -149,13 +149,13 @@ func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
 		appRuleID        int32
 		mockLegalValues  *MockLegalValuesService
-		updatePayload    AppRule
+		updatePayload    *AppRule
 		expectedResponse *AppRule
 		expectedError    error
 		repository       *test.MockRepository
 	}{
 		"it updates the app rule": {
-			updatePayload: AppRule{
+			updatePayload: &AppRule{
 				ID:         oltypes.Int32(1),
 				AppID:      oltypes.Int32(1),
 				Name:       oltypes.String("update me"),
@@ -188,7 +188,7 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		"it updates one app rule allowing freeform inputs when no valid values returned": {
-			updatePayload: AppRule{
+			updatePayload: &AppRule{
 				ID:         oltypes.Int32(1),
 				AppID:      oltypes.Int32(1),
 				Name:       oltypes.String("update me"),
@@ -221,7 +221,7 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		"it returns an error if an invalid condition or action value given": {
-			updatePayload: AppRule{
+			updatePayload: &AppRule{
 				ID:         oltypes.Int32(1),
 				AppID:      oltypes.Int32(1),
 				Name:       oltypes.String("update me"),
@@ -238,7 +238,7 @@ func TestUpdate(t *testing.T) {
 			repository: &test.MockRepository{},
 		},
 		"it returns an error if the app does not exist": {
-			updatePayload: AppRule{
+			updatePayload: &AppRule{
 				ID:         oltypes.Int32(1),
 				AppID:      oltypes.Int32(1),
 				Name:       oltypes.String("update me"),
@@ -258,10 +258,11 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, test.mockLegalValues, "test.com")
-			actual, err := svc.Update(1, &test.updatePayload)
-			assert.Equal(t, test.expectedResponse, actual)
+			err := svc.Update(test.updatePayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
+			} else {
+				assert.Equal(t, test.expectedResponse, test.updatePayload)
 			}
 		})
 	}
@@ -271,15 +272,14 @@ func TestCreate(t *testing.T) {
 	tests := map[string]struct {
 		appID            int32
 		mockLegalValues  *MockLegalValuesService
-		createPayload    AppRule
+		createPayload    *AppRule
 		expectedResponse *AppRule
 		expectedError    error
 		repository       *test.MockRepository
 	}{
-
 		"it creates the app rule": {
-			createPayload: AppRule{
-				AppID:      oltypes.Int32(-1),
+			createPayload: &AppRule{
+				AppID:      oltypes.Int32(1),
 				Name:       oltypes.String("new app rule"),
 				Conditions: []AppRuleConditions{{Source: oltypes.String("test"), Operator: oltypes.String(">"), Value: oltypes.String("90")}},
 				Actions:    []AppRuleActions{{Action: oltypes.String("test"), Value: []string{"test"}, Expression: oltypes.String(".*")}},
@@ -304,7 +304,7 @@ func TestCreate(t *testing.T) {
 			},
 		},
 		"it returns an error if the app does not exist": {
-			createPayload: AppRule{
+			createPayload: &AppRule{
 				ID:         oltypes.Int32(1),
 				AppID:      oltypes.Int32(-1),
 				Name:       oltypes.String("new app rule"),
@@ -323,10 +323,11 @@ func TestCreate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, test.mockLegalValues, "test.com")
-			actual, err := svc.Create(&test.createPayload)
-			assert.Equal(t, test.expectedResponse, actual)
+			err := svc.Create(test.createPayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
+			} else {
+				assert.Equal(t, test.expectedResponse, test.createPayload)
 			}
 		})
 	}

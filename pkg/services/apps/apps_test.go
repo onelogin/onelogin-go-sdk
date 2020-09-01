@@ -270,10 +270,11 @@ func TestCreate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, "test.com")
-			actual, err := svc.Create(test.createPayload)
-			assert.Equal(t, test.expectedResponse, actual)
+			err := svc.Create(test.createPayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
+			} else {
+				assert.Equal(t, test.expectedResponse, test.createPayload)
 			}
 		})
 	}

@@ -2,13 +2,13 @@ package apprules
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 	"log"
-
 	"sync"
 )
 
@@ -61,8 +61,7 @@ func (svc *V2Service) GetOne(appId int32, id int32) (*AppRule, error) {
 	return &appRule, nil
 }
 
-func (svc *V2Service) Create(appRule *AppRule) (*AppRule, error) {
-	var newAppRule AppRule
+func (svc *V2Service) Create(appRule *AppRule) error {
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *appRule.AppID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -70,30 +69,32 @@ func (svc *V2Service) Create(appRule *AppRule) (*AppRule, error) {
 		Payload:    appRule,
 	})
 	if err != nil {
-		return &newAppRule, err
+		return err
 	}
-	json.Unmarshal(resp, &newAppRule)
-	return &newAppRule, nil
+	json.Unmarshal(resp, appRule)
+	return nil
 }
 
-func (svc *V2Service) Update(ruleID int32, appRule *AppRule) (*AppRule, error) {
+func (svc *V2Service) Update(appRule *AppRule) error {
+	if appRule.ID == nil {
+		return errors.New("No ID Given")
+	}
 	validationErr := validateRuleValues(appRule, svc.LegalValuesService)
 	if validationErr != nil {
 		fmt.Println(validationErr)
-		return nil, validationErr
+		return validationErr
 	}
-	var updatedAppRule AppRule
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *appRule.AppID, ruleID),
+		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *appRule.AppID, *appRule.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    appRule,
 	})
 	if err != nil {
-		return &updatedAppRule, err
+		return err
 	}
-	json.Unmarshal(resp, &updatedAppRule)
-	return &updatedAppRule, nil
+	json.Unmarshal(resp, appRule)
+	return nil
 }
 
 func (svc *V2Service) Destroy(appId int32, id int32) error {

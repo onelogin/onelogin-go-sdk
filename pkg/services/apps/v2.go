@@ -64,8 +64,7 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 
 // Create creates a new app, and if successful, it returns
 // the http response and the pointer to the app.
-func (svc *V2Service) Create(app *App) (*App, error) {
-	var newApp App
+func (svc *V2Service) Create(app *App) error {
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -73,10 +72,10 @@ func (svc *V2Service) Create(app *App) (*App, error) {
 		Payload:    app,
 	})
 	if err != nil {
-		return &newApp, err
+		return err
 	}
-	json.Unmarshal(resp, &newApp)
-	return &newApp, nil
+	json.Unmarshal(resp, app)
+	return nil
 }
 
 // Update updates an existing app, and if successful, it returns

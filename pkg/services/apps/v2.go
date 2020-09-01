@@ -2,6 +2,7 @@ package apps
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
@@ -45,7 +46,7 @@ func (svc *V2Service) Query(query *AppsQuery) ([]App, error) {
 }
 
 // GetOne retrieves the app by id, and if successful, it returns
-// the http response and the pointer to the app.
+// a pointer to the app.
 func (svc *V2Service) GetOne(id int32) (*App, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
@@ -62,8 +63,7 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	return &app, nil
 }
 
-// Create creates a new app, and if successful, it returns
-// the http response and the pointer to the app.
+// Create creates a new app, and if successful, it returns a pointer to the app.
 func (svc *V2Service) Create(app *App) error {
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
@@ -78,32 +78,46 @@ func (svc *V2Service) Create(app *App) error {
 	return nil
 }
 
-// Update updates an existing app, and if successful, it returns
-// the http response and the pointer to the updated app.
-func (svc *V2Service) Update(id int32, app *App) (*App, error) {
-	var updatedApp App
+// Update updates an existing app in place or returns an error if something went wrong
+
+// Update is unique in that the API does not fully support Parameters as first-class
+// resources and are managed by nesting them in the App. This means that a partial
+// update state could exist if, for example, a parameter failed to delete or be updated
+// while other parameter changes succeeded. In order to ensure the client is given an
+// accurate representation of what has been persisted to the API, we call out to the GetOne
+// to simply return what is currently in the API, rather than updating in place. This is a
+// temporary holdover until parameters is dealt with in a consistent fashion to other nested resources like app rules
+func (svc *V2Service) Update(app *App) (*App, error) {
+	if app.ID == nil {
+		return nil, errors.New("No ID Given")
+	}
+	requestedParametersState := make(map[string]AppParameters, len(app.Parameters))
+	for k, p := range app.Parameters {
+		requestedParametersState[k] = p
+	}
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *app.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    app,
 	})
 	if err != nil {
-		return &updatedApp, err
+		return &App{}, err
 	}
-	json.Unmarshal(resp, &updatedApp)
+	json.Unmarshal(resp, app)
 
-	pruneParamErr := svc.pruneParameters(&app.Parameters, &updatedApp)
+	pruneParamErr := svc.pruneParameters(requestedParametersState, app)
 
 	if pruneParamErr != nil {
-		recoveredAppState, recoverErr := svc.GetOne(*updatedApp.ID)
+		var recoverErr error
+		app, recoverErr = svc.GetOne(*app.ID)
 		if recoverErr != nil {
 			return nil, err
 		}
-		return recoveredAppState, pruneParamErr
+		return app, pruneParamErr
 	}
 	// re-read the app so we return one with all the parameters changes made via each individual parameters call
-	return svc.GetOne(*updatedApp.ID)
+	return svc.GetOne(*app.ID)
 }
 
 // Destroy deletes the app for the id, and if successful, it returns nil
@@ -121,10 +135,10 @@ func (svc *V2Service) Destroy(id int32) error {
 // Given a list of requested parameters, go to the API, and pluck (delete) all the parameters that are not on the
 // request list. At this point the app holds all existing parameters in the API.
 // Rules not on the request list are assumed to be removed by the caller.
-func (svc *V2Service) pruneParameters(requestedParams *map[string]AppParameters, app *App) error {
+func (svc *V2Service) pruneParameters(requestedParams map[string]AppParameters, app *App) error {
 	var delErrors []error
-	keepMap := make(map[int32]bool, len(*requestedParams))
-	for _, param := range *requestedParams {
+	keepMap := make(map[int32]bool, len(requestedParams))
+	for _, param := range requestedParams {
 		keepMap[*param.ID] = true
 	}
 	// no need to call down app parameters. parameters returned as part of app update

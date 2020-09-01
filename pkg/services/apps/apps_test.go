@@ -135,7 +135,11 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		"it returns an error if there is a problem finding the app": {
-			id:               int32(2),
+			updatePayload: &App{
+				ID:         oltypes.Int32(-1),
+				Name:       oltypes.String("original"),
+				Parameters: map[string]AppParameters{},
+			},
 			expectedResponse: &App{},
 			expectedError:    errors.New("error"),
 			repository:       &test.MockRepository{},
@@ -192,7 +196,7 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, "test.com")
-			actual, err := svc.Update(test.id, test.updatePayload)
+			actual, err := svc.Update(test.updatePayload)
 			assert.Equal(t, test.expectedResponse, actual)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)

@@ -31,6 +31,8 @@ func New(repo services.Repository, legalValues services.SimpleQuery, host string
 	}
 }
 
+// Query retrieves all the app rules from the repository that meet the query criteria passed in the
+// request payload. If an empty payload is given, it will retrieve all app rules.
 func (svc *V2Service) Query(query *AppRuleQuery) ([]AppRule, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s/rules", svc.Endpoint, query.AppID),
@@ -46,6 +48,8 @@ func (svc *V2Service) Query(query *AppRuleQuery) ([]AppRule, error) {
 	return appRules, nil
 }
 
+// GetOne retrieves the app rule by app id and id, and if successful, it returns
+// a pointer to the app rule.
 func (svc *V2Service) GetOne(appId int32, id int32) (*AppRule, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, appId, id),
@@ -61,6 +65,7 @@ func (svc *V2Service) GetOne(appId int32, id int32) (*AppRule, error) {
 	return &appRule, nil
 }
 
+// Create creates a new app rule in place and returns an error if something went wrong
 func (svc *V2Service) Create(appRule *AppRule) error {
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *appRule.AppID),
@@ -75,6 +80,7 @@ func (svc *V2Service) Create(appRule *AppRule) error {
 	return nil
 }
 
+// Update updates an existing app rule in place or returns an error if something went wrong
 func (svc *V2Service) Update(appRule *AppRule) error {
 	if appRule.ID == nil {
 		return errors.New("No ID Given")
@@ -97,6 +103,8 @@ func (svc *V2Service) Update(appRule *AppRule) error {
 	return nil
 }
 
+// Destroy takes the app id and app rule id and removes the app rule from the API.
+// Returns an error if something went wrong.
 func (svc *V2Service) Destroy(appId int32, id int32) error {
 	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, appId, id),

@@ -95,7 +95,6 @@ func TestGetOne(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
-		id             int32
 		updatePayload  *User
 		expectedResult *User
 		expectedError  error
@@ -111,14 +110,12 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		"it returns an error if no id on resource": {
-			id:             int32(2),
 			updatePayload:  &User{Firstname: oltypes.String("update")},
 			expectedResult: &User{},
 			expectedError:  errors.New("No ID Given"),
 			repository:     &test.MockRepository{},
 		},
 		"it returns an error if something went wrong": {
-			id:             int32(2),
 			updatePayload:  &User{ID: oltypes.Int32(1), Firstname: oltypes.String("update")},
 			expectedResult: &User{},
 			expectedError:  errors.New("error"),

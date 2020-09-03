@@ -67,6 +67,9 @@ func (svc *V2Service) GetOne(appId int32, id int32) (*AppRule, error) {
 
 // Create creates a new app rule in place and returns an error if something went wrong
 func (svc *V2Service) Create(appRule *AppRule) error {
+	if appRule.AppID == nil {
+		return errors.New("AppID required on the payload")
+	}
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/rules", svc.Endpoint, *appRule.AppID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -82,8 +85,8 @@ func (svc *V2Service) Create(appRule *AppRule) error {
 
 // Update updates an existing app rule in place or returns an error if something went wrong
 func (svc *V2Service) Update(appRule *AppRule) error {
-	if appRule.ID == nil {
-		return errors.New("No ID Given")
+	if appRule.ID == nil || appRule.AppID == nil {
+		return errors.New("Both ID and AppID are required on the payload")
 	}
 	validationErr := validateRuleValues(appRule, svc.LegalValuesService)
 	if validationErr != nil {

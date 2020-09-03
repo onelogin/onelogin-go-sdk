@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -70,7 +71,9 @@ func (svc *V2Service) Create(authServer *AuthServer) error {
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(resp, authServer)
+	respObj := map[string]int32{}
+	json.Unmarshal(resp, &respObj)
+	authServer.ID = oltypes.Int32(respObj["id"])
 	return nil
 }
 
@@ -80,7 +83,7 @@ func (svc *V2Service) Update(authServer *AuthServer) error {
 	if authServer.ID == nil {
 		return errors.New("No ID Given")
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
+	_, err := svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *authServer.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -89,7 +92,6 @@ func (svc *V2Service) Update(authServer *AuthServer) error {
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(resp, authServer)
 	return nil
 }
 

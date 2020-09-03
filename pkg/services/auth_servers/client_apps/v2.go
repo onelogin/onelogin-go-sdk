@@ -1,4 +1,4 @@
-package accesstokenclaims
+package clientapps
 
 import (
 	"encoding/json"
@@ -28,9 +28,9 @@ func New(repo services.Repository, host string) *V2Service {
 
 // Query retrieves all the access token claims from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all access token claims.
-func (svc *V2Service) Query(query *AccessTokenClaimsQuery) ([]AccessTokenClaim, error) {
+func (svc *V2Service) Query(query *ClientAppsQuery) ([]ClientApp, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%s/claims", svc.Endpoint, query.AuthServerID),
+		URL:        fmt.Sprintf("%s/%s/clients", svc.Endpoint, query.AuthServerID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 	})
@@ -38,72 +38,62 @@ func (svc *V2Service) Query(query *AccessTokenClaimsQuery) ([]AccessTokenClaim, 
 		return nil, err
 	}
 
-	var accessTokenClaims []AccessTokenClaim
-	json.Unmarshal(resp, &accessTokenClaims)
-	return accessTokenClaims, nil
-}
-
-// GetOne retrieves the access token claim by access token claim id and id, and if successful, it returns
-// a pointer to the access token claim.
-func (svc *V2Service) GetOne(authServerId int32, id int32) (*AccessTokenClaim, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/claims/%d", svc.Endpoint, authServerId, id),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var accessTokenClaim AccessTokenClaim
-	json.Unmarshal(resp, &accessTokenClaim)
-	return &accessTokenClaim, nil
+	var clients []ClientApp
+	json.Unmarshal(resp, &clients)
+	return clients, nil
 }
 
 // Create creates a new access token claim in place and returns an error if something went wrong
-func (svc *V2Service) Create(accessTokenClaim *AccessTokenClaim) error {
+func (svc *V2Service) Create(clientApp *ClientApp) error {
+	if clientApp.AuthServerID == nil {
+		return errors.New("AuthServerID required on the payload")
+	}
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/claims", svc.Endpoint, *accessTokenClaim.AuthServerID),
+		URL:        fmt.Sprintf("%s/%d/clients", svc.Endpoint, *clientApp.AuthServerID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-		Payload:    accessTokenClaim,
+		Payload:    clientApp,
 	})
 	if err != nil {
 		return err
 	}
+
 	respObj := map[string]int32{}
 	json.Unmarshal(resp, &respObj)
-	accessTokenClaim.ID = oltypes.Int32(respObj["id"])
+	clientApp.ID = oltypes.Int32(respObj["app_id"])
+	clientApp.APIAuthID = oltypes.Int32(respObj["api_auth_id"])
+
 	return nil
 }
 
 // Update updates an existing access token claim in place or returns an error if something went wrong
-func (svc *V2Service) Update(accessTokenClaim *AccessTokenClaim) error {
-	if accessTokenClaim.ID == nil || accessTokenClaim.AuthServerID == nil {
+func (svc *V2Service) Update(clientApp *ClientApp) error {
+	if clientApp.ID == nil || clientApp.AuthServerID == nil {
 		return errors.New("Both ID and AuthServerID are required on the payload")
 	}
-	_, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL: fmt.Sprintf(
-			"%s/%d/claims/%d",
-			svc.Endpoint,
-			*accessTokenClaim.AuthServerID,
-			*accessTokenClaim.ID,
-		),
+	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/clients/%d", svc.Endpoint, *clientApp.AuthServerID, *clientApp.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-		Payload:    accessTokenClaim,
+		Payload:    clientApp,
 	})
 	if err != nil {
 		return err
 	}
+
+	respObj := map[string]int32{}
+	json.Unmarshal(resp, &respObj)
+	clientApp.ID = oltypes.Int32(respObj["app_id"])
+	clientApp.APIAuthID = oltypes.Int32(respObj["api_auth_id"])
+
 	return nil
 }
 
 // Destroy takes the access token claim id and access token claim id and removes the access token claim from the API.
 // Returns an error if something went wrong.
-func (svc *V2Service) Destroy(accessTokenClaimId int32, id int32) error {
+func (svc *V2Service) Destroy(clientId int32, id int32) error {
 	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/claims/%d", svc.Endpoint, accessTokenClaimId, id),
+		URL:        fmt.Sprintf("%s/%d/clients/%d", svc.Endpoint, clientId, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 	}); err != nil {

@@ -318,6 +318,22 @@ func TestCreate(t *testing.T) {
 				},
 			},
 		},
+		"it returns an error if the appID not given": {
+			createPayload: &AppRule{
+				ID:         oltypes.Int32(1),
+				Name:       oltypes.String("update me"),
+				Conditions: []AppRuleConditions{{Source: oltypes.String("test"), Operator: oltypes.String(">"), Value: oltypes.String("90")}},
+				Actions:    []AppRuleActions{{Action: oltypes.String("test"), Value: []string{"test"}, Expression: oltypes.String(".*")}},
+			},
+			mockLegalValues:  &MockLegalValuesService{},
+			expectedError:    errors.New("AppID required on the payload"),
+			expectedResponse: &AppRule{},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					return nil, errors.New("error")
+				},
+			},
+		},
 		"it returns an error if the app does not exist": {
 			createPayload: &AppRule{
 				ID:         oltypes.Int32(1),

@@ -43,25 +43,11 @@ func (svc *V2Service) Query(query *ScopesQuery) ([]Scope, error) {
 	return scopes, nil
 }
 
-// GetOne retrieves the access token claim by access token claim id and id, and if successful, it returns
-// a pointer to the access token claim.
-func (svc *V2Service) GetOne(scopeId int32, id int32) (*Scope, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/scopes/%d", svc.Endpoint, scopeId, id),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var scope Scope
-	json.Unmarshal(resp, &scope)
-	return &scope, nil
-}
-
 // Create creates a new access token claim in place and returns an error if something went wrong
 func (svc *V2Service) Create(scope *Scope) error {
+	if scope.AuthServerID == nil {
+		return errors.New("AuthServerID required on the payload")
+	}
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/scopes", svc.Endpoint, *scope.AuthServerID),
 		Headers:    map[string]string{"Content-Type": "application/json"},

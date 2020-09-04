@@ -80,8 +80,10 @@ func (svc *V2Service) Update(mapping *UserMapping) error {
 	if validationErr != nil {
 		return validationErr
 	}
+	id := *mapping.ID
+	mapping.ID = nil
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *mapping.ID),
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    mapping,

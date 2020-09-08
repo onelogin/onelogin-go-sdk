@@ -1,7 +1,7 @@
 # Onelogin-Go-SDK
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/onelogin/onelogin-go-sdk)](https://goreportcard.com/report/github.com/onelogin/onelogin-go-sdk)
-<a href='https://github.com/dcaponi/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-88%25-brightgreen.svg?longCache=true&style=flat)</a>
+<a href='https://github.com/jpoles1/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-96%25-brightgreen.svg?longCache=true&style=flat)</a>
 
   This is the Onelogin Go SDK client, supporting the following apis:
 
@@ -29,15 +29,17 @@
       "github.com/onelogin/onelogin-go-sdk/pkg/client"
     )
 
-    sdkClient := client.New(&client.ApiClientConfig{
-      TimeoutInSeconds: 5,
-      ClientId: "your_onelogin_developer_client_id",
+    sdkClient, err := client.NewClient(&client.APIClientConfig{
+      Timeout:      5,
+      ClientID:     "your_onelogin_developer_client_id",
       ClientSecret: "your_onelogin_developer_client_secret",
-      Region: "us",
+      Region:       "us",
     })
+    if err != nil {
+      // handle error
+    }
 
-    resp, app, err := sdkClient.Services.AppsV2.GetAppById(11111)
-
+    app, err := sdkClient.Services.AppsV2.GetOne(12345)
     if err != nil {
       // handle error
     }

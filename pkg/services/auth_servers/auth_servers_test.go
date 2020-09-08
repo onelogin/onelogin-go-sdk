@@ -155,15 +155,20 @@ func TestGetOne(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
-		id             int32
 		updatePayload  *AuthServer
 		expectedResult *AuthServer
 		expectedError  error
 		repository     *test.MockRepository
 	}{
 		"it updates a auth server": {
-			id:            int32(1),
-			updatePayload: &AuthServer{Name: oltypes.String("update")},
+			updatePayload: &AuthServer{
+				ID:   oltypes.Int32(1),
+				Name: oltypes.String("update"),
+				Configuration: &AuthServerConfiguration{
+					ResourceIdentifier: oltypes.String("example.com/contacts"),
+					Audiences:          []string{"example.com/contacts", "example.com/people"},
+				},
+			},
 			expectedResult: &AuthServer{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("update"),
@@ -174,19 +179,11 @@ func TestUpdate(t *testing.T) {
 			},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(AuthServer{
-						ID:   oltypes.Int32(1),
-						Name: oltypes.String("update"),
-						Configuration: &AuthServerConfiguration{
-							ResourceIdentifier: oltypes.String("example.com/contacts"),
-							Audiences:          []string{"example.com/contacts", "example.com/people"},
-						},
-					})
+					return json.Marshal(map[string]int32{"id": int32(1)})
 				},
 			},
 		},
 		"it returns an error if something went wrong": {
-			id:             int32(2),
 			updatePayload:  &AuthServer{ID: oltypes.Int32(1), Name: oltypes.String("update")},
 			expectedResult: &AuthServer{},
 			expectedError:  errors.New("error"),
@@ -196,7 +193,7 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, "test.com")
-			err := svc.Update(test.id, test.updatePayload)
+			err := svc.Update(test.updatePayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
 			} else {
@@ -214,7 +211,13 @@ func TestCreate(t *testing.T) {
 		repository     *test.MockRepository
 	}{
 		"it creates a auth server": {
-			createPayload: &AuthServer{Name: oltypes.String("name")},
+			createPayload: &AuthServer{
+				Name: oltypes.String("name"),
+				Configuration: &AuthServerConfiguration{
+					ResourceIdentifier: oltypes.String("example.com/contacts"),
+					Audiences:          []string{"example.com/contacts", "example.com/people"},
+				},
+			},
 			expectedResult: &AuthServer{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("name"),
@@ -225,14 +228,7 @@ func TestCreate(t *testing.T) {
 			},
 			repository: &test.MockRepository{
 				CreateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(AuthServer{
-						ID:   oltypes.Int32(1),
-						Name: oltypes.String("name"),
-						Configuration: &AuthServerConfiguration{
-							ResourceIdentifier: oltypes.String("example.com/contacts"),
-							Audiences:          []string{"example.com/contacts", "example.com/people"},
-						},
-					})
+					return json.Marshal(map[string]int32{"id": int32(1)})
 				},
 			},
 		},

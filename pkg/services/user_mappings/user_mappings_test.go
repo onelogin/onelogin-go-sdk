@@ -120,7 +120,6 @@ func TestGetOne(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
-		id               int32
 		updatePayload    *UserMapping
 		expectedResponse *UserMapping
 		mockLegalValues  *MockLegalValuesService
@@ -128,7 +127,6 @@ func TestUpdate(t *testing.T) {
 		repository       *test.MockRepository
 	}{
 		"it updates one user mapping": {
-			id: int32(1),
 			updatePayload: &UserMapping{
 				ID:         oltypes.Int32(1),
 				Name:       oltypes.String("updated"),
@@ -154,7 +152,6 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		"it updates one user mapping allowing freeform inputs when no valid values returned": {
-			id: int32(1),
 			updatePayload: &UserMapping{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("updated"),
@@ -194,7 +191,6 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		"it returns an error if an invalid condition or action value given": {
-			id: int32(1),
 			updatePayload: &UserMapping{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("updated"),
@@ -218,7 +214,6 @@ func TestUpdate(t *testing.T) {
 			repository: &test.MockRepository{},
 		},
 		"it returns an error if there is a problem finding the mapping": {
-			id: int32(2),
 			updatePayload: &UserMapping{
 				ID:   oltypes.Int32(1),
 				Name: oltypes.String("updated"),
@@ -245,10 +240,11 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, test.mockLegalValues, "test.com")
-			actual, err := svc.Update(test.id, test.updatePayload)
-			assert.Equal(t, test.expectedResponse, actual)
+			err := svc.Update(test.updatePayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
+			} else {
+				assert.Equal(t, test.expectedResponse, test.updatePayload)
 			}
 		})
 	}
@@ -337,10 +333,11 @@ func TestCreate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, test.mockLegalValues, "test.com")
-			actual, err := svc.Create(test.createPayload)
-			assert.Equal(t, test.expectedResponse, actual)
+			err := svc.Create(test.createPayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
+			} else {
+				assert.Equal(t, test.expectedResponse, test.createPayload)
 			}
 		})
 	}

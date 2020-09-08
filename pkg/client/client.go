@@ -7,7 +7,10 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/access_token_claims"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/scopes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
@@ -29,10 +32,13 @@ type APIClient struct {
 type Services struct {
 	HTTPService          *olhttp.OLHTTPService
 	AppsV2               *apps.V2Service
+	AppRulesV2           *apprules.V2Service
 	UsersV2              *users.V2Service
 	UserMappingsV2       *usermappings.V2Service
 	SessionLoginTokensV1 *sessionlogintokens.V1Service
 	AuthServersV2        *authservers.V2Service
+	AccessTokenClaimsV2  *accesstokenclaims.V2Service
+	ScopesV2             *scopes.V2Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -54,12 +60,15 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		Client:       httpClient,
 	})
 
+	legalValuesService := legalvalues.New(repo, cfg.Url)
 	appV2Service := apps.New(repo, cfg.Url)
-	legalMappingValuesService := legalvalues.New(repo, cfg.Url)
-	userMappingsV2Service := usermappings.New(repo, legalMappingValuesService, cfg.Url)
+	appRulesV2Service := apprules.New(repo, legalValuesService, cfg.Url)
+	userMappingsV2Service := usermappings.New(repo, legalValuesService, cfg.Url)
 	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
 	usersV2Service := users.New(repo, cfg.Url)
 	authServersV2Service := authservers.New(repo, cfg.Url)
+	accessTokenClaimsV2Service := accesstokenclaims.New(repo, cfg.Url)
+	scopesV2Service := scopes.New(repo, cfg.Url)
 
 	return &APIClient{
 		clientID:     cfg.ClientID,
@@ -70,10 +79,13 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		Services: &Services{
 			HTTPService:          repo,
 			AppsV2:               appV2Service,
+			AppRulesV2:           appRulesV2Service,
 			UserMappingsV2:       userMappingsV2Service,
 			UsersV2:              usersV2Service,
 			SessionLoginTokensV1: sessionLoginTokenV1Service,
 			AuthServersV2:        authServersV2Service,
+			AccessTokenClaimsV2:  accessTokenClaimsV2Service,
+			ScopesV2:             scopesV2Service,
 		},
 	}, nil
 }

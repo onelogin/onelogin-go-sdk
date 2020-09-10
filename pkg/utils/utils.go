@@ -8,7 +8,7 @@ import (
 
 // ReplaceSpecialChar replaces any non-alphanumeric character in a string with a character of choice
 func ReplaceSpecialChar(str string, rep string) string {
-	reg := regexp.MustCompile("[^a-zA-Z0-9\\s]+")
+	reg := regexp.MustCompile("[^a-zA-Z0-9]+")
 	return reg.ReplaceAllString(str, rep)
 }
 

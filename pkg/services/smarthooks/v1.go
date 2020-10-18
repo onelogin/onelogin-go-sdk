@@ -46,9 +46,9 @@ func (svc *V1Service) Query(query *SmartHookQuery) ([]SmartHook, error) {
 	var smarthooks []SmartHook
 	json.Unmarshal(resp, &smarthooks)
 	decodedSmarthooks := make([]SmartHook, len(smarthooks))
-	for i, smarthook := range smarthooks {
-		decodeFunction(&smarthook)
-		decodedSmarthooks[i] = smarthook
+	for i := range smarthooks {
+		decodeFunction(&smarthooks[i])
+		decodedSmarthooks[i] = smarthooks[i]
 	}
 	return decodedSmarthooks, nil
 }

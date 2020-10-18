@@ -98,7 +98,7 @@ func (svc *V1Service) Update(smarthook *SmartHook) error {
 		return encErr
 	}
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *smarthook.ID),
+		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, *smarthook.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    smarthook,

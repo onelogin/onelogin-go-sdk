@@ -12,7 +12,7 @@ type SmartHookQuery struct {
 
 // SmartHook represents a OneLogin SmartHook
 type SmartHook struct {
-	ID              *int32            `json:"id,omitempty"`
+	ID              *string           `json:"id,omitempty"`
 	Type            *string           `json:"type,omitempty"`
 	Status          *string           `json:"status,omitempty"`
 	Disabled        *bool             `json:"disabled,omitempty"`

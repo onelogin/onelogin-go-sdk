@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
@@ -42,4 +43,37 @@ func OneOf(key string, v string, opts []string) error {
 		return fmt.Errorf("%s must be one of %v, got: %s", key, opts, v)
 	}
 	return nil
+}
+
+/*
+
+	String Encoding Convenience Methods
+
+*/
+
+// IsEncoded takes a string and returns whether or not the string is base64 encoded
+func IsEncoded(s string) bool {
+	_, err := base64.StdEncoding.DecodeString(s)
+	return err == nil
+}
+
+// EncodeString takes a multi-line string representation of a function body and
+// encodes it to a base64 encoded string for use with OneLogin API.
+// Returns the original encoded string if it happens to be base64 encoded
+func EncodeString(s string) string {
+	if IsEncoded(s) {
+		return s
+	}
+	encoded := base64.StdEncoding.EncodeToString([]byte(s))
+	return encoded
+}
+
+// DecodeString takes a base64 encoded string and returns the decoeded result.
+// returns the original string if it is not base64 encoded
+func DecodeString(s string) string {
+	if !IsEncoded(s) {
+		return s
+	}
+	decodedBytes, _ := base64.StdEncoding.DecodeString(s)
+	return string(decodedBytes)
 }

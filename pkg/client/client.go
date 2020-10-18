@@ -14,6 +14,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/users"
 )
@@ -39,6 +40,7 @@ type Services struct {
 	AuthServersV2        *authservers.V2Service
 	AccessTokenClaimsV2  *accesstokenclaims.V2Service
 	ScopesV2             *scopes.V2Service
+	SmartHooksV1         *smarthooks.V1Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -53,22 +55,14 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		Timeout: time.Second * time.Duration(cfg.Timeout),
 	}
 
-	repo := olhttp.New(services.HTTPServiceConfig{
+	resourceRepository := olhttp.New(services.HTTPServiceConfig{
 		ClientID:     cfg.ClientID,
 		ClientSecret: cfg.ClientSecret,
 		BaseURL:      cfg.Url,
 		Client:       httpClient,
 	})
 
-	legalValuesService := legalvalues.New(repo, cfg.Url)
-	appV2Service := apps.New(repo, cfg.Url)
-	appRulesV2Service := apprules.New(repo, legalValuesService, cfg.Url)
-	userMappingsV2Service := usermappings.New(repo, legalValuesService, cfg.Url)
-	sessionLoginTokenV1Service := sessionlogintokens.New(repo, cfg.Url)
-	usersV2Service := users.New(repo, cfg.Url)
-	authServersV2Service := authservers.New(repo, cfg.Url)
-	accessTokenClaimsV2Service := accesstokenclaims.New(repo, cfg.Url)
-	scopesV2Service := scopes.New(repo, cfg.Url)
+	legalValuesService := legalvalues.New(resourceRepository, cfg.Url)
 
 	return &APIClient{
 		clientID:     cfg.ClientID,
@@ -77,15 +71,16 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 		baseURL:      cfg.Url,
 		client:       httpClient,
 		Services: &Services{
-			HTTPService:          repo,
-			AppsV2:               appV2Service,
-			AppRulesV2:           appRulesV2Service,
-			UserMappingsV2:       userMappingsV2Service,
-			UsersV2:              usersV2Service,
-			SessionLoginTokensV1: sessionLoginTokenV1Service,
-			AuthServersV2:        authServersV2Service,
-			AccessTokenClaimsV2:  accessTokenClaimsV2Service,
-			ScopesV2:             scopesV2Service,
+			HTTPService:          resourceRepository,
+			AppsV2:               apps.New(resourceRepository, cfg.Url),
+			AppRulesV2:           apprules.New(resourceRepository, legalValuesService, cfg.Url),
+			UserMappingsV2:       usermappings.New(resourceRepository, legalValuesService, cfg.Url),
+			UsersV2:              users.New(resourceRepository, cfg.Url),
+			SessionLoginTokensV1: sessionlogintokens.New(resourceRepository, cfg.Url),
+			AuthServersV2:        authservers.New(resourceRepository, cfg.Url),
+			AccessTokenClaimsV2:  accesstokenclaims.New(resourceRepository, cfg.Url),
+			ScopesV2:             scopes.New(resourceRepository, cfg.Url),
+			SmartHooksV1:         smarthooks.New(resourceRepository, cfg.Url),
 		},
 	}, nil
 }

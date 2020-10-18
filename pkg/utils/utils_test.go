@@ -73,3 +73,67 @@ func TestOneOf(t *testing.T) {
 		})
 	}
 }
+
+func TestEncodeString(t *testing.T) {
+	tests := map[string]struct {
+		InputStr       string
+		ExpectedOutput string
+	}{
+		"It encodes the string without side effects, idempotently": {
+			InputStr:       "function myFunc() {...}",
+			ExpectedOutput: "ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=",
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			inStr := test.InputStr
+			out := EncodeString(inStr)
+			out = EncodeString(out)
+			assert.Equal(t, test.ExpectedOutput, out)
+			assert.Equal(t, test.InputStr, inStr)
+		})
+	}
+}
+
+func TestDecodeString(t *testing.T) {
+	tests := map[string]struct {
+		InputStr       string
+		ExpectedOutput string
+	}{
+		"It decodes the string without side effects, idempotently": {
+			InputStr:       "ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=",
+			ExpectedOutput: "function myFunc() {...}",
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			inStr := test.InputStr
+			out := DecodeString(inStr)
+			out = DecodeString(out)
+			assert.Equal(t, test.ExpectedOutput, out)
+			assert.Equal(t, test.InputStr, inStr)
+		})
+	}
+}
+
+func TestIsEncodedString(t *testing.T) {
+	tests := map[string]struct {
+		InputStr       string
+		ExpectedOutput bool
+	}{
+		"It returns true for base64 encoed strings": {
+			InputStr:       "ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=",
+			ExpectedOutput: true,
+		},
+		"It returns false for not base64 encoded strings": {
+			InputStr:       "function myFunc() {...}",
+			ExpectedOutput: false,
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			out := IsEncoded(test.InputStr)
+			assert.Equal(t, test.ExpectedOutput, out)
+		})
+	}
+}

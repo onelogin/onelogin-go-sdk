@@ -54,9 +54,9 @@ func (svc *V1Service) Query(query *SmartHookQuery) ([]SmartHook, error) {
 }
 
 // GetOne retrieves the smarthook by id and returns it
-func (svc *V1Service) GetOne(id int32) (*SmartHook, error) {
+func (svc *V1Service) GetOne(id string) (*SmartHook, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 	})

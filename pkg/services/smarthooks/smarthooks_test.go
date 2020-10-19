@@ -61,13 +61,13 @@ func TestQuery(t *testing.T) {
 
 func TestGetOne(t *testing.T) {
 	tests := map[string]struct {
-		id               int32
+		id               string
 		expectedResponse *SmartHook
 		expectedError    error
 		repository       *test.MockRepository
 	}{
 		"it gets one smarthook by id": {
-			id:               int32(1),
+			id:               "1",
 			expectedResponse: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("function myFunc() {...}")},
 			repository: &test.MockRepository{
 				ReadFunc: func(r interface{}) ([]byte, error) {

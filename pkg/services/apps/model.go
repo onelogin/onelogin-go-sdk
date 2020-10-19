@@ -16,7 +16,7 @@ type App struct {
 	ID                 *int32                   `json:"id,omitempty"`
 	Name               *string                  `json:"name,omitempty"`
 	Visible            *bool                    `json:"visible,omitempty"`
-	Description        *string                  `json:"description,,omitempty"`
+	Description        *string                  `json:"description,omitempty"`
 	Notes              *string                  `json:"notes,omitempty"`
 	IconURL            *string                  `json:"icon_url,omitempty"`
 	AuthMethod         *int32                   `json:"auth_method,omitempty"`

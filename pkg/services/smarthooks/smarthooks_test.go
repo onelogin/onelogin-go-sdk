@@ -203,13 +203,13 @@ func TestCreate(t *testing.T) {
 
 func TestDestroy(t *testing.T) {
 	tests := map[string]struct {
-		id               int32
+		id               string
 		repository       *test.MockRepository
 		expectedResponse *SmartHook
 		expectedError    error
 	}{
 		"it destroys one smarthook": {
-			id: int32(1),
+			id: "1",
 			repository: &test.MockRepository{
 				DestroyFunc: func(r interface{}) ([]byte, error) {
 					return nil, nil
@@ -218,7 +218,7 @@ func TestDestroy(t *testing.T) {
 			expectedResponse: &SmartHook{},
 		},
 		"it returns an error if there is a problem finding the smarthook": {
-			id:               int32(2),
+			id:               "1",
 			repository:       &test.MockRepository{},
 			expectedResponse: nil,
 			expectedError:    errors.New("error"),

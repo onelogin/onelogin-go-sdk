@@ -7,7 +7,6 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
-	"log"
 )
 
 const errSmartHooksV2Context = "smarthooks v1 service"
@@ -115,7 +114,6 @@ func (svc *V1Service) Update(smarthook *SmartHook) error {
 
 // Destroy deletes the smarthook with the given id, and if successful, it returns nil
 func (svc *V1Service) Destroy(id string) error {
-	log.Println("ASDF", fmt.Sprintf("%s/%s", svc.Endpoint, id))
 	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},

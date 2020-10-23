@@ -32,7 +32,7 @@ func New(repo services.Repository, host string) *V1Service {
 
 // Query retrieves all the smarthooks from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all smarthooks
-func (svc *V1Service) Query(query *SmartHookQuery) ([]SmartHook, error) {
+func (svc *V1Service) Query(query *SmartHookQuery) ([]InflatedSmartHook, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -43,9 +43,9 @@ func (svc *V1Service) Query(query *SmartHookQuery) ([]SmartHook, error) {
 		return nil, err
 	}
 
-	var smarthooks []SmartHook
+	var smarthooks []InflatedSmartHook
 	json.Unmarshal(resp, &smarthooks)
-	decodedSmarthooks := make([]SmartHook, len(smarthooks))
+	decodedSmarthooks := make([]InflatedSmartHook, len(smarthooks))
 	for i := range smarthooks {
 		decodeFunction(&smarthooks[i])
 		decodedSmarthooks[i] = smarthooks[i]
@@ -54,26 +54,27 @@ func (svc *V1Service) Query(query *SmartHookQuery) ([]SmartHook, error) {
 }
 
 // GetOne retrieves the smarthook by id and returns it
-func (svc *V1Service) GetOne(id string) (*SmartHook, error) {
+func (svc *V1Service) GetOne(id string) (*InflatedSmartHook, error) {
+	out := InflatedSmartHook{}
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 	})
 	if err != nil {
-		return nil, err
+		return &out, err
 	}
-	var smarthook SmartHook
-	json.Unmarshal(resp, &smarthook)
-	decodeFunction(&smarthook)
-	return &smarthook, nil
+	json.Unmarshal(resp, &out)
+	decodeFunction(&out)
+	return &out, nil
 }
 
 // Create takes a smarthook without an id and attempts to use the parameters to create it
 // in the API. Modifies the smarthook in place, or returns an error if one occurs
-func (svc *V1Service) Create(smarthook *SmartHook) error {
+func (svc *V1Service) Create(smarthook *SmartHook) (*InflatedSmartHook, error) {
+	out := InflatedSmartHook{}
 	if encErr := encodeFunction(smarthook); encErr != nil {
-		return encErr
+		return &out, encErr
 	}
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
@@ -82,20 +83,22 @@ func (svc *V1Service) Create(smarthook *SmartHook) error {
 		Payload:    smarthook,
 	})
 	if err != nil {
-		return err
+		return &out, err
 	}
-	json.Unmarshal(resp, smarthook)
-	return nil
+
+	json.Unmarshal(resp, &out)
+	return &out, nil
 }
 
 // Update takes a smarthook and an id and attempts to use the parameters to update it
 // in the API. Modifies the smarthook in place, or returns an error if one occurs
-func (svc *V1Service) Update(smarthook *SmartHook) error {
+func (svc *V1Service) Update(smarthook *SmartHook) (*InflatedSmartHook, error) {
+	out := InflatedSmartHook{}
 	if smarthook.ID == nil {
-		return errors.New("No ID Given")
+		return &out, errors.New("No ID Given")
 	}
 	if encErr := encodeFunction(smarthook); encErr != nil {
-		return encErr
+		return &out, encErr
 	}
 	id := *smarthook.ID
 	smarthook.ID = nil
@@ -106,10 +109,11 @@ func (svc *V1Service) Update(smarthook *SmartHook) error {
 		Payload:    smarthook,
 	})
 	if err != nil {
-		return err
+		return &out, err
 	}
-	json.Unmarshal(resp, smarthook)
-	return nil
+
+	json.Unmarshal(resp, &out)
+	return &out, nil
 }
 
 // Destroy deletes the smarthook with the given id, and if successful, it returns nil
@@ -124,20 +128,20 @@ func (svc *V1Service) Destroy(id string) error {
 	return nil
 }
 
-func encodeFunction(smarthook *SmartHook) error {
-	if smarthook.Function == nil {
+func encodeFunction(smarthook HasEncodable) error {
+	if smarthook.GetEncodableField() == nil {
 		return errors.New("No Function Definition Given")
 	}
-	str := utils.EncodeString(*smarthook.Function)
-	smarthook.Function = &str
+	str := utils.EncodeString(*smarthook.GetEncodableField())
+	smarthook.SetEncodableField(&str)
 	return nil
 }
 
-func decodeFunction(smarthook *SmartHook) error {
-	if smarthook.Function == nil {
+func decodeFunction(smarthook HasEncodable) error {
+	if smarthook.GetEncodableField() == nil {
 		return errors.New("No Function Definition Given")
 	}
-	str := utils.DecodeString(*smarthook.Function)
-	smarthook.Function = &str
+	str := utils.DecodeString(*smarthook.GetEncodableField())
+	smarthook.SetEncodableField(&str)
 	return nil
 }

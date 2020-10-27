@@ -71,7 +71,7 @@ type AppConfiguration struct {
 	Audience                     *string `json:"audience,omitempty"`
 	ConsumerURL                  *string `json:"consumer_url,omitempty"`
 	Login                        *string `json:"login,omitempty"`
-	Recepient                    *string `json:"recipient,omitempty"`
+	Recipient                    *string `json:"recipient,omitempty"`
 	Validator                    *string `json:"validator,omitempty"`
 	RelayState                   *string `json:"relaystate,omitempty"`
 	SAMLNotValidOnOrAafter       *string `json:"saml_notonorafter,omitempty"`

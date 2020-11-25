@@ -23,6 +23,7 @@ type App struct {
 	PolicyID           *int32                   `json:"policy_id,omitempty"`
 	AllowAssumedSignin *bool                    `json:"allow_assumed_signin,omitempty"`
 	TabID              *int32                   `json:"tab_id,omitempty"`
+	BrandID            *int32                   `json:"brand_id,omitempty"`
 	ConnectorID        *int32                   `json:"connector_id,omitempty"`
 	CreatedAt          time.Time                `json:"created_at,omitempty"`
 	UpdatedAt          time.Time                `json:"updated_at,omitempty"`

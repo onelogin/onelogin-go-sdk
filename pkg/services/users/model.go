@@ -7,21 +7,21 @@ type UserQuery struct {
 	Limit          string
 	Page           string
 	Cursor         string
-	CreatedSince   time.Time `json:"created_since,omitempty"`
-	CreatedUntil   time.Time `json:"created_until,omitempty"`
-	UpdatedSince   time.Time `json:"updated_since,omitempty"`
-	UpdatedUntil   time.Time `json:"updated_until,omitempty"`
-	LastLoginSince time.Time `json:"last_login_since,omitempty"`
-	LastLoginUntil time.Time `json:"last_login_until,omitempty"`
-	Firstname      *string   `json:"firstname,omitempty"`
-	Lastname       *string   `json:"lastname,omitempty"`
-	Username       *string   `json:"username,omitempty"`
-	Samaccountname *string   `json:"samaccountname,omitempty"`
-	DirectoryID    *string   `json:"directory_id,omitempty"`
-	ExternalID     *string   `json:"external_id,omitempty"`
-	AppID          *string   `json:"app_id,omitempty"`
-	UserIDs        *string   `json:"user_ids,omitempty"`
-	Fields         *string   `json:"fields,omitempty"`
+	CreatedSince   *time.Time `json:"created_since,omitempty"`
+	CreatedUntil   *time.Time `json:"created_until,omitempty"`
+	UpdatedSince   *time.Time `json:"updated_since,omitempty"`
+	UpdatedUntil   *time.Time `json:"updated_until,omitempty"`
+	LastLoginSince *time.Time `json:"last_login_since,omitempty"`
+	LastLoginUntil *time.Time `json:"last_login_until,omitempty"`
+	Firstname      *string    `json:"firstname,omitempty"`
+	Lastname       *string    `json:"lastname,omitempty"`
+	Username       *string    `json:"username,omitempty"`
+	Samaccountname *string    `json:"samaccountname,omitempty"`
+	DirectoryID    *string    `json:"directory_id,omitempty"`
+	ExternalID     *string    `json:"external_id,omitempty"`
+	AppID          *string    `json:"app_id,omitempty"`
+	UserIDs        *string    `json:"user_ids,omitempty"`
+	Fields         *string    `json:"fields,omitempty"`
 }
 
 // User represents a OneLogin User

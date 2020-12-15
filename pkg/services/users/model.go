@@ -60,4 +60,5 @@ type User struct {
 	ManagerUserID        *int32    `json:"manager_user_id,omitempty"`
 	ExternalID           *int32    `json:"external_id,omitempty"`
 	ID                   *int32    `json:"id,omitempty"`
+	ProfilePictureURL    *string   `json:"profile_picture_url"`
 }

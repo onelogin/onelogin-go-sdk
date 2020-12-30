@@ -7,16 +7,17 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/access_token_claims"
+	apprules "github.com/onelogin/onelogin-go-sdk/pkg/services/apps/app_rules"
+	authservers "github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
+	accesstokenclaims "github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/access_token_claims"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/scopes"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
+	legalvalues "github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/roles"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/saml"
+	sessionlogintokens "github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
+	usermappings "github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/users"
 )
 
@@ -43,6 +44,7 @@ type Services struct {
 	ScopesV2             *scopes.V2Service
 	SmartHooksV1         *smarthooks.V1Service
 	RolesV1              *roles.V1Service
+	SAMLAssertionV2      *saml.V2Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -84,6 +86,7 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 			ScopesV2:             scopes.New(resourceRepository, cfg.Url),
 			SmartHooksV1:         smarthooks.New(resourceRepository, cfg.Url),
 			RolesV1:              roles.New(resourceRepository, cfg.Url),
+			SAMLAssertionV2:      saml.New(resourceRepository, cfg.Url),
 		},
 	}, nil
 }

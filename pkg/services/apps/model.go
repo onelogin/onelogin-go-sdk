@@ -75,6 +75,7 @@ type AppConfiguration struct {
 	Recipient                    *string `json:"recipient,omitempty"`
 	Validator                    *string `json:"validator,omitempty"`
 	RelayState                   *string `json:"relaystate,omitempty"`
+	Relay                        *string `json:"relay,omitempty"`
 	SAMLNotValidOnOrAafter       *string `json:"saml_notonorafter,omitempty"`
 	GenerateAttributeValueTags   *string `json:"generate_attribute_value_tags,omitempty"`
 	SAMLInitiaterID              *string `json:"saml_initiater_id,omitempty"`

@@ -66,6 +66,7 @@ type AppConfiguration struct {
 	TokenEndpointAuthMethod       *int32  `json:"token_endpoint_auth_method,omitempty"`
 	AccessTokenExpirationMinutes  *int32  `json:"access_token_expiration_minutes,omitempty"`
 	ProviderArn                   *string `json:"provider_arn,omitempty"`
+	IdpList                       *string `json:"idp_list,omitempty"`
 	SignatureAlgorithm            *string `json:"signature_algorithm,omitempty"`
 
 	LogoutURL                    *string `json:"logout_url,omitempty"`

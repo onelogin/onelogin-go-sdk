@@ -16,20 +16,18 @@ type SmartHookQuery struct {
 
 // SmartHook represents a OneLogin SmartHook with associated resource data
 type SmartHook struct {
-	ID              *string           `json:"id,omitempty"`
-	Type            *string           `json:"type,omitempty"`
-	Status          *string           `json:"status,omitempty"`
-	Disabled        *bool             `json:"disabled,omitempty"`
-	Retries         *int32            `json:"retries,omitempty"`
-	Timeout         *int32            `json:"timeout,omitempty"`
-	RiskEnabled     *bool             `json:"risk_enabled,omitempty"`
-	LocationEnabled *bool             `json:"location_enabled,omitempty"`
-	Packages        map[string]string `json:"packages,omitempty"`
-	CreatedAt       *time.Time        `json:"created_at,omitempty"`
-	UpdatedAt       *time.Time        `json:"updated_at,omitempty"`
-	Function        *string           `json:"function,omitempty"`
-	Options         *SmartHookOptions `json:"options,omitempty"`
-	EnvVars         []EnvVar          `json:"env_vars,omitempty"`
+	ID        *string           `json:"id,omitempty"`
+	Type      *string           `json:"type,omitempty"`
+	Status    *string           `json:"status,omitempty"`
+	Disabled  *bool             `json:"disabled,omitempty"`
+	Retries   *int32            `json:"retries,omitempty"`
+	Timeout   *int32            `json:"timeout,omitempty"`
+	Packages  map[string]string `json:"packages,omitempty"`
+	CreatedAt *time.Time        `json:"created_at,omitempty"`
+	UpdatedAt *time.Time        `json:"updated_at,omitempty"`
+	Function  *string           `json:"function,omitempty"`
+	Options   *SmartHookOptions `json:"options,omitempty"`
+	EnvVars   []EnvVar          `json:"env_vars,omitempty"`
 }
 
 // SmartHookOptions represents the options to be associated with a SmartHook

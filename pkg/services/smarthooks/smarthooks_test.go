@@ -12,30 +12,30 @@ import (
 func TestQuery(t *testing.T) {
 	tests := map[string]struct {
 		queryPayload     *SmartHookQuery
-		expectedResponse []InflatedSmartHook
+		expectedResponse []SmartHook
 		expectedError    error
 		repository       *test.MockRepository
 	}{
 		"it gets one smarthook": {
 			queryPayload:     &SmartHookQuery{Limit: "1"},
-			expectedResponse: []InflatedSmartHook{InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("function myFunc() {...}")}},
+			expectedResponse: []SmartHook{SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")}},
 			repository: &test.MockRepository{
 				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]InflatedSmartHook{InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")}})
+					return json.Marshal([]SmartHook{SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")}})
 				},
 			},
 		},
 		"it returns the remote default limit of smarthooks if no query given": {
 			queryPayload: &SmartHookQuery{},
-			expectedResponse: []InflatedSmartHook{
-				InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("function myFunc() {...}")},
-				InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("function myOtherFunc() {...}")},
+			expectedResponse: []SmartHook{
+				SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
+				SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlPdGhlckZ1bmMoKSB7Li4ufQ==")},
 			},
 			repository: &test.MockRepository{
 				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]InflatedSmartHook{
-						InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
-						InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlPdGhlckZ1bmMoKSB7Li4ufQ==")},
+					return json.Marshal([]SmartHook{
+						SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
+						SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlPdGhlckZ1bmMoKSB7Li4ufQ==")},
 					})
 				},
 			},
@@ -62,22 +62,22 @@ func TestQuery(t *testing.T) {
 func TestGetOne(t *testing.T) {
 	tests := map[string]struct {
 		id               string
-		expectedResponse *InflatedSmartHook
+		expectedResponse *SmartHook
 		expectedError    error
 		repository       *test.MockRepository
 	}{
 		"it gets one smarthook by id": {
 			id:               "1",
-			expectedResponse: &InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("function myFunc() {...}")},
+			expectedResponse: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
 			repository: &test.MockRepository{
 				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
+					return json.Marshal(SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
 				},
 			},
 		},
 		"it returns an error if the call to /smarthooks fails": {
 			expectedError:    errors.New("error"),
-			expectedResponse: &InflatedSmartHook{},
+			expectedResponse: &SmartHook{},
 			repository:       &test.MockRepository{},
 		},
 	}
@@ -96,13 +96,13 @@ func TestGetOne(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
 		updatePayload  *SmartHook
-		expectedResult *InflatedSmartHook
+		expectedResult *SmartHook
 		expectedError  error
 		repository     *test.MockRepository
 	}{
 		"it updates a smarthook": {
 			updatePayload:  &SmartHook{Function: oltypes.String("function myFunc() {...}"), ID: oltypes.String("abc")},
-			expectedResult: &InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
+			expectedResult: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
@@ -111,7 +111,7 @@ func TestUpdate(t *testing.T) {
 		},
 		"it is forgiving of encoded Function": {
 			updatePayload:  &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
-			expectedResult: &InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
+			expectedResult: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
@@ -140,6 +140,7 @@ func TestUpdate(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, "test.com")
+			test.updatePayload.EncodeFunction()
 			out, err := svc.Update(test.updatePayload)
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
@@ -153,13 +154,13 @@ func TestUpdate(t *testing.T) {
 func TestCreate(t *testing.T) {
 	tests := map[string]struct {
 		createPayload  *SmartHook
-		expectedResult *InflatedSmartHook
+		expectedResult *SmartHook
 		expectedError  error
 		repository     *test.MockRepository
 	}{
 		"it creates a smarthook by encoding a decoded function": {
 			createPayload:  &SmartHook{Function: oltypes.String("function myFunc() {...}")},
-			expectedResult: &InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
+			expectedResult: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
 			repository: &test.MockRepository{
 				CreateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
@@ -168,7 +169,7 @@ func TestCreate(t *testing.T) {
 		},
 		"it is forgiving of encoded Function": {
 			createPayload:  &SmartHook{Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
-			expectedResult: &InflatedSmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
+			expectedResult: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
 			repository: &test.MockRepository{
 				CreateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
@@ -233,6 +234,28 @@ func TestDestroy(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 			}
+		})
+	}
+}
+
+func TestEncodeDecode(t *testing.T) {
+	tests := map[string]struct {
+		Subject *SmartHook
+		Decoded *SmartHook
+		Encoded *SmartHook
+	}{
+		"It Encodes and Decodes the hook function": {
+			Subject: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("function myFunc() {...}")},
+			Decoded: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("function myFunc() {...}")},
+			Encoded: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			test.Subject.EncodeFunction()
+			assert.Equal(t, test.Encoded, test.Subject)
+			test.Subject.DecodeFunction()
+			assert.Equal(t, test.Decoded, test.Decoded)
 		})
 	}
 }

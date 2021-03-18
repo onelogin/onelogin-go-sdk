@@ -27,7 +27,7 @@ type SmartHook struct {
 	UpdatedAt *time.Time        `json:"updated_at,omitempty"`
 	Function  *string           `json:"function,omitempty"`
 	Options   *SmartHookOptions `json:"options,omitempty"`
-	EnvVars   []string          `json:"env_vars,omitempty"` // env var names are included with smarthook requests but are defined in another call using the EnvVar struct
+	EnvVars   []EnvVar          `json:"env_vars,omitempty"`
 }
 
 // SmartHookOptions represents the options to be associated with a SmartHook

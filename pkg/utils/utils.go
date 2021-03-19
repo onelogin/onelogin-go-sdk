@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 )
@@ -53,8 +54,8 @@ func OneOf(key string, v string, opts []string) error {
 
 // IsEncoded takes a string and returns whether or not the string is base64 encoded
 func IsEncoded(s string) bool {
-	_, err := base64.StdEncoding.DecodeString(s)
-	return err == nil
+	B64EncodedRegex := *regexp.MustCompile(`^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$`)
+	return B64EncodedRegex.MatchString(s)
 }
 
 // EncodeString takes a multi-line string representation of a function body and
@@ -74,6 +75,10 @@ func DecodeString(s string) string {
 	if !IsEncoded(s) {
 		return s
 	}
-	decodedBytes, _ := base64.StdEncoding.DecodeString(s)
+	decodedBytes, e := base64.StdEncoding.DecodeString(s)
+	if e != nil {
+		log.Println("Unexpected decoding error:", e)
+		return s
+	}
 	return string(decodedBytes)
 }

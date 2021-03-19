@@ -25,6 +25,11 @@ func New(repo services.Repository, host string) *V1Service {
 	}
 }
 
+type SmartHookWriteRequest struct {
+	*SmartHook
+	EnvVars []string `json:"env_vars,omitempty"`
+}
+
 // Query retrieves all the smarthooks from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all smarthooks
 func (svc *V1Service) Query(query *SmartHookQuery) ([]SmartHook, error) {
@@ -66,11 +71,20 @@ func (svc *V1Service) Create(smarthook *SmartHook) (*SmartHook, error) {
 		return &out, errors.New("No Function Definition Given")
 	}
 
+	envVars := make([]string, len(smarthook.EnvVars))
+	for i, v := range smarthook.EnvVars {
+		envVars[i] = *v.Name
+	}
+	writeRequest := SmartHookWriteRequest{
+		SmartHook: smarthook,
+		EnvVars:   envVars,
+	}
+
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-		Payload:    smarthook,
+		Payload:    writeRequest,
 	})
 	if err != nil {
 		return &out, err
@@ -91,13 +105,22 @@ func (svc *V1Service) Update(smarthook *SmartHook) (*SmartHook, error) {
 		return &out, errors.New("No Function Definition Given")
 	}
 
+	envVars := make([]string, len(smarthook.EnvVars))
+	for i, v := range smarthook.EnvVars {
+		envVars[i] = *v.Name
+	}
+	writeRequest := SmartHookWriteRequest{
+		SmartHook: smarthook,
+		EnvVars:   envVars,
+	}
+
 	id := *smarthook.ID
 	smarthook.ID = nil
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
-		Payload:    smarthook,
+		Payload:    writeRequest,
 	})
 	if err != nil {
 		return &out, err

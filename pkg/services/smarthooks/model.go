@@ -19,6 +19,7 @@ type SmartHook struct {
 	ID        *string           `json:"id,omitempty"`
 	Type      *string           `json:"type,omitempty"`
 	Status    *string           `json:"status,omitempty"`
+	Runtime   *string           `json:"runtime,omitempty"`
 	Disabled  *bool             `json:"disabled,omitempty"`
 	Retries   *int32            `json:"retries,omitempty"`
 	Timeout   *int32            `json:"timeout,omitempty"`
@@ -50,6 +51,7 @@ func (hook *SmartHook) EncodeFunction() error {
 	if hook.Function == nil {
 		return errors.New("No Function Definition Given")
 	}
+
 	str := utils.EncodeString(*hook.Function)
 	hook.Function = &str
 	return nil

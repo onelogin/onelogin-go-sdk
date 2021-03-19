@@ -27,7 +27,7 @@ func New(repo services.Repository, host string) *V1Service {
 
 type SmartHookWriteRequest struct {
 	*SmartHook
-	EnvVars []string `json:"env_vars,omitempty"`
+	EnvVars []string `json:"env_vars"`
 }
 
 // Query retrieves all the smarthooks from the repository that meet the query criteria passed in the

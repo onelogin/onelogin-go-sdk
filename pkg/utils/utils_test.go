@@ -104,6 +104,10 @@ func TestDecodeString(t *testing.T) {
 			InputStr:       "ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=",
 			ExpectedOutput: "function myFunc() {...}",
 		},
+		"It returns the original string and logs an error if the input is corrupt": {
+			InputStr:       "Zn{}Y3Rpb24gbXlGdW5jKCkgey4uLn0=",
+			ExpectedOutput: "Zn{}Y3Rpb24gbXlGdW5jKCkgey4uLn0=",
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {

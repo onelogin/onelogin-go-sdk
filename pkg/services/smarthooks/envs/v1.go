@@ -10,15 +10,15 @@ import (
 
 const errEnvVarsV2Context = "envVar environment variables v1 service"
 
-// SmartHookEnvVarsV1Service holds the information needed to interface with a repository
-type SmartHookEnvVarsV1Service struct {
+// V1Service holds the information needed to interface with a repository
+type V1Service struct {
 	Endpoint, ErrorContext string
 	Repository             services.Repository
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) *SmartHookEnvVarsV1Service {
-	return &SmartHookEnvVarsV1Service{
+func New(repo services.Repository, host string) *V1Service {
+	return &V1Service{
 		Endpoint:     fmt.Sprintf("%s/api/2/hooks/envs", host),
 		Repository:   repo,
 		ErrorContext: errEnvVarsV2Context,
@@ -27,7 +27,7 @@ func New(repo services.Repository, host string) *SmartHookEnvVarsV1Service {
 
 // Query retrieves all the envVars from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all envVars
-func (svc *SmartHookEnvVarsV1Service) Query(query *SmartHookEnvVarQuery) ([]EnvVar, error) {
+func (svc *V1Service) Query(query *SmartHookEnvVarQuery) ([]EnvVar, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
@@ -44,7 +44,7 @@ func (svc *SmartHookEnvVarsV1Service) Query(query *SmartHookEnvVarQuery) ([]EnvV
 }
 
 // GetOne retrieves the envVar by id and returns it
-func (svc *SmartHookEnvVarsV1Service) GetOne(id string) (*EnvVar, error) {
+func (svc *V1Service) GetOne(id string) (*EnvVar, error) {
 	out := EnvVar{}
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
@@ -60,7 +60,7 @@ func (svc *SmartHookEnvVarsV1Service) GetOne(id string) (*EnvVar, error) {
 
 // Create takes a envVar without an id and attempts to use the parameters to create it
 // in the API. Modifies the envVar in place, or returns an error if one occurs
-func (svc *SmartHookEnvVarsV1Service) Create(envVar *EnvVar) (*EnvVar, error) {
+func (svc *V1Service) Create(envVar *EnvVar) (*EnvVar, error) {
 	out := EnvVar{}
 	if envVar.Name == nil || envVar.Value == nil {
 		return &out, errors.New("Name and Value are both required")
@@ -82,7 +82,7 @@ func (svc *SmartHookEnvVarsV1Service) Create(envVar *EnvVar) (*EnvVar, error) {
 
 // Update takes a envVar and an id and attempts to use the parameters to update it
 // in the API. Modifies the envVar in place, or returns an error if one occurs
-func (svc *SmartHookEnvVarsV1Service) Update(envVar *EnvVar) (*EnvVar, error) {
+func (svc *V1Service) Update(envVar *EnvVar) (*EnvVar, error) {
 	out := EnvVar{}
 	if envVar.ID == nil {
 		return &out, errors.New("No ID Given")
@@ -111,7 +111,7 @@ func (svc *SmartHookEnvVarsV1Service) Update(envVar *EnvVar) (*EnvVar, error) {
 }
 
 // Destroy deletes the envVar with the given id, and if successful, it returns nil
-func (svc *SmartHookEnvVarsV1Service) Destroy(id string) error {
+func (svc *V1Service) Destroy(id string) error {
 	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},

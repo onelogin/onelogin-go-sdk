@@ -16,6 +16,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/roles"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/session_login_tokens"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/user_mappings"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/users"
 )
@@ -42,6 +43,7 @@ type Services struct {
 	AccessTokenClaimsV2  *accesstokenclaims.V2Service
 	ScopesV2             *scopes.V2Service
 	SmartHooksV1         *smarthooks.V1Service
+	SmartHooksEnvVarsV1  *smarthookenvs.V1Service
 	RolesV1              *roles.V1Service
 }
 
@@ -83,6 +85,7 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 			AccessTokenClaimsV2:  accesstokenclaims.New(resourceRepository, cfg.Url),
 			ScopesV2:             scopes.New(resourceRepository, cfg.Url),
 			SmartHooksV1:         smarthooks.New(resourceRepository, cfg.Url),
+			SmartHooksEnvVarsV1:  smarthookenvs.New(resourceRepository, cfg.Url),
 			RolesV1:              roles.New(resourceRepository, cfg.Url),
 		},
 	}, nil

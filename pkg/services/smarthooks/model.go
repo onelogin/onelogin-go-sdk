@@ -2,6 +2,7 @@ package smarthooks
 
 import (
 	"errors"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 	"time"
 )
@@ -16,19 +17,19 @@ type SmartHookQuery struct {
 
 // SmartHook represents a OneLogin SmartHook with associated resource data
 type SmartHook struct {
-	ID        *string           `json:"id,omitempty"`
-	Type      *string           `json:"type,omitempty"`
-	Status    *string           `json:"status,omitempty"`
-	Runtime   *string           `json:"runtime,omitempty"`
-	Disabled  *bool             `json:"disabled,omitempty"`
-	Retries   *int32            `json:"retries,omitempty"`
-	Timeout   *int32            `json:"timeout,omitempty"`
-	Packages  map[string]string `json:"packages,omitempty"`
-	CreatedAt *time.Time        `json:"created_at,omitempty"`
-	UpdatedAt *time.Time        `json:"updated_at,omitempty"`
-	Function  *string           `json:"function,omitempty"`
-	Options   *SmartHookOptions `json:"options,omitempty"`
-	EnvVars   []EnvVar          `json:"env_vars"`
+	ID        *string                `json:"id,omitempty"`
+	Type      *string                `json:"type,omitempty"`
+	Status    *string                `json:"status,omitempty"`
+	Runtime   *string                `json:"runtime,omitempty"`
+	Disabled  *bool                  `json:"disabled,omitempty"`
+	Retries   *int32                 `json:"retries,omitempty"`
+	Timeout   *int32                 `json:"timeout,omitempty"`
+	Packages  map[string]string      `json:"packages,omitempty"`
+	CreatedAt *time.Time             `json:"created_at,omitempty"`
+	UpdatedAt *time.Time             `json:"updated_at,omitempty"`
+	Function  *string                `json:"function,omitempty"`
+	Options   *SmartHookOptions      `json:"options,omitempty"`
+	EnvVars   []smarthookenvs.EnvVar `json:"env_vars"`
 }
 
 // SmartHookOptions represents the options to be associated with a SmartHook
@@ -36,14 +37,6 @@ type SmartHookOptions struct {
 	RiskEnabled          *bool `json:"risk_enabled,omitempty"`
 	MFADeviceInfoEnabled *bool `json:"mfa_device_info_enabled,omitempty"`
 	LocationEnabled      *bool `json:"location_enabled,omitempty"`
-}
-
-// EnvVar represents an Environment Variable to be associated with a SmartHook
-type EnvVar struct {
-	ID        *string    `json:"id,omitempty"`
-	Name      *string    `json:"name,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
 
 // EncodeFunction mutates the reciever to base64 encode whatever value is on the Function field

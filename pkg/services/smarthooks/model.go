@@ -17,19 +17,21 @@ type SmartHookQuery struct {
 
 // SmartHook represents a OneLogin SmartHook with associated resource data
 type SmartHook struct {
-	ID        *string                `json:"id,omitempty"`
-	Type      *string                `json:"type,omitempty"`
-	Status    *string                `json:"status,omitempty"`
-	Runtime   *string                `json:"runtime,omitempty"`
-	Disabled  *bool                  `json:"disabled,omitempty"`
-	Retries   *int32                 `json:"retries,omitempty"`
-	Timeout   *int32                 `json:"timeout,omitempty"`
-	Packages  map[string]string      `json:"packages,omitempty"`
-	CreatedAt *time.Time             `json:"created_at,omitempty"`
-	UpdatedAt *time.Time             `json:"updated_at,omitempty"`
-	Function  *string                `json:"function,omitempty"`
-	Options   *SmartHookOptions      `json:"options,omitempty"`
-	EnvVars   []smarthookenvs.EnvVar `json:"env_vars"`
+	ID             *string                `json:"id,omitempty"`
+	Type           *string                `json:"type,omitempty"`
+	Disabled       *bool                  `json:"disabled,omitempty"`
+	Timeout        *int32                 `json:"timeout,omitempty"`
+	EnvVars        []smarthookenvs.EnvVar `json:"env_vars"`
+	Runtime        *string                `json:"runtime,omitempty"`
+	ContextVersion *string                `json:"context_version,omitempty"`
+	Retries        *int32                 `json:"retries,omitempty"`
+	Options        *SmartHookOptions      `json:"options,omitempty"`
+	Packages       map[string]string      `json:"packages,omitempty"`
+	Function       *string                `json:"function,omitempty"`
+	Status         *string                `json:"status,omitempty"`
+	CreatedAt      *time.Time             `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time             `json:"updated_at,omitempty"`
+	Conditions     []SmartHookCondition   `json:"conditions,omitempty"`
 }
 
 // SmartHookOptions represents the options to be associated with a SmartHook
@@ -37,6 +39,12 @@ type SmartHookOptions struct {
 	RiskEnabled          *bool `json:"risk_enabled,omitempty"`
 	MFADeviceInfoEnabled *bool `json:"mfa_device_info_enabled,omitempty"`
 	LocationEnabled      *bool `json:"location_enabled,omitempty"`
+}
+
+type SmartHookCondition struct {
+	Source   *string `json:"source,omitempty"`
+	Operator *string `json:"operator,omitempty"`
+	Value    *string `json:"value,omitempty"`
 }
 
 // EncodeFunction mutates the reciever to base64 encode whatever value is on the Function field

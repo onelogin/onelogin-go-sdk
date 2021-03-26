@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -14,6 +15,7 @@ const errUsersV2Context = "users v2 service"
 type V2Service struct {
 	Endpoint, ErrorContext string
 	Repository             services.Repository
+	Host                   string
 }
 
 // New creates the new svc service v2.
@@ -22,6 +24,7 @@ func New(repo services.Repository, host string) *V2Service {
 		Endpoint:     fmt.Sprintf("%s/api/2/users", host),
 		Repository:   repo,
 		ErrorContext: errUsersV2Context,
+		Host:         host,
 	}
 }
 
@@ -97,6 +100,18 @@ func (svc *V2Service) Update(user *User) error {
 func (svc *V2Service) Destroy(id int32) error {
 	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Logout logs out the user from OneLogin
+func (svc *V2Service) Logout(id int32) error {
+	if _, err := svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/api/1/users/%d/logout", svc.Host, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 	}); err != nil {

@@ -70,6 +70,7 @@ type AppConfiguration struct {
 	SignatureAlgorithm            *string `json:"signature_algorithm,omitempty"`
 
 	LogoutURL                    *string `json:"logout_url,omitempty"`
+	PostLogoutRedirectURI        *string `json:"post_logout_redirect_uri,omitempty"`
 	Audience                     *string `json:"audience,omitempty"`
 	ConsumerURL                  *string `json:"consumer_url,omitempty"`
 	Login                        *string `json:"login,omitempty"`

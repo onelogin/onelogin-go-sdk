@@ -64,12 +64,11 @@ func (svc *V1Service) QueryWithAssignments(query *PrivilegeQuery) ([]Privilege, 
 	var privileges []Privilege
 	json.Unmarshal(resp, &privileges)
 	errs := make([]error, len(privileges))
-	for i, p := range privileges {
-		e := svc.GetPrivilegeResources(&p)
+	for i := range privileges {
+		e := svc.GetPrivilegeResources(&privileges[i])
 		if e != nil {
 			errs[i] = e
 		}
-		privileges[i] = p
 	}
 
 	return privileges, errs

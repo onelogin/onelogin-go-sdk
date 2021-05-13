@@ -288,7 +288,7 @@ func (svc *V1Service) attachResourcesByType(resourceType, privilegeID string, re
 		}
 
 		ar := map[string]bool{}
-		json.Unmarshal(resp, ar)
+		json.Unmarshal(resp, &ar)
 
 		if ar["success"] {
 			c <- AttachResponse{out: ar["success"]}

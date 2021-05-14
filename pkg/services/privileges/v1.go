@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
@@ -31,7 +32,7 @@ func New(repo services.Repository, host string) *V1Service {
 func (svc *V1Service) Query(query *PrivilegeQuery) ([]Privilege, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
-		Headers:    map[string]string{"Content-Type": "privilegelication/json"},
+		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    query,
 	})
@@ -53,7 +54,7 @@ func (svc *V1Service) Query(query *PrivilegeQuery) ([]Privilege, error) {
 func (svc *V1Service) QueryWithAssignments(query *PrivilegeQuery) ([]Privilege, []error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
-		Headers:    map[string]string{"Content-Type": "privilegelication/json"},
+		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    query,
 	})
@@ -79,7 +80,7 @@ func (svc *V1Service) QueryWithAssignments(query *PrivilegeQuery) ([]Privilege, 
 func (svc *V1Service) GetOne(id string) (*Privilege, error) {
 	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
-		Headers:    map[string]string{"Content-Type": "privilegelication/json"},
+		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 	})
 	if err != nil {
@@ -101,7 +102,7 @@ func (svc *V1Service) Create(privilege *Privilege) error {
 	privilege.RoleIDs = nil
 	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
 		URL:        svc.Endpoint,
-		Headers:    map[string]string{"Content-Type": "privilegelication/json"},
+		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    privilege,
 	})
@@ -131,6 +132,7 @@ func (svc *V1Service) Update(privilege *Privilege) error {
 		return errors.New("No ID Given")
 	}
 
+	// save these off since theyre not part of the privilege API call. need to re-attach after.
 	keepUsers := privilege.UserIDs
 	keepRoles := privilege.RoleIDs
 
@@ -148,9 +150,10 @@ func (svc *V1Service) Update(privilege *Privilege) error {
 	privilege.UserIDs = keepUsers
 	privilege.RoleIDs = keepRoles
 
+	// attach will append new resource ids to privilege and do nothing if id is removed or unchanged.
 	if err = svc.AttachPrivilegeResources(privilege); err != nil {
 		fmt.Println("unable to update assigned resources, reverting privilege to last known state in remote")
-		privilege, err = svc.GetOne(*privilege.ID)
+		_, err = svc.GetOne(*privilege.ID)
 		return err
 	}
 
@@ -164,13 +167,13 @@ func (svc *V1Service) Update(privilege *Privilege) error {
 
 	if err = svc.DiscardAssignment(*privilege.ID, "users", usersToRemove); err != nil {
 		fmt.Println("unable to update assigned resources, reverting privilege to last known state in remote")
-		privilege, err = svc.GetOne(*privilege.ID)
+		_, err = svc.GetOne(*privilege.ID)
 		return err
 	}
 
 	if err = svc.DiscardAssignment(*privilege.ID, "roles", rolesToRemove); err != nil {
 		fmt.Println("unable to update assigned resources, reverting privilege to last known state in remote")
-		privilege, err = svc.GetOne(*privilege.ID)
+		_, err = svc.GetOne(*privilege.ID)
 		return err
 	}
 
@@ -190,20 +193,23 @@ func (svc *V1Service) Destroy(id string) error {
 }
 
 func (svc *V1Service) DiscardAssignment(pID, resourceType string, assignments []int) error {
-	c := make(chan bool, len(assignments))
-	for _, n := range assignments {
-		go func(id int, c chan bool) {
-			_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
-				URL:        fmt.Sprintf("%s/%s/%s/%d", svc.Endpoint, pID, resourceType, id),
-				Headers:    map[string]string{"Content-Type": "application/json"},
-				AuthMethod: "bearer",
-			})
-			c <- err != nil
-		}(assignments[n], c)
-	}
-	for r := range c {
-		if !r {
-			return errors.New("unable to remove resources")
+	if len(assignments) > 0 {
+		c := make(chan bool, len(assignments))
+		log.Println("FUCK", assignments)
+		for _, n := range assignments {
+			go func(id int, c chan bool) {
+				_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
+					URL:        fmt.Sprintf("%s/%s/%s/%d", svc.Endpoint, pID, resourceType, id),
+					Headers:    map[string]string{"Content-Type": "application/json"},
+					AuthMethod: "bearer",
+				})
+				c <- err != nil
+			}(n, c)
+		}
+		for r := range c {
+			if !r {
+				return errors.New("unable to remove resources")
+			}
 		}
 	}
 	return nil

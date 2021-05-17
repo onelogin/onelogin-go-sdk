@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services"
-	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services"
+	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 )
 
 const resourceRequestuestContext = "ol http service"

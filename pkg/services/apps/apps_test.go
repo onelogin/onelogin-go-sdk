@@ -3,11 +3,12 @@ package apps
 import (
 	"encoding/json"
 	"errors"
+	"testing"
+
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestQuery(t *testing.T) {
@@ -156,9 +157,9 @@ func TestUpdate(t *testing.T) {
 				ReadFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
 				},
-				ReReadFunc: func(r interface{}) ([]byte, error) {
+				ReReadFunc: []func(r interface{}) ([]byte, error){func(r interface{}) ([]byte, error) {
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
-				},
+				}},
 				DestroyFunc: func(r interface{}) ([]byte, error) {
 					return nil, nil
 				},
@@ -182,9 +183,9 @@ func TestUpdate(t *testing.T) {
 				ReadFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
 				},
-				ReReadFunc: func(r interface{}) ([]byte, error) {
+				ReReadFunc: []func(r interface{}) ([]byte, error){func(r interface{}) ([]byte, error) {
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
-				},
+				}},
 				DestroyFunc: func(r interface{}) ([]byte, error) {
 					return nil, errors.New("error")
 				},

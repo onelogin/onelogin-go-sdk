@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"sync"
 
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
@@ -89,6 +89,7 @@ func (svc *V1Service) GetOne(id string) (*Privilege, error) {
 
 	var privilege Privilege
 	json.Unmarshal(resp, &privilege)
+
 	err = svc.GetPrivilegeResources(&privilege)
 	return &privilege, err
 }
@@ -152,7 +153,7 @@ func (svc *V1Service) Update(privilege *Privilege) error {
 
 	// attach will append new resource ids to privilege and do nothing if id is removed or unchanged.
 	if err = svc.AttachPrivilegeResources(privilege); err != nil {
-		fmt.Println("unable to update assigned resources, reverting privilege to last known state in remote")
+		fmt.Println("unable to update assigned resources, reverting privilege to last known state in remote", err)
 		_, err = svc.GetOne(*privilege.ID)
 		return err
 	}
@@ -166,13 +167,13 @@ func (svc *V1Service) Update(privilege *Privilege) error {
 	rolesToRemove := reconcileForDiscard(privilege.RoleIDs, keepRoles)
 
 	if err = svc.DiscardAssignment(*privilege.ID, "users", usersToRemove); err != nil {
-		fmt.Println("unable to update assigned resources, reverting privilege to last known state in remote")
+		fmt.Println("unable to remove users, reverting privilege to last known state in remote")
 		_, err = svc.GetOne(*privilege.ID)
 		return err
 	}
 
 	if err = svc.DiscardAssignment(*privilege.ID, "roles", rolesToRemove); err != nil {
-		fmt.Println("unable to update assigned resources, reverting privilege to last known state in remote")
+		fmt.Println("unable to remove roles, reverting privilege to last known state in remote")
 		_, err = svc.GetOne(*privilege.ID)
 		return err
 	}
@@ -193,26 +194,31 @@ func (svc *V1Service) Destroy(id string) error {
 }
 
 func (svc *V1Service) DiscardAssignment(pID, resourceType string, assignments []int) error {
+	var discardError error
 	if len(assignments) > 0 {
 		c := make(chan bool, len(assignments))
-		log.Println("FUCK", assignments)
+		var wg sync.WaitGroup
 		for _, n := range assignments {
-			go func(id int, c chan bool) {
+			wg.Add(1)
+			go func(id int, c chan bool, wg *sync.WaitGroup) {
+				defer wg.Done()
 				_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
 					URL:        fmt.Sprintf("%s/%s/%s/%d", svc.Endpoint, pID, resourceType, id),
 					Headers:    map[string]string{"Content-Type": "application/json"},
 					AuthMethod: "bearer",
 				})
 				c <- err != nil
-			}(n, c)
+			}(n, c, &wg)
+			wg.Wait()
+			close(c)
 		}
 		for r := range c {
-			if !r {
-				return errors.New("unable to remove resources")
+			if r {
+				discardError = errors.New("unable to remove resources")
 			}
 		}
 	}
-	return nil
+	return discardError
 }
 
 type AttachedResponse struct {

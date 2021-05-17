@@ -3,7 +3,6 @@ package privileges
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
@@ -15,7 +14,7 @@ func TestQuery(t *testing.T) {
 	tests := map[string]struct {
 		queryPayload     *PrivilegeQuery
 		expectedResponse []Privilege
-		expectedError    []error
+		expectedError    error
 		repository       *test.MockRepository
 	}{
 		"it gets one privilege with assigned resources": {
@@ -44,7 +43,7 @@ func TestQuery(t *testing.T) {
 		},
 		"it returns an error if the call to /privileges fails": {
 			queryPayload:     &PrivilegeQuery{},
-			expectedError:    []error{errors.New("error")},
+			expectedError:    errors.New("error"),
 			expectedResponse: nil,
 			repository:       &test.MockRepository{},
 		},
@@ -52,9 +51,9 @@ func TestQuery(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			svc := New(test.repository, "test.com")
-			actual, err := svc.QueryWithAssignments(test.queryPayload)
+			actual, err := svc.Query(test.queryPayload)
 			assert.Equal(t, test.expectedResponse, actual)
-			if len(test.expectedError) > 0 {
+			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
 			}
 		})
@@ -157,7 +156,6 @@ func TestQueryWithAssignments(t *testing.T) {
 			actual, err := svc.QueryWithAssignments(test.queryPayload)
 			assert.Equal(t, test.expectedResponse, actual)
 			if len(test.expectedError) > 0 {
-				fmt.Println("actual", actual, "exp", test.expectedResponse, "err", err, "should err", test.expectedError)
 				assert.Equal(t, test.expectedError, err)
 			}
 		})
@@ -236,6 +234,99 @@ func TestUpdate(t *testing.T) {
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReReadFunc: []func(r interface{}) ([]byte, error){
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+					},
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 0, "users": []int{}})
+					},
+				},
+			},
+		},
+		"it updates a privilege adding assigned user": {
+			updatePayload:  &Privilege{Name: oltypes.String("update"), ID: oltypes.String("asdf"), UserIDs: []int{1, 2}},
+			expectedResult: &Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update"), UserIDs: []int{1, 2}},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReReadFunc: []func(r interface{}) ([]byte, error){
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+					},
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 0, "users": []int{}})
+					},
+				},
+				CreateFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(map[string]bool{"success": true})
+				},
+				SubCreateFunc: []func(r interface{}) ([]byte, error){
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]bool{"success": true})
+					},
+				},
+			},
+		},
+		"it updates a privilege changing assigned user": {
+			updatePayload:  &Privilege{Name: oltypes.String("update"), ID: oltypes.String("asdf"), UserIDs: []int{2}},
+			expectedResult: &Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update"), UserIDs: []int{2}},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReReadFunc: []func(r interface{}) ([]byte, error){
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+					},
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 1, "users": []int{1}})
+					},
+				},
+				CreateFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(map[string]bool{"success": true})
+				},
+				SubCreateFunc: []func(r interface{}) ([]byte, error){
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]bool{"success": true})
+					},
+				},
+				DestroyFunc: func(r interface{}) ([]byte, error) {
+					return nil, nil
+				},
+			},
+		},
+		"it updates a privilege removing an assigned user": {
+			updatePayload:  &Privilege{Name: oltypes.String("update"), ID: oltypes.String("asdf"), UserIDs: []int{}},
+			expectedResult: &Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update"), UserIDs: []int{}},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				},
+				ReReadFunc: []func(r interface{}) ([]byte, error){
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+					},
+					func(r interface{}) ([]byte, error) {
+						return json.Marshal(map[string]interface{}{"total": 1, "users": []int{1}})
+					},
+				},
+				DestroyFunc: func(r interface{}) ([]byte, error) {
+					return nil, nil
 				},
 			},
 		},

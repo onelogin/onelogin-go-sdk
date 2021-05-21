@@ -2,9 +2,10 @@ package smarthooks
 
 import (
 	"errors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
-	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 	"time"
+
+	smarthookenvs "github.com/onelogin/onelogin-go-sdk/pkg/services/smarthooks/envs"
+	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 )
 
 // SmartHookQuery represents available query parameters
@@ -26,7 +27,7 @@ type SmartHook struct {
 	ContextVersion *string                `json:"context_version,omitempty"`
 	Retries        *int32                 `json:"retries,omitempty"`
 	Options        *Options               `json:"options,omitempty"`
-	Packages       map[string]string      `json:"packages,omitempty"`
+	Packages       map[string]string      `json:"packages"`
 	Function       *string                `json:"function,omitempty"`
 	Status         *string                `json:"status,omitempty"`
 	CreatedAt      *time.Time             `json:"created_at,omitempty"`

@@ -3,10 +3,12 @@ package smarthookenvs
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"testing"
+
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestQuery(t *testing.T) {
@@ -102,29 +104,53 @@ func TestUpdate(t *testing.T) {
 	}{
 		"it updates a smarthook": {
 			updatePayload:  &EnvVar{ID: oltypes.String("abc"), Value: oltypes.String("SHHHHH!")},
-			expectedResult: &EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("SHHHHH!")},
+			expectedResult: &EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY")},
 			repository: &test.MockRepository{
 				UpdateFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("SHHHHH!")})
+					return json.Marshal(EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY")})
 				},
 			},
 		},
-		"it returns an error if name is given": {
-			updatePayload:  &EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("SHHHHH!")},
+		"it attempts a search if name is given": {
+			updatePayload:  &EnvVar{Name: oltypes.String("API_KEY"), Value: oltypes.String("secret_to_everybody")},
+			expectedResult: &EnvVar{ID: oltypes.String("def"), Name: oltypes.String("API_KEY")},
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					fmt.Println("UP")
+					return json.Marshal(EnvVar{ID: oltypes.String("def"), Name: oltypes.String("API_KEY")})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal([]EnvVar{
+						EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("SECRET")},
+						EnvVar{ID: oltypes.String("def"), Name: oltypes.String("API_KEY")},
+					})
+				},
+			},
+		},
+		"it returns error if name search fails": {
+			updatePayload:  &EnvVar{Name: oltypes.String("API_KEY"), Value: oltypes.String("secret_to_everybody")},
 			expectedResult: nil,
-			expectedError:  errors.New("Name not allowed"),
-			repository:     &test.MockRepository{},
+			expectedError:  errors.New("no ID or Name given"),
+			repository: &test.MockRepository{
+				UpdateFunc: func(r interface{}) ([]byte, error) {
+					fmt.Println("UP")
+					return json.Marshal(EnvVar{ID: oltypes.String("def"), Name: oltypes.String("API_KEY")})
+				},
+				ReadFunc: func(r interface{}) ([]byte, error) {
+					return json.Marshal([]EnvVar{})
+				},
+			},
 		},
 		"it returns an error if no value given": {
 			updatePayload:  &EnvVar{ID: oltypes.String("abc")},
 			expectedResult: nil,
-			expectedError:  errors.New("Value is required"),
+			expectedError:  errors.New("value is required"),
 			repository:     &test.MockRepository{},
 		},
 		"it returns an error if no id on resource": {
 			updatePayload:  &EnvVar{Value: oltypes.String("SHHHHH!")},
 			expectedResult: nil,
-			expectedError:  errors.New("No ID Given"),
+			expectedError:  errors.New("no ID or Name given"),
 			repository:     &test.MockRepository{},
 		},
 		"it returns an error if something went wrong": {

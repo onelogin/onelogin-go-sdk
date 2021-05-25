@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -84,18 +85,31 @@ func (svc *V1Service) Create(envVar *EnvVar) (*EnvVar, error) {
 // in the API. Modifies the envVar in place, or returns an error if one occurs
 func (svc *V1Service) Update(envVar *EnvVar) (*EnvVar, error) {
 	out := EnvVar{}
+	if envVar.Name != nil && envVar.ID == nil { // give a name but no id, we'll try and find it for you
+		possible, err := svc.Query(nil)
+		if err != nil {
+			return &out, errors.New("unable to find by ID or Name")
+		}
+		for _, p := range possible {
+			if *p.Name == *envVar.Name {
+				envVar.ID = p.ID
+				break
+			}
+		}
+	}
 	if envVar.ID == nil {
-		return &out, errors.New("No ID Given")
+		return &out, errors.New("no ID or Name given")
 	}
 	if envVar.Value == nil {
-		return &out, errors.New("Value is required")
-	}
-	if envVar.Name != nil {
-		return &out, errors.New("Name not allowed")
+		return &out, errors.New("value is required")
 	}
 
 	id := *envVar.ID
 	envVar.ID = nil
+	envVar.Name = nil
+	envVar.CreatedAt = nil
+	envVar.UpdatedAt = nil
+
 	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},

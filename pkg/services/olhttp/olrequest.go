@@ -60,6 +60,7 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 		allData []byte
 		next    string
 	)
+	log.Printf("[ONELOGIN HTTP DEBUG] Making Read Request to %s with parameters: %s \n", resourceRequest.URL, resourceRequest.Payload)
 	resp, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
 		return []byte{}, err
@@ -94,8 +95,10 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 		if marshErr != nil {
 			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
 		}
+		log.Printf("[ONELOGIN HTTP DEBUG] Making Create Request to %s with payload: %s \n", resourceRequest.URL, bodyToSend)
 		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
 	} else {
+		log.Printf("[ONELOGIN HTTP DEBUG] Making Create Request to %s with no payload \n", resourceRequest.URL)
 		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer([]byte("")))
 	}
 	if reqErr != nil {
@@ -120,8 +123,10 @@ func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
 		if marshErr != nil {
 			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
 		}
+		log.Printf("[ONELOGIN HTTP DEBUG] Making Update Request to %s with payload: %s \n", resourceRequest.URL, bodyToSend)
 		req, reqErr = http.NewRequest(http.MethodPut, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
 	} else {
+		log.Printf("[ONELOGIN HTTP DEBUG] Making Create Request to %s with no payload: \n", resourceRequest.URL)
 		req, reqErr = http.NewRequest(http.MethodPut, resourceRequest.URL, bytes.NewBuffer([]byte("")))
 	}
 	if reqErr != nil {
@@ -141,6 +146,7 @@ func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
 	if reqErr != nil {
 		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
+	log.Printf("[ONELOGIN HTTP DEBUG] Making Delete Request to %s \n", resourceRequest.URL)
 	_, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
 		return []byte{}, err

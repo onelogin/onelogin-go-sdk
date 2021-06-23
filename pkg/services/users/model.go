@@ -15,6 +15,7 @@ type UserQuery struct {
 	LastLoginUntil *time.Time `json:"last_login_until,omitempty"`
 	Firstname      *string    `json:"firstname,omitempty"`
 	Lastname       *string    `json:"lastname,omitempty"`
+	Email          *string    `json:"email,omitempty"`
 	Username       *string    `json:"username,omitempty"`
 	Samaccountname *string    `json:"samaccountname,omitempty"`
 	DirectoryID    *string    `json:"directory_id,omitempty"`

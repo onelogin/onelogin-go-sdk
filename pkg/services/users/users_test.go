@@ -20,8 +20,9 @@ func TestQuery(t *testing.T) {
 			queryPayload:     &UserQuery{Limit: "1"},
 			expectedResponse: []User{User{ID: oltypes.Int32(1), Firstname: oltypes.String("name")}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]User{User{ID: oltypes.Int32(1), Firstname: oltypes.String("name")}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]User{User{ID: oltypes.Int32(1), Firstname: oltypes.String("name")}})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -32,11 +33,12 @@ func TestQuery(t *testing.T) {
 				User{ID: oltypes.Int32(1), Firstname: oltypes.String("name2")},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]User{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]User{
 						User{ID: oltypes.Int32(1), Firstname: oltypes.String("name")},
 						User{ID: oltypes.Int32(1), Firstname: oltypes.String("name2")},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -70,8 +72,9 @@ func TestGetOne(t *testing.T) {
 			id:               int32(1),
 			expectedResponse: &User{ID: oltypes.Int32(1), Firstname: oltypes.String("first")},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(User{ID: oltypes.Int32(1), Firstname: oltypes.String("first")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(User{ID: oltypes.Int32(1), Firstname: oltypes.String("first")})
+					return [][]byte{b}, err
 				},
 			},
 		},

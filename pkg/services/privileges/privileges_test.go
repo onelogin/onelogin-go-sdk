@@ -21,8 +21,9 @@ func TestQuery(t *testing.T) {
 			queryPayload:     &PrivilegeQuery{Limit: "1"},
 			expectedResponse: []Privilege{Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]Privilege{Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]Privilege{Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")}})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -33,11 +34,12 @@ func TestQuery(t *testing.T) {
 				Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("name2")},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]Privilege{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]Privilege{
 						Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")},
 						Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("name2")},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -71,15 +73,18 @@ func TestQueryWithAssignments(t *testing.T) {
 			queryPayload:     &PrivilegeQuery{Limit: "1"},
 			expectedResponse: []Privilege{Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege"), RoleIDs: []int{1, 2, 3}, UserIDs: []int{5, 6, 7}}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]Privilege{Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]Privilege{Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")}})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+						return [][]byte{b}, err
 					},
 				},
 			},
@@ -91,24 +96,29 @@ func TestQueryWithAssignments(t *testing.T) {
 				Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("name2"), UserIDs: []int{5, 6, 7}, RoleIDs: []int{1, 2, 3}},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]Privilege{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]Privilege{
 						Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")},
 						Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("name2")},
 					})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+						return [][]byte{b}, err
 					},
 				},
 			},
@@ -121,24 +131,28 @@ func TestQueryWithAssignments(t *testing.T) {
 			},
 			expectedError: []error{errors.New("unable to read [users]"), nil},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]Privilege{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]Privilege{
 						Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("privilege")},
 						Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("name2")},
 					})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return []byte{}, errors.New("fail")
+					func(r interface{}) ([][]byte, error) {
+						return [][]byte{}, errors.New("fail")
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+						return [][]byte{b}, err
 					},
 				},
 			},
@@ -173,15 +187,18 @@ func TestGetOne(t *testing.T) {
 			id:               "asdf",
 			expectedResponse: &Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("first"), RoleIDs: []int{1, 2, 3}, UserIDs: []int{5, 6, 7}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("first")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("first")})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "roles": []int{1, 2, 3}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "users": []int{5, 6, 7}})
+						return [][]byte{b}, err
 					},
 				},
 			},
@@ -190,15 +207,17 @@ func TestGetOne(t *testing.T) {
 			id:               "asdf",
 			expectedResponse: &Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("first")},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("first")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("first")})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 4, "garbage": 123})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 4, "garbage": 123})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return []byte{}, errors.New("fail")
+					func(r interface{}) ([][]byte, error) {
+						return [][]byte{}, errors.New("fail")
 					},
 				},
 			},
@@ -235,15 +254,18 @@ func TestUpdate(t *testing.T) {
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 0, "users": []int{}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 0, "users": []int{}})
+						return [][]byte{b}, err
 					},
 				},
 			},
@@ -255,15 +277,18 @@ func TestUpdate(t *testing.T) {
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 0, "users": []int{}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 0, "users": []int{}})
+						return [][]byte{b}, err
 					},
 				},
 				CreateFunc: func(r interface{}) ([]byte, error) {
@@ -283,15 +308,18 @@ func TestUpdate(t *testing.T) {
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 1, "users": []int{1}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 1, "users": []int{1}})
+						return [][]byte{b}, err
 					},
 				},
 				CreateFunc: func(r interface{}) ([]byte, error) {
@@ -314,15 +342,18 @@ func TestUpdate(t *testing.T) {
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(Privilege{ID: oltypes.String("asdf"), Name: oltypes.String("update")})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 0, "roles": []int{}})
+						return [][]byte{b}, err
 					},
-					func(r interface{}) ([]byte, error) {
-						return json.Marshal(map[string]interface{}{"total": 1, "users": []int{1}})
+					func(r interface{}) ([][]byte, error) {
+						b, err := json.Marshal(map[string]interface{}{"total": 1, "users": []int{1}})
+						return [][]byte{b}, err
 					},
 				},
 				DestroyFunc: func(r interface{}) ([]byte, error) {

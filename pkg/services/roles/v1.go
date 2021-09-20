@@ -39,7 +39,11 @@ func (svc *V1Service) Query(query *RoleQuery) ([]Role, error) {
 	}
 
 	var roles []Role
-	json.Unmarshal(resp, &roles)
+	for _, bytes := range resp {
+		var unmarshalled []Role
+		json.Unmarshal(bytes, &unmarshalled)
+		roles = append(roles, unmarshalled...)
+	}
 	return roles, nil
 }
 
@@ -54,7 +58,12 @@ func (svc *V1Service) GetOne(id int32) (*Role, error) {
 		return nil, err
 	}
 	var role Role
-	json.Unmarshal(resp, &role)
+
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+
+	json.Unmarshal(resp[0], &role)
 	return &role, nil
 }
 

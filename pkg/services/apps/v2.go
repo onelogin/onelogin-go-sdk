@@ -40,7 +40,15 @@ func (svc *V2Service) Query(query *AppsQuery) ([]App, error) {
 	}
 
 	var apps []App
-	json.Unmarshal(resp, &apps)
+	for _, bytes := range resp {
+		var unmarshalled []App
+		json.Unmarshal(bytes, &unmarshalled)
+		if len(apps) == 0 {
+			apps = unmarshalled
+		} else {
+			apps = append(apps, unmarshalled...)
+		}
+	}
 
 	return apps, nil
 }
@@ -58,7 +66,10 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	}
 
 	var app App
-	json.Unmarshal(resp, &app)
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+	json.Unmarshal(resp[0], &app)
 
 	return &app, nil
 }

@@ -39,7 +39,11 @@ func (svc *V2Service) Query(query *AccessTokenClaimsQuery) ([]AccessTokenClaim, 
 	}
 
 	var accessTokenClaims []AccessTokenClaim
-	json.Unmarshal(resp, &accessTokenClaims)
+	for _, bytes := range resp {
+		var unmarshalled []AccessTokenClaim
+		json.Unmarshal(bytes, &unmarshalled)
+		accessTokenClaims = append(accessTokenClaims, unmarshalled...)
+	}
 	return accessTokenClaims, nil
 }
 

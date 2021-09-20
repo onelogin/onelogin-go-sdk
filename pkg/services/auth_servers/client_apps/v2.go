@@ -39,7 +39,11 @@ func (svc *V2Service) Query(query *ClientAppsQuery) ([]ClientApp, error) {
 	}
 
 	var clients []ClientApp
-	json.Unmarshal(resp, &clients)
+	for _, bytes := range resp {
+		var unmarshalled []ClientApp
+		json.Unmarshal(bytes, &unmarshalled)
+		clients = append(clients, unmarshalled...)
+	}
 	return clients, nil
 }
 

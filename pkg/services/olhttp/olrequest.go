@@ -43,7 +43,7 @@ func New(cfg services.HTTPServiceConfig) *OLHTTPService {
 // will use this until the remote stops responding with the After-Cursor header, indicating we have
 // run out of pages. This is not to be confused with the Cursor header which can be set by the
 // caller in the request to Read which will offset the remote query starting at that page.
-func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
+func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
 	resourceRequest := r.(OLHTTPRequest)
 	req, reqErr := http.NewRequest(http.MethodGet, resourceRequest.URL, nil)
 	if reqErr != nil {
@@ -57,32 +57,33 @@ func (svc OLHTTPService) Read(r interface{}) ([]byte, error) {
 	}
 
 	var (
-		allData []byte
+		allData [][]byte
 		next    string
 	)
+
 	if os.Getenv("OL_LOG_LEVEL") == "debug" {
 		log.Printf("[ONELOGIN HTTP DEBUG] Making Read Request to %s with parameters: %s \n", resourceRequest.URL, resourceRequest.Payload)
 	}
 	resp, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
-		return []byte{}, err
+		return [][]byte{}, err
 	}
 	for {
-		allData = append(allData, data...)
+		allData = append(allData, data)
 		next = resp.Header.Get("After-Cursor")
 		if next == "" {
 			break
 		}
 		params := req.URL.Query()
-		params.Add("Cursor", next)
+		params.Add("cursor", next)
 		req.URL.RawQuery = params.Encode()
 		resp, data, err = svc.executeHTTP(req, resourceRequest)
 	}
 
 	if err != nil {
-		return []byte{}, err
+		return [][]byte{}, err
 	}
-	return data, err
+	return allData, err
 }
 
 // Create creates a new resource in the remote location over HTTP

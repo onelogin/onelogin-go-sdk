@@ -5,8 +5,8 @@ import (
 )
 
 type MockRepository struct {
-	ReadFunc      func(r interface{}) ([]byte, error)
-	ReReadFunc    []func(r interface{}) ([]byte, error)
+	ReadFunc      func(r interface{}) ([][]byte, error)
+	ReReadFunc    []func(r interface{}) ([][]byte, error)
 	CreateFunc    func(r interface{}) ([]byte, error)
 	SubCreateFunc []func(r interface{}) ([]byte, error)
 	UpdateFunc    func(r interface{}) ([]byte, error)
@@ -20,7 +20,7 @@ type MockRepository struct {
 // response based on request parameters such as the request URL. A ReReadFunc is allowed
 // because RESTful reads are idempotent, however, you may want to mock a subsequent read,
 // following an error recovery scenario where some updates were saved, but others were abandoned.
-func (mr *MockRepository) Read(r interface{}) ([]byte, error) {
+func (mr *MockRepository) Read(r interface{}) ([][]byte, error) {
 	if mr.ReReads > 0 && len(mr.ReReadFunc) > 0 {
 		mr.ReReads++
 		return mr.ReReadFunc[mr.ReReads-2](r)

@@ -24,8 +24,9 @@ func TestQuery(t *testing.T) {
 				App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]App{App{ID: oltypes.Int32(1), Name: oltypes.String("name")}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]App{App{ID: oltypes.Int32(1), Name: oltypes.String("name")}})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -36,12 +37,13 @@ func TestQuery(t *testing.T) {
 				App{ID: oltypes.Int32(1), Name: oltypes.String("name2")},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}) ([][]byte, error) {
 					availableApps := []App{
 						App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 						App{ID: oltypes.Int32(1), Name: oltypes.String("name2")},
 					}
-					return json.Marshal(availableApps)
+					b, err := json.Marshal(availableApps)
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -55,8 +57,9 @@ func TestQuery(t *testing.T) {
 			queryPayload:     &AppsQuery{Name: "???"},
 			expectedResponse: []App{},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]App{})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]App{})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -84,8 +87,9 @@ func TestGetOne(t *testing.T) {
 			id:               int32(1),
 			expectedResponse: &App{ID: oltypes.Int32(1), Name: oltypes.String("name")},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -128,8 +132,9 @@ func TestUpdate(t *testing.T) {
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("updated")})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -154,11 +159,13 @@ func TestUpdate(t *testing.T) {
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return [][]byte{b}, err
 				}},
 				DestroyFunc: func(r interface{}) ([]byte, error) {
 					return nil, nil
@@ -180,11 +187,13 @@ func TestUpdate(t *testing.T) {
 				UpdateFunc: func(r interface{}) ([]byte, error) {
 					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+					return [][]byte{b}, err
 				},
-				ReReadFunc: []func(r interface{}) ([]byte, error){func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+				ReReadFunc: []func(r interface{}) ([][]byte, error){func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name"), Parameters: map[string]AppParameters{"test": AppParameters{ID: oltypes.Int32(1)}}})
+					return [][]byte{b}, err
 				}},
 				DestroyFunc: func(r interface{}) ([]byte, error) {
 					return nil, errors.New("error")
@@ -258,8 +267,9 @@ func TestCreate(t *testing.T) {
 					resp := App{Name: app.Name, ID: app.ID}
 					return json.Marshal(resp)
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(App{ID: oltypes.Int32(1), Name: oltypes.String("name")})
+					return [][]byte{b}, err
 				},
 			},
 		},

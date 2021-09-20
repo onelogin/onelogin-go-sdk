@@ -39,7 +39,11 @@ func (svc *V2Service) Query(query *ScopesQuery) ([]Scope, error) {
 	}
 
 	var scopes []Scope
-	json.Unmarshal(resp, &scopes)
+	for _, bytes := range resp {
+		var unmarshalled []Scope
+		json.Unmarshal(bytes, &unmarshalled)
+		scopes = append(scopes, unmarshalled...)
+	}
 	return scopes, nil
 }
 

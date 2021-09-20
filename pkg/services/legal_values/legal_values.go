@@ -35,8 +35,10 @@ func (svc *LegalValuesService) Query(address string, outShape interface{}) error
 		return err
 	}
 
-	if err := json.Unmarshal(respBytes, outShape); err != nil {
-		return errors.New("Unable to unpack response")
+	for _, respByte := range respBytes {
+		if err := json.Unmarshal(respByte, outShape); err != nil {
+			return errors.New("Unable to unpack response")
+		}
 	}
 
 	return nil

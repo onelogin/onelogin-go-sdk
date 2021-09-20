@@ -44,7 +44,11 @@ func (svc *V1Service) Query(query *SmartHookQuery) ([]SmartHook, error) {
 	}
 
 	var smarthooks []SmartHook
-	json.Unmarshal(resp, &smarthooks)
+	for _, bytes := range resp {
+		var unmarshalled []SmartHook
+		json.Unmarshal(bytes, &unmarshalled)
+		smarthooks = append(smarthooks, unmarshalled...)
+	}
 	return smarthooks, nil
 }
 
@@ -59,7 +63,12 @@ func (svc *V1Service) GetOne(id string) (*SmartHook, error) {
 	if err != nil {
 		return &out, err
 	}
-	json.Unmarshal(resp, &out)
+
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+
+	json.Unmarshal(resp[0], &out)
 	return &out, nil
 }
 

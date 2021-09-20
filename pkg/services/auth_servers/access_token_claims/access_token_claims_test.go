@@ -43,8 +43,8 @@ func TestQuery(t *testing.T) {
 				},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]AccessTokenClaim{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]AccessTokenClaim{
 						AccessTokenClaim{
 							ID:                       oltypes.Int32(int32(1)),
 							Label:                    oltypes.String("label"),
@@ -68,6 +68,7 @@ func TestQuery(t *testing.T) {
 							ProvisionedEntitlements:  oltypes.Bool(true),
 						},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -75,7 +76,7 @@ func TestQuery(t *testing.T) {
 			queryPayload:  &AccessTokenClaimsQuery{AuthServerID: "1"},
 			expectedError: errors.New("error"),
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}) ([][]byte, error) {
 					return nil, errors.New("error")
 				},
 			},

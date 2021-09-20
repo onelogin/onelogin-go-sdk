@@ -47,7 +47,15 @@ func (svc *V2Service) Query(query *UserMappingsQuery) ([]UserMapping, error) {
 	}
 
 	var userMappings []UserMapping
-	json.Unmarshal(resp, &userMappings)
+	for _, bytes := range resp {
+		var unmarshalled []UserMapping
+		json.Unmarshal(bytes, &unmarshalled)
+		if len(userMappings) == 0 {
+			userMappings = unmarshalled
+		} else {
+			userMappings = append(userMappings, unmarshalled...)
+		}
+	}
 
 	return userMappings, nil
 }
@@ -65,7 +73,11 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 	}
 
 	var mapping UserMapping
-	json.Unmarshal(resp, &mapping)
+
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+	json.Unmarshal(resp[0], &mapping)
 
 	return &mapping, nil
 }

@@ -40,7 +40,12 @@ func (svc *V2Service) Query(query *AuthServerQuery) ([]AuthServer, error) {
 	}
 
 	var auth_servers []AuthServer
-	json.Unmarshal(resp, &auth_servers)
+	for _, bytes := range resp {
+		var unmarshalled []AuthServer
+		json.Unmarshal(bytes, &unmarshalled)
+		auth_servers = append(auth_servers, unmarshalled...)
+	}
+
 	return auth_servers, nil
 }
 
@@ -55,7 +60,10 @@ func (svc *V2Service) GetOne(id int32) (*AuthServer, error) {
 		return nil, err
 	}
 	var authServer AuthServer
-	json.Unmarshal(resp, &authServer)
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+	json.Unmarshal(resp[0], &authServer)
 	return &authServer, nil
 }
 

@@ -33,8 +33,8 @@ func TestQuery(t *testing.T) {
 				},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]Scope{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]Scope{
 						Scope{
 							ID:           oltypes.Int32(int32(1)),
 							AuthServerID: oltypes.Int32(int32(1)),
@@ -48,6 +48,7 @@ func TestQuery(t *testing.T) {
 							Description:  oltypes.String("description"),
 						},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -55,7 +56,7 @@ func TestQuery(t *testing.T) {
 			queryPayload:  &ScopesQuery{AuthServerID: "1"},
 			expectedError: errors.New("error"),
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}) ([][]byte, error) {
 					return nil, errors.New("error")
 				},
 			},

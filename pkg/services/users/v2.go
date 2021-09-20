@@ -37,9 +37,16 @@ func (svc *V2Service) Query(query *UserQuery) ([]User, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	var users []User
-	json.Unmarshal(resp, &users)
+	for _, bytes := range resp {
+		var unmarshalled []User
+		json.Unmarshal(bytes, &unmarshalled)
+		if len(users) == 0 {
+			users = unmarshalled
+		} else {
+			users = append(users, unmarshalled...)
+		}
+	}
 	return users, nil
 }
 
@@ -54,7 +61,11 @@ func (svc *V2Service) GetOne(id int32) (*User, error) {
 		return nil, err
 	}
 	var user User
-	json.Unmarshal(resp, &user)
+
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+	json.Unmarshal(resp[0], &user)
 	return &user, nil
 }
 

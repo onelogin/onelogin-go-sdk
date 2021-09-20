@@ -16,15 +16,16 @@ func TestGetLegalValues(t *testing.T) {
 	}{
 		"retrieves list of legal values": {
 			TestClient: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]map[string]string{{"key": "key", "value": "value"}, {"key": "key2", "value": "value2"}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]map[string]string{{"key": "key", "value": "value"}, {"key": "key2", "value": "value2"}})
+					return [][]byte{b}, err
 				},
 			},
 			ExpectedOut: []map[string]string{{"key": "key", "value": "value"}, {"key": "key2", "value": "value2"}},
 		},
 		"returns an empty array and error when api call fails": {
 			TestClient: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}) ([][]byte, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -33,8 +34,9 @@ func TestGetLegalValues(t *testing.T) {
 		},
 		"returns an empty array and error when api response is not expected shape": {
 			TestClient: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(map[string]string{"key": "key"})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(map[string]string{"key": "key"})
+					return [][]byte{b}, err
 				},
 			},
 			ExpectedOut: []map[string]string{},

@@ -38,13 +38,14 @@ func TestQuery(t *testing.T) {
 				Actions:    []AppRuleActions{{Action: oltypes.String("test"), Value: []string{"test"}, Expression: oltypes.String(".*")}}},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]AppRule{AppRule{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]AppRule{AppRule{
 						ID:         oltypes.Int32(1),
 						Name:       oltypes.String("name"),
 						Conditions: []AppRuleConditions{{Source: oltypes.String("test"), Operator: oltypes.String(">"), Value: oltypes.String("90")}},
 						Actions:    []AppRuleActions{{Action: oltypes.String("test"), Value: []string{"test"}, Expression: oltypes.String(".*")}}},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -53,7 +54,7 @@ func TestQuery(t *testing.T) {
 			mockLegalValues: &MockLegalValuesService{},
 			expectedError:   errors.New("error"),
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}) ([][]byte, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -63,8 +64,9 @@ func TestQuery(t *testing.T) {
 			mockLegalValues:  &MockLegalValuesService{},
 			expectedResponse: []AppRule{AppRule{}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]AppRule{AppRule{}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]AppRule{AppRule{}})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -100,13 +102,14 @@ func TestGetOne(t *testing.T) {
 				Actions:    []AppRuleActions{{Action: oltypes.String("test"), Value: []string{"test"}, Expression: oltypes.String(".*")}},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(AppRule{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(AppRule{
 						ID:         oltypes.Int32(1),
 						Name:       oltypes.String("name"),
 						Conditions: []AppRuleConditions{{Source: oltypes.String("test"), Operator: oltypes.String(">"), Value: oltypes.String("90")}},
 						Actions:    []AppRuleActions{{Action: oltypes.String("test"), Value: []string{"test"}, Expression: oltypes.String(".*")}},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -116,7 +119,7 @@ func TestGetOne(t *testing.T) {
 			mockLegalValues: &MockLegalValuesService{},
 			expectedError:   errors.New("error"),
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
+				ReadFunc: func(r interface{}) ([][]byte, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -127,8 +130,9 @@ func TestGetOne(t *testing.T) {
 			mockLegalValues:  &MockLegalValuesService{},
 			expectedResponse: &AppRule{},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]AppRule{AppRule{}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]AppRule{AppRule{}})
+					return [][]byte{b}, err
 				},
 			},
 		},

@@ -29,8 +29,8 @@ func TestQuery(t *testing.T) {
 				},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]AuthServer{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]AuthServer{
 						AuthServer{
 							ID:   oltypes.Int32(1),
 							Name: oltypes.String("name"),
@@ -40,6 +40,7 @@ func TestQuery(t *testing.T) {
 							},
 						},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -64,8 +65,8 @@ func TestQuery(t *testing.T) {
 				},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]AuthServer{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]AuthServer{
 						AuthServer{
 							ID:   oltypes.Int32(1),
 							Name: oltypes.String("name"),
@@ -83,6 +84,7 @@ func TestQuery(t *testing.T) {
 							},
 						},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -123,8 +125,8 @@ func TestGetOne(t *testing.T) {
 				},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(AuthServer{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(AuthServer{
 						ID:   oltypes.Int32(1),
 						Name: oltypes.String("name"),
 						Configuration: &AuthServerConfiguration{
@@ -132,6 +134,7 @@ func TestGetOne(t *testing.T) {
 							Audiences:          []string{"example.com/contacts", "example.com/people"},
 						},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},

@@ -22,8 +22,9 @@ func TestQuery(t *testing.T) {
 			queryPayload:     &SmartHookEnvVarQuery{Limit: "abc"},
 			expectedResponse: []EnvVar{EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]EnvVar{EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]EnvVar{EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")}})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -34,11 +35,12 @@ func TestQuery(t *testing.T) {
 				EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]EnvVar{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]EnvVar{
 						EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")},
 						EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -72,8 +74,9 @@ func TestGetOne(t *testing.T) {
 			id:               "abc",
 			expectedResponse: &EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("API_KEY"), Value: oltypes.String("Its a secret to everybody")})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -119,11 +122,12 @@ func TestUpdate(t *testing.T) {
 					fmt.Println("UP")
 					return json.Marshal(EnvVar{ID: oltypes.String("def"), Name: oltypes.String("API_KEY")})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]EnvVar{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]EnvVar{
 						EnvVar{ID: oltypes.String("abc"), Name: oltypes.String("SECRET")},
 						EnvVar{ID: oltypes.String("def"), Name: oltypes.String("API_KEY")},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -136,8 +140,9 @@ func TestUpdate(t *testing.T) {
 					fmt.Println("UP")
 					return json.Marshal(EnvVar{ID: oltypes.String("def"), Name: oltypes.String("API_KEY")})
 				},
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]EnvVar{})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]EnvVar{})
+					return [][]byte{b}, err
 				},
 			},
 		},

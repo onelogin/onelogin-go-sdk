@@ -187,13 +187,15 @@ func TestRead(t *testing.T) {
 							return &http.Response{StatusCode: 200, Body: r}, nil
 						}
 
-						resources := queryNResources(2, 0)
-						if req.URL.Query().Get("Cursor") != "" {
-							moreResources := queryNResources(2, 2)
-							resources = append(resources, moreResources...)
+						var resources []TestResource
+
+						if req.URL.Query().Get("cursor") != "" {
+							resources = queryNResources(2, 2)
 							out, _ := json.Marshal(resources)
 							r := ioutil.NopCloser(bytes.NewReader([]byte(out)))
 							return &http.Response{StatusCode: 200, Body: r}, nil
+						} else {
+							resources = queryNResources(2, 0)
 						}
 						out, _ := json.Marshal(resources)
 						r := ioutil.NopCloser(bytes.NewReader([]byte(out)))
@@ -203,10 +205,15 @@ func TestRead(t *testing.T) {
 			})
 
 			if test.expectedQueryOut != nil {
-				actual, err := svc.Read(test.resourceRequest)
+				actuals, err := svc.Read(test.resourceRequest)
 
 				var actualOut []TestResource
-				err = json.Unmarshal(actual, &actualOut)
+				for _, actual := range actuals {
+					var thisOut []TestResource
+					err = json.Unmarshal(actual, &thisOut)
+					actualOut = append(actualOut, thisOut...)
+				}
+
 				if err != nil {
 					fmt.Println("ASDF", name, err)
 				}
@@ -216,7 +223,7 @@ func TestRead(t *testing.T) {
 			} else {
 				actual, err := svc.Read(test.resourceRequest)
 				var actualOut TestResource
-				json.Unmarshal(actual, &actualOut)
+				json.Unmarshal(actual[0], &actualOut)
 				assert.Equal(t, test.expectedReadOut, actualOut)
 				assert.Nil(t, err)
 			}

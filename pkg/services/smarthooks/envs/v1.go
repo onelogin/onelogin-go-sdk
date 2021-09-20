@@ -40,7 +40,11 @@ func (svc *V1Service) Query(query *SmartHookEnvVarQuery) ([]EnvVar, error) {
 	}
 
 	var envVars []EnvVar
-	json.Unmarshal(resp, &envVars)
+	for _, bytes := range resp {
+		var unmarshalled []EnvVar
+		json.Unmarshal(bytes, &unmarshalled)
+		envVars = append(envVars, unmarshalled...)
+	}
 	return envVars, nil
 }
 
@@ -55,7 +59,12 @@ func (svc *V1Service) GetOne(id string) (*EnvVar, error) {
 	if err != nil {
 		return &out, err
 	}
-	json.Unmarshal(resp, &out)
+
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+
+	json.Unmarshal(resp[0], &out)
 	return &out, nil
 }
 

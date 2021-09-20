@@ -7,7 +7,7 @@ import "net/http"
 // entities live such as apps or users
 type Repository interface {
 	Create(r interface{}) ([]byte, error)
-	Read(r interface{}) ([]byte, error)
+	Read(r interface{}) ([][]byte, error)
 	Update(r interface{}) ([]byte, error)
 	Destroy(r interface{}) ([]byte, error)
 }

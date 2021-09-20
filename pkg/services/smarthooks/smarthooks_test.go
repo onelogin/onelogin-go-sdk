@@ -20,8 +20,9 @@ func TestQuery(t *testing.T) {
 			queryPayload:     &SmartHookQuery{Limit: "1"},
 			expectedResponse: []SmartHook{SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")}},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]SmartHook{SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")}})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]SmartHook{SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")}})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -32,11 +33,12 @@ func TestQuery(t *testing.T) {
 				SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlPdGhlckZ1bmMoKSB7Li4ufQ==")},
 			},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal([]SmartHook{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]SmartHook{
 						SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
 						SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlPdGhlckZ1bmMoKSB7Li4ufQ==")},
 					})
+					return [][]byte{b}, err
 				},
 			},
 		},
@@ -70,8 +72,9 @@ func TestGetOne(t *testing.T) {
 			id:               "1",
 			expectedResponse: &SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")},
 			repository: &test.MockRepository{
-				ReadFunc: func(r interface{}) ([]byte, error) {
-					return json.Marshal(SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal(SmartHook{ID: oltypes.String("abc"), Function: oltypes.String("ZnVuY3Rpb24gbXlGdW5jKCkgey4uLn0=")})
+					return [][]byte{b}, err
 				},
 			},
 		},

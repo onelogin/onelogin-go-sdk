@@ -41,7 +41,11 @@ func (svc *V1Service) Query(query *PrivilegeQuery) ([]Privilege, error) {
 	}
 
 	var privileges []Privilege
-	json.Unmarshal(resp, &privileges)
+	for _, bytes := range resp {
+		var unmarshalled []Privilege
+		json.Unmarshal(bytes, &unmarshalled)
+		privileges = append(privileges, unmarshalled...)
+	}
 
 	return privileges, err
 }
@@ -63,7 +67,11 @@ func (svc *V1Service) QueryWithAssignments(query *PrivilegeQuery) ([]Privilege, 
 	}
 
 	var privileges []Privilege
-	json.Unmarshal(resp, &privileges)
+	for _, bytes := range resp {
+		var unmarshalled []Privilege
+		json.Unmarshal(bytes, &unmarshalled)
+		privileges = append(privileges, unmarshalled...)
+	}
 	errs := make([]error, len(privileges))
 	for i := range privileges {
 		e := svc.GetPrivilegeResources(&privileges[i])
@@ -88,7 +96,12 @@ func (svc *V1Service) GetOne(id string) (*Privilege, error) {
 	}
 
 	var privilege Privilege
-	json.Unmarshal(resp, &privilege)
+
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+
+	json.Unmarshal(resp[0], &privilege)
 
 	err = svc.GetPrivilegeResources(&privilege)
 	return &privilege, err
@@ -259,7 +272,9 @@ func (svc *V1Service) getResourcesByType(resourceType, privilegeID string, c cha
 		c <- AttachedResponse{errResource: resourceType}
 	}
 	ar := map[string][]int{}
-	json.Unmarshal(resp, &ar)
+	if len(resp) > 0 {
+		json.Unmarshal(resp[0], &ar)
+	}
 
 	c <- AttachedResponse{out: ar[resourceType]}
 	close(c)

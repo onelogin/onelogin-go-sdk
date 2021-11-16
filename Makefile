@@ -5,7 +5,7 @@ build:
 	go build './...'
 
 test:
-	go install github.com/jpoles1/gopherbadger@v2.4.0+incompatible
+	go install github.com/jpoles1/gopherbadger@v2.4.0
 	gopherbadger -md="readme.md" -png=false
 
 secure:

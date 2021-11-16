@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services"
-	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services"
+	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 )
 
 const resourceRequestuestContext = "ol http service"
@@ -75,13 +76,13 @@ func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
 			break
 		}
 		params := req.URL.Query()
-		params.Add("cursor", next)
+		params.Set("cursor", next)
 		req.URL.RawQuery = params.Encode()
 		resp, data, err = svc.executeHTTP(req, resourceRequest)
-	}
 
-	if err != nil {
-		return [][]byte{}, err
+		if err != nil {
+			return [][]byte{}, err
+		}
 	}
 	return allData, err
 }

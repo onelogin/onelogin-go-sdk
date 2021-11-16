@@ -37,10 +37,10 @@ type TestResourceQuery struct {
 }
 
 var available = []TestResource{
-	TestResource{ID: "0", Name: "name0"},
-	TestResource{ID: "1", Name: "name1"},
-	TestResource{ID: "2", Name: "name2"},
-	TestResource{ID: "3", Name: "name3"},
+	{ID: "0", Name: "name0"},
+	{ID: "1", Name: "name1"},
+	{ID: "2", Name: "name2"},
+	{ID: "3", Name: "name3"},
 }
 
 func authPassThrough() (*http.Response, error) {
@@ -136,8 +136,8 @@ func TestRead(t *testing.T) {
 				Headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			expectedQueryOut: []TestResource{
-				TestResource{Name: "name0", ID: "0"},
-				TestResource{Name: "name1", ID: "1"},
+				{Name: "name0", ID: "0"},
+				{Name: "name1", ID: "1"},
 			},
 		},
 		"Read one by giving resource id in URL": {
@@ -157,10 +157,10 @@ func TestRead(t *testing.T) {
 				Headers:    map[string]string{"Content-Type": "application/json"},
 			},
 			expectedQueryOut: []TestResource{
-				TestResource{Name: "name0", ID: "0"},
-				TestResource{Name: "name1", ID: "1"},
-				TestResource{Name: "name2", ID: "2"},
-				TestResource{Name: "name3", ID: "3"},
+				{Name: "name0", ID: "0"},
+				{Name: "name1", ID: "1"},
+				{Name: "name2", ID: "2"},
+				{Name: "name3", ID: "3"},
 			},
 		},
 	}
@@ -227,6 +227,57 @@ func TestRead(t *testing.T) {
 				assert.Equal(t, test.expectedReadOut, actualOut)
 				assert.Nil(t, err)
 			}
+
+		})
+	}
+}
+
+func TestReadWithCursorError(t *testing.T) {
+	tests := map[string]struct {
+		resourceRequest OLHTTPRequest
+		expectedReadOut [][]byte
+	}{
+		"Get n resources according to limit": {
+			resourceRequest: OLHTTPRequest{
+				Payload:    TestResourceQuery{Limit: "2"},
+				AuthMethod: "bearer",
+				URL:        "test.com/test_resources",
+				Headers:    map[string]string{"Content-Type": "application/json"},
+			},
+			expectedReadOut: [][]byte{},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			svc := New(services.HTTPServiceConfig{
+				Client: MockClient{
+					DoFunc: func(req *http.Request) (*http.Response, error) {
+						if req.URL.Path == "/auth/oauth2/v2/token" {
+							return authPassThrough()
+						}
+
+						var resources []TestResource
+
+						if req.URL.Query().Get("cursor") != "" {
+							resources = queryNResources(2, 2)
+							out, _ := json.Marshal(map[string]string{
+								"message": "This is an error message",
+							})
+							r := ioutil.NopCloser(bytes.NewReader([]byte(out)))
+							return &http.Response{StatusCode: 500, Body: r}, nil
+						} else {
+							resources = queryNResources(2, 0)
+						}
+						out, _ := json.Marshal(resources)
+						r := ioutil.NopCloser(bytes.NewReader([]byte(out)))
+						return &http.Response{StatusCode: 200, Body: r, Header: http.Header{"After-Cursor": []string{"asdf"}}}, nil
+					},
+				},
+			})
+
+			actual, err := svc.Read(test.resourceRequest)
+			assert.Equal(t, test.expectedReadOut, actual)
+			assert.NotNil(t, err)
 
 		})
 	}

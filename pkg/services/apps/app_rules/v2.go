@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"sync"
+
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
-	"log"
-	"sync"
 )
 
 const errAppsV2Context = "app rules v2 service"
@@ -102,17 +103,23 @@ func (svc *V2Service) Update(appRule *AppRule) error {
 		fmt.Println(validationErr)
 		return validationErr
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, *appRule.AppID, *appRule.ID),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    appRule,
-	})
+	resp, err := svc.UpdateRaw(*appRule.AppID, *appRule.ID, appRule)
 	if err != nil {
 		return err
 	}
 	json.Unmarshal(resp, appRule)
 	return nil
+}
+
+// UpdateRaw updates an existing app rule and returns the
+// raw response or an error if something went wrong
+func (svc *V2Service) UpdateRaw(appId int32, ruleId int32, appRule interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/rules/%d", svc.Endpoint, appId, ruleId),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    appRule,
+	})
 }
 
 // Destroy takes the app id and app rule id and removes the app rule from the API.

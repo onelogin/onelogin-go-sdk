@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -104,7 +105,7 @@ func (svc *V1Service) Create(smarthook *SmartHook) (*SmartHook, error) {
 }
 
 // Update takes a smarthook and an id and attempts to use the parameters to update it
-// in the API. Modifies the smarthook in place, or returns an error if one occurs
+// in the API. Returns a new SmartHook object, or returns an error if one occurs
 func (svc *V1Service) Update(smarthook *SmartHook) (*SmartHook, error) {
 	out := SmartHook{}
 	if smarthook.ID == nil {
@@ -125,18 +126,24 @@ func (svc *V1Service) Update(smarthook *SmartHook) (*SmartHook, error) {
 
 	id := *smarthook.ID
 	smarthook.ID = nil
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    writeRequest,
-	})
+	resp, err := svc.UpdateRaw(id, writeRequest)
 	if err != nil {
 		return &out, err
 	}
 
 	json.Unmarshal(resp, &out)
 	return &out, nil
+}
+
+// UpdateRaw takes a smarthook and an id and attempts to use the parameters to update it
+// in the API. Returns the raw response bytes, or returns an error if one occurs
+func (svc *V1Service) UpdateRaw(id string, smarthook interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    smarthook,
+	})
 }
 
 // Destroy deletes the smarthook with the given id, and if successful, it returns nil

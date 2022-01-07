@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -91,17 +92,23 @@ func (svc *V2Service) Update(user *User) error {
 	if user.ID == nil {
 		return errors.New("No ID Given")
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *user.ID),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    user,
-	})
+	resp, err := svc.UpdateRaw(*user.ID, user)
 	if err != nil {
 		return err
 	}
 	json.Unmarshal(resp, user)
 	return nil
+}
+
+// UpdateRaw takes a user and an id and attempts to use the parameters to update it
+// in the API. Returns the raw response bytes or an error.
+func (svc *V2Service) UpdateRaw(id int32, user interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    user,
+	})
 }
 
 // Destroy deletes the user with the given id, and if successful, it returns nil

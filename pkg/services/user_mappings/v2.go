@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
-	"log"
 
 	"sync"
 )
@@ -82,8 +83,8 @@ func (svc *V2Service) GetOne(id int32) (*UserMapping, error) {
 	return &mapping, nil
 }
 
-// Update updates an existing user mapping, and if successful, it returns
-// the http response and the pointer to the updated user mapping.
+// Update takes a user mapping and an id and attempts to use the parameters to update it
+// in the API. Modifies the user mapping in place, or returns an error if one occurs
 func (svc *V2Service) Update(mapping *UserMapping) error {
 	if mapping.ID == nil {
 		return errors.New("No ID Given")
@@ -94,12 +95,7 @@ func (svc *V2Service) Update(mapping *UserMapping) error {
 	}
 	id := *mapping.ID
 	mapping.ID = nil
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    mapping,
-	})
+	resp, err := svc.UpdateRaw(id, mapping)
 	if err != nil {
 		return err
 	}
@@ -110,6 +106,17 @@ func (svc *V2Service) Update(mapping *UserMapping) error {
 	mapping.ID = oltypes.Int32(int32(mappingID["id"]))
 
 	return nil
+}
+
+// UpdateRaw takes a user mapping and an id and attempts to use the parameters to update it
+// in the API. Returns the raw response bytes or an error.
+func (svc *V2Service) UpdateRaw(id int32, mapping interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    mapping,
+	})
 }
 
 // Create creates a new user mapping, and if successful, it returns

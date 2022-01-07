@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -92,12 +93,7 @@ func (svc *V1Service) Update(role *Role) error {
 
 	id := *role.ID
 	role.ID = nil
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    role,
-	})
+	resp, err := svc.UpdateRaw(id, role)
 
 	if err != nil {
 		return err
@@ -105,6 +101,17 @@ func (svc *V1Service) Update(role *Role) error {
 
 	json.Unmarshal(resp, role)
 	return nil
+}
+
+// UpdateRaw takes a role and an id and attempts to use the parameters to update it
+// in the API. Returned the raw response bytes, or returns an error if one occurs
+func (svc *V1Service) UpdateRaw(id int32, role interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    role,
+	})
 }
 
 // Destroy deletes the role with the given id, and if successful, it returns nil

@@ -35,7 +35,7 @@ type User struct {
 	Samaccountname       *string                `json:"samaccountname,omitempty"`
 	UserPrincipalName    *string                `json:"userprincipalname,omitempty"`
 	MemberOf             *string                `json:"member_of,omitempty"`
-	Phone                *string                `json:"phone,omitemepty"`
+	Phone                *string                `json:"phone,omitempty"`
 	Password             *string                `json:"password,omitempty"`
 	PasswordConfirmation *string                `json:"password_confirmation,omitempty"`
 	PasswordAlgorithm    *string                `json:"password_algorithm,omitempty"`
@@ -44,13 +44,13 @@ type User struct {
 	Company              *string                `json:"company,omitempty"`
 	Department           *string                `json:"department,omitempty"`
 	Comment              *string                `json:"comment,omitempty"`
-	CreatedAt            time.Time              `json:"created_at,omitempty"`
-	UpdatedAt            time.Time              `json:"updated_at,omitempty"`
-	ActivatedAt          time.Time              `json:"activated_at,omitempty"`
-	LastLogin            time.Time              `json:"last_login,omitempty"`
-	PasswordChangedAt    time.Time              `json:"password_changed_at,omitempty"`
-	LockedUntil          time.Time              `json:"locked_until,omitempty"`
-	InvitationSentAt     time.Time              `json:"invitation_sent_at,omitempty"`
+	CreatedAt            *time.Time             `json:"created_at,omitempty"`
+	UpdatedAt            *time.Time             `json:"updated_at,omitempty"`
+	ActivatedAt          *time.Time             `json:"activated_at,omitempty"`
+	LastLogin            *time.Time             `json:"last_login,omitempty"`
+	PasswordChangedAt    *time.Time             `json:"password_changed_at,omitempty"`
+	LockedUntil          *time.Time             `json:"locked_until,omitempty"`
+	InvitationSentAt     *time.Time             `json:"invitation_sent_at,omitempty"`
 	State                *int32                 `json:"state,omitempty"`
 	Status               *int32                 `json:"status,omitempty"`
 	InvalidLoginAttempts *int32                 `json:"invalid_login_attempts,omitempty"`

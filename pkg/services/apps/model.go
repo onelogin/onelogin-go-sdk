@@ -25,8 +25,8 @@ type App struct {
 	TabID              *int32                   `json:"tab_id,omitempty"`
 	BrandID            *int32                   `json:"brand_id,omitempty"`
 	ConnectorID        *int32                   `json:"connector_id,omitempty"`
-	CreatedAt          time.Time                `json:"created_at,omitempty"`
-	UpdatedAt          time.Time                `json:"updated_at,omitempty"`
+	CreatedAt          *time.Time               `json:"created_at,omitempty"`
+	UpdatedAt          *time.Time               `json:"updated_at,omitempty"`
 	Provisioning       *AppProvisioning         `json:"provisioning"`
 	Sso                *AppSso                  `json:"sso"`
 	Configuration      *AppConfiguration        `json:"configuration"`

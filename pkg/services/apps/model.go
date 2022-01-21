@@ -105,3 +105,12 @@ type AppParameters struct {
 	SafeEntitlementsEnabled   *bool   `json:"safe_entitlements_enabled,omitempty"`
 	IncludeInSamlAssertion    *bool   `json:"include_in_saml_assertion,omitempty"`
 }
+
+// AppUser is the contract for users of an app.
+type AppUser struct {
+	ID        *int32  `json:"id,omitempty"`
+	Firstname *string `json:"firstname,omitempty"`
+	Lastname  *string `json:"lastname,omitempty"`
+	Username  *string `json:"username,omitempty"`
+	Email     *string `json:"email,omitempty"`
+}

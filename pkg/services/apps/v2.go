@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
@@ -72,6 +73,27 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 	json.Unmarshal(resp[0], &app)
 
 	return &app, nil
+}
+
+// GetUsers retrieves the list of users for a given app by id, it returns
+// an array of users for the app.
+func (svc *V2Service) GetUsers(id int32) ([]AppUser, error) {
+	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var users []AppUser
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+	err = json.Unmarshal(resp[0], &users)
+
+	return users, err
 }
 
 // Create creates a new app, and if successful, it returns a pointer to the app.

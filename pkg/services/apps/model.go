@@ -3,15 +3,15 @@ package apps
 import "time"
 
 const (
-	APP_AUTH_METHOD_PASSWORD int32 = iota
-	APP_AUTH_METHOD_OPENID
-	APP_AUTH_METHOD_SAML
-	APP_AUTH_METHOD_API
-	APP_AUTH_METHOD_GOOGLE
-	unused_app_auth_method_5 // There is not auth method with the number 5
-	APP_AUTH_METHOD_FORMS_BASED_APP
-	APP_AUTH_METHOD_WSFED
-	APP_AUTH_METHOD_OPENID_CONNECT
+	AuthMethodPassword int32 = iota
+	AuthMethodOpenID
+	AuthMethodSAML
+	AuthMethodAPI
+	AuthMethodGoogle
+	authMethodUnused5 // There is not auth method with the number 5
+	AuthMethodForemsBasedApp
+	AuthMethodWSFED
+	AuthMethodOpenIDConnect
 )
 
 type AppsQuery struct {

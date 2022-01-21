@@ -3,22 +3,22 @@ package users
 import "time"
 
 const (
-	USER_STATE_UNAPPROVED int32 = iota
-	USER_STATE_APPROVED
-	USER_STATE_REJECTED
-	USER_STATE_UNLICENSED
+	StateUnapproved int32 = iota
+	StateApproved
+	StateRejected
+	StateUnlicensed
 )
 
 const (
-	USER_STATUS_UNACTIVATED int32 = iota
-	USER_STATUS_ACTIVE            // Only users assigned this status can log in to OneLogin.
-	USER_STATUS_SUSPENDED
-	USER_STATUS_LOCKED
-	USER_STATUS_PASSWORD_EXPIRED
-	USER_STATUS_AWAITING_PASSWORD_RESET     // The user is required to reset their password.
-	unused_user_status_6                    // There is not user status with a value of 6.
-	USER_STATUS_PASSWORD_PENDING            // The user has not yet set their password.
-	USER_STATUS_SECURITY_QUESTIONS_REQUIRED // The user has not yet set their security questions.
+	StatusUnActivated int32 = iota
+	StatusActive            // Only users assigned this status can log in to OneLogin.
+	StatusSuspended
+	StatusLocked
+	StatusPasswordExpired
+	StatusAwaitingPasswordReset     // The user is required to reset their password.
+	statusUnused6                   // There is not user status with a value of 6.
+	StatusPasswordPending           // The user has not yet set their password.
+	StatusSecurityQuestionsRequired // The user has not yet set their security questions.
 )
 
 // UserQuery represents available query parameters

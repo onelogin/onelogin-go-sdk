@@ -9,25 +9,25 @@ import (
 )
 
 const (
-	SMARTHOOK_TYPE_PRE_AUTHENTICATION = "pre-authentication"
-	SMARTHOOK_TYPE_USER_MIGRATION     = "user-migration"
+	TypePreAuthentication string = "pre-authentication"
+	TypeUserMigration     string = "user-migration"
 )
 
 const (
-	SMARTHOOK_PRE_AUTHENTICATION_CONTEXT_1_0_0 = "1.0.0"
-	SMARTHOOK_PRE_AUTHENTICATION_CONTEXT_1_1_0 = "1.1.0"
+	ContextPreAuthentication1_0_0 string = "1.0.0"
+	ContextPreAuthentication1_1_0 string = "1.1.0"
 
-	SMARTHOOK_USER_MIGRATION_CONTEXT_1_0_0 = "1.0.0"
+	ContextUserMigration1_0_0 string = "1.0.0"
 )
 
 const (
-	SMARTHOOK_STATUS_READY          = "ready"
-	SMARTHOOK_STATUS_CREATE_QUEUED  = "create-queued"
-	SMARTHOOK_STATUS_CREATE_RUNNING = "create-running"
-	SMARTHOOK_STATUS_CREATE_FAILED  = "create-failed"
-	SMARTHOOK_STATUS_UPDATE_QUEUED  = "update-queued"
-	SMARTHOOK_STATUS_UPDATE_RUNNING = "update-running"
-	SMARTHOOK_STATUS_UPDATE_FAILED  = "update-failed"
+	StatusReady         string = "ready"
+	StatusCreateQueued  string = "create-queued"
+	StatusCreateRunning string = "create-running"
+	StatusCreateFailed  string = "create-failed"
+	StatusUpdateQueued  string = "update-queued"
+	StatusUpdateRunning string = "update-running"
+	StatusUpdateFailed  string = "update-failed"
 )
 
 // SmartHookQuery represents available query parameters

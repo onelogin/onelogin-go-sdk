@@ -2,6 +2,25 @@ package users
 
 import "time"
 
+const (
+	StateUnapproved int32 = iota
+	StateApproved
+	StateRejected
+	StateUnlicensed
+)
+
+const (
+	StatusUnActivated int32 = iota
+	StatusActive            // Only users assigned this status can log in to OneLogin.
+	StatusSuspended
+	StatusLocked
+	StatusPasswordExpired
+	StatusAwaitingPasswordReset     // The user is required to reset their password.
+	statusUnused6                   // There is not user status with a value of 6.
+	StatusPasswordPending           // The user has not yet set their password.
+	StatusSecurityQuestionsRequired // The user has not yet set their security questions.
+)
+
 // UserQuery represents available query parameters
 type UserQuery struct {
 	Limit          string

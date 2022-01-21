@@ -2,6 +2,18 @@ package apps
 
 import "time"
 
+const (
+	AuthMethodPassword int32 = iota
+	AuthMethodOpenID
+	AuthMethodSAML
+	AuthMethodAPI
+	AuthMethodGoogle
+	authMethodUnused5 // There is not auth method with the number 5
+	AuthMethodForemsBasedApp
+	AuthMethodWSFED
+	AuthMethodOpenIDConnect
+)
+
 type AppsQuery struct {
 	Limit       string
 	Page        string

@@ -8,6 +8,28 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 )
 
+const (
+	TypePreAuthentication string = "pre-authentication"
+	TypeUserMigration     string = "user-migration"
+)
+
+const (
+	ContextPreAuthentication1_0_0 string = "1.0.0"
+	ContextPreAuthentication1_1_0 string = "1.1.0"
+
+	ContextUserMigration1_0_0 string = "1.0.0"
+)
+
+const (
+	StatusReady         string = "ready"
+	StatusCreateQueued  string = "create-queued"
+	StatusCreateRunning string = "create-running"
+	StatusCreateFailed  string = "create-failed"
+	StatusUpdateQueued  string = "update-queued"
+	StatusUpdateRunning string = "update-running"
+	StatusUpdateFailed  string = "update-failed"
+)
+
 // SmartHookQuery represents available query parameters
 type SmartHookQuery struct {
 	Limit  string

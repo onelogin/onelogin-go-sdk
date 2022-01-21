@@ -112,6 +112,54 @@ func TestGetOne(t *testing.T) {
 	}
 }
 
+func TestGetUsers(t *testing.T) {
+	tests := map[string]struct {
+		id               int32
+		expectedResponse []AppUser
+		expectedError    error
+		repository       *test.MockRepository
+	}{
+		"it gets users for an app": {
+			id: 1,
+			expectedResponse: []AppUser{{
+				ID:        oltypes.Int32(1),
+				Firstname: oltypes.String("First"),
+				Lastname:  oltypes.String("Last"),
+				Username:  oltypes.String("User Name"),
+				Email:     oltypes.String("E-Mail"),
+			}},
+			expectedError: nil,
+			repository: &test.MockRepository{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]AppUser{{
+						ID:        oltypes.Int32(1),
+						Firstname: oltypes.String("First"),
+						Lastname:  oltypes.String("Last"),
+						Username:  oltypes.String("User Name"),
+						Email:     oltypes.String("E-Mail"),
+					}})
+					return [][]byte{b}, err
+				},
+			},
+		},
+		"it returns an error if there is a problem finding the users": {
+			id:               int32(2),
+			expectedResponse: nil,
+			expectedError:    errors.New("error"),
+			repository:       &test.MockRepository{},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			svc := New(test.repository, "test.com")
+			actual, err := svc.GetUsers(test.id)
+			assert.Equal(t, test.expectedResponse, actual)
+			assert.Equal(t, test.expectedError, err)
+		})
+	}
+}
+
 func TestUpdate(t *testing.T) {
 	tests := map[string]struct {
 		updatePayload    *App

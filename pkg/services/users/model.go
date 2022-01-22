@@ -2,6 +2,25 @@ package users
 
 import "time"
 
+const (
+	StateUnapproved int32 = iota
+	StateApproved
+	StateRejected
+	StateUnlicensed
+)
+
+const (
+	StatusUnActivated int32 = iota
+	StatusActive            // Only users assigned this status can log in to OneLogin.
+	StatusSuspended
+	StatusLocked
+	StatusPasswordExpired
+	StatusAwaitingPasswordReset     // The user is required to reset their password.
+	statusUnused6                   // There is not user status with a value of 6.
+	StatusPasswordPending           // The user has not yet set their password.
+	StatusSecurityQuestionsRequired // The user has not yet set their security questions.
+)
+
 // UserQuery represents available query parameters
 type UserQuery struct {
 	Limit          string
@@ -35,7 +54,7 @@ type User struct {
 	Samaccountname       *string                `json:"samaccountname,omitempty"`
 	UserPrincipalName    *string                `json:"userprincipalname,omitempty"`
 	MemberOf             *string                `json:"member_of,omitempty"`
-	Phone                *string                `json:"phone,omitemepty"`
+	Phone                *string                `json:"phone,omitempty"`
 	Password             *string                `json:"password,omitempty"`
 	PasswordConfirmation *string                `json:"password_confirmation,omitempty"`
 	PasswordAlgorithm    *string                `json:"password_algorithm,omitempty"`
@@ -44,13 +63,13 @@ type User struct {
 	Company              *string                `json:"company,omitempty"`
 	Department           *string                `json:"department,omitempty"`
 	Comment              *string                `json:"comment,omitempty"`
-	CreatedAt            time.Time              `json:"created_at,omitempty"`
-	UpdatedAt            time.Time              `json:"updated_at,omitempty"`
-	ActivatedAt          time.Time              `json:"activated_at,omitempty"`
-	LastLogin            time.Time              `json:"last_login,omitempty"`
-	PasswordChangedAt    time.Time              `json:"password_changed_at,omitempty"`
-	LockedUntil          time.Time              `json:"locked_until,omitempty"`
-	InvitationSentAt     time.Time              `json:"invitation_sent_at,omitempty"`
+	CreatedAt            *time.Time             `json:"created_at,omitempty"`
+	UpdatedAt            *time.Time             `json:"updated_at,omitempty"`
+	ActivatedAt          *time.Time             `json:"activated_at,omitempty"`
+	LastLogin            *time.Time             `json:"last_login,omitempty"`
+	PasswordChangedAt    *time.Time             `json:"password_changed_at,omitempty"`
+	LockedUntil          *time.Time             `json:"locked_until,omitempty"`
+	InvitationSentAt     *time.Time             `json:"invitation_sent_at,omitempty"`
 	State                *int32                 `json:"state,omitempty"`
 	Status               *int32                 `json:"status,omitempty"`
 	InvalidLoginAttempts *int32                 `json:"invalid_login_attempts,omitempty"`
@@ -62,4 +81,14 @@ type User struct {
 	ExternalID           *int32                 `json:"external_id,omitempty"`
 	ID                   *int32                 `json:"id,omitempty"`
 	CustomAttributes     map[string]interface{} `json:"custom_attributes,omitempty"`
+}
+
+// UserApp is the contract for a users app.
+type UserApp struct {
+	ID                  *int32  `json:"id,omitempty"`
+	IconURL             *string `json:"icon_url,omitempty"`
+	LoginID             *int32  `json:"login_id,omitempty"`
+	ProvisioningStatus  *string `json:"provisioning_status,omitempty"`
+	ProvisioningState   *string `json:"provisioning_state,omitempty"`
+	ProvisioningEnabled *bool   `json:"provisioning_enabled,omitempty"`
 }

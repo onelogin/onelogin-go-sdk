@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 )
@@ -69,6 +71,27 @@ func (svc *V2Service) GetOne(id int32) (*User, error) {
 	return &user, nil
 }
 
+// GetApps retrieves the list of apps for a given user by id, it returns
+// an array of apps for the user.
+func (svc *V2Service) GetApps(id int32) ([]UserApp, error) {
+	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/apps", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+	})
+	if err != nil {
+		return nil, err
+	}
+	var apps []UserApp
+
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+	log.Println(string(resp[0]))
+	err = json.Unmarshal(resp[0], &apps)
+	return apps, err
+}
+
 // Create takes a user without an id and attempts to use the parameters to create it
 // in the API. Modifies the user in place, or returns an error if one occurs
 func (svc *V2Service) Create(user *User) error {
@@ -91,17 +114,23 @@ func (svc *V2Service) Update(user *User) error {
 	if user.ID == nil {
 		return errors.New("No ID Given")
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *user.ID),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    user,
-	})
+	resp, err := svc.UpdateRaw(*user.ID, user)
 	if err != nil {
 		return err
 	}
 	json.Unmarshal(resp, user)
 	return nil
+}
+
+// UpdateRaw takes a user and an id and attempts to use the parameters to update it
+// in the API. Returns the raw response bytes or an error.
+func (svc *V2Service) UpdateRaw(id int32, user interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    user,
+	})
 }
 
 // Destroy deletes the user with the given id, and if successful, it returns nil

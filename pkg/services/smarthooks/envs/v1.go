@@ -91,7 +91,7 @@ func (svc *V1Service) Create(envVar *EnvVar) (*EnvVar, error) {
 }
 
 // Update takes a envVar and an id and attempts to use the parameters to update it
-// in the API. Modifies the envVar in place, or returns an error if one occurs
+// in the API. Returns a new EnvVar object, or returns an error if one occurs
 func (svc *V1Service) Update(envVar *EnvVar) (*EnvVar, error) {
 	out := EnvVar{}
 	if envVar.Name != nil && envVar.ID == nil { // give a name but no id, we'll try and find it for you
@@ -119,18 +119,24 @@ func (svc *V1Service) Update(envVar *EnvVar) (*EnvVar, error) {
 	envVar.CreatedAt = nil
 	envVar.UpdatedAt = nil
 
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    envVar,
-	})
+	resp, err := svc.UpdateRaw(id, envVar)
 	if err != nil {
 		return &out, err
 	}
 
 	json.Unmarshal(resp, &out)
 	return &out, nil
+}
+
+// UpdateRaw takes a envVar and an id and attempts to use the parameters to update it
+// in the API. Modifies the envVar in place, or returns an error if one occurs
+func (svc *V1Service) UpdateRaw(id string, envVar interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%s", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    envVar,
+	})
 }
 
 // Destroy deletes the envVar with the given id, and if successful, it returns nil

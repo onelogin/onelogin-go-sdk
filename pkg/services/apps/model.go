@@ -2,6 +2,18 @@ package apps
 
 import "time"
 
+const (
+	AuthMethodPassword int32 = iota
+	AuthMethodOpenID
+	AuthMethodSAML
+	AuthMethodAPI
+	AuthMethodGoogle
+	authMethodUnused5 // There is not auth method with the number 5
+	AuthMethodForemsBasedApp
+	AuthMethodWSFED
+	AuthMethodOpenIDConnect
+)
+
 type AppsQuery struct {
 	Limit       string
 	Page        string
@@ -25,8 +37,8 @@ type App struct {
 	TabID              *int32                   `json:"tab_id,omitempty"`
 	BrandID            *int32                   `json:"brand_id,omitempty"`
 	ConnectorID        *int32                   `json:"connector_id,omitempty"`
-	CreatedAt          time.Time                `json:"created_at,omitempty"`
-	UpdatedAt          time.Time                `json:"updated_at,omitempty"`
+	CreatedAt          *time.Time               `json:"created_at,omitempty"`
+	UpdatedAt          *time.Time               `json:"updated_at,omitempty"`
 	Provisioning       *AppProvisioning         `json:"provisioning"`
 	Sso                *AppSso                  `json:"sso"`
 	Configuration      *AppConfiguration        `json:"configuration"`
@@ -104,4 +116,13 @@ type AppParameters struct {
 	ProvisionedEntitlements   *bool   `json:"provisioned_entitlements,omitempty"`
 	SafeEntitlementsEnabled   *bool   `json:"safe_entitlements_enabled,omitempty"`
 	IncludeInSamlAssertion    *bool   `json:"include_in_saml_assertion,omitempty"`
+}
+
+// AppUser is the contract for users of an app.
+type AppUser struct {
+	ID        *int32  `json:"id,omitempty"`
+	Firstname *string `json:"firstname,omitempty"`
+	Lastname  *string `json:"lastname,omitempty"`
+	Username  *string `json:"username,omitempty"`
+	Email     *string `json:"email,omitempty"`
 }

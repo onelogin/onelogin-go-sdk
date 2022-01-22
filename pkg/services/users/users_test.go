@@ -3,10 +3,11 @@ package users
 import (
 	"encoding/json"
 	"errors"
+	"testing"
+
 	"github.com/onelogin/onelogin-go-sdk/internal/test"
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestQuery(t *testing.T) {
@@ -92,6 +93,56 @@ func TestGetOne(t *testing.T) {
 			if test.expectedError != nil {
 				assert.Equal(t, test.expectedError, err)
 			}
+		})
+	}
+}
+
+func TestGetApps(t *testing.T) {
+	tests := map[string]struct {
+		id               int32
+		expectedResponse []UserApp
+		expectedError    error
+		repository       *test.MockRepository
+	}{
+		"it gets apps for a user": {
+			id: 1,
+			expectedResponse: []UserApp{{
+				ID:                  oltypes.Int32(1),
+				IconURL:             oltypes.String("https://example.com/32x32.png"),
+				LoginID:             oltypes.Int32(2),
+				ProvisioningStatus:  oltypes.String("enabled"),
+				ProvisioningState:   oltypes.String("modifying"),
+				ProvisioningEnabled: oltypes.Bool(true),
+			}},
+			expectedError: nil,
+			repository: &test.MockRepository{
+				ReadFunc: func(r interface{}) ([][]byte, error) {
+					b, err := json.Marshal([]UserApp{{
+						ID:                  oltypes.Int32(1),
+						IconURL:             oltypes.String("https://example.com/32x32.png"),
+						LoginID:             oltypes.Int32(2),
+						ProvisioningStatus:  oltypes.String("enabled"),
+						ProvisioningState:   oltypes.String("modifying"),
+						ProvisioningEnabled: oltypes.Bool(true),
+					}})
+					return [][]byte{b}, err
+				},
+			},
+		},
+		"it returns an error if there is a problem finding the apps": {
+			id:               int32(2),
+			expectedResponse: nil,
+			expectedError:    errors.New("error"),
+			repository:       &test.MockRepository{},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			svc := New(test.repository, "test.com")
+			actual, err := svc.GetApps(test.id)
+			assert.Equal(t, test.expectedResponse, actual)
+			assert.Equal(t, test.expectedError, err)
 		})
 	}
 }

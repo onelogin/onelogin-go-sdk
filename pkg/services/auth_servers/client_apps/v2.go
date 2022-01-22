@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/onelogin/onelogin-go-sdk/pkg/oltypes"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
@@ -75,12 +76,7 @@ func (svc *V2Service) Update(clientApp *ClientApp) error {
 	if clientApp.ID == nil || clientApp.AuthServerID == nil {
 		return errors.New("Both ID and AuthServerID are required on the payload")
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
-		URL:        fmt.Sprintf("%s/%d/clients/%d", svc.Endpoint, *clientApp.AuthServerID, *clientApp.ID),
-		Headers:    map[string]string{"Content-Type": "application/json"},
-		AuthMethod: "bearer",
-		Payload:    clientApp,
-	})
+	resp, err := svc.UpdateRaw(*clientApp.AuthServerID, *clientApp.ID, clientApp)
 	if err != nil {
 		return err
 	}
@@ -91,6 +87,16 @@ func (svc *V2Service) Update(clientApp *ClientApp) error {
 	clientApp.APIAuthID = oltypes.Int32(respObj["api_auth_id"])
 
 	return nil
+}
+
+// UpdateRaw updates an existing access token claim and returns the raw response or an error if something went wrong
+func (svc *V2Service) UpdateRaw(authServerId int32, appId int32, clientApp interface{}) ([]byte, error) {
+	return svc.Repository.Update(olhttp.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/clients/%d", svc.Endpoint, authServerId, appId),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+		Payload:    clientApp,
+	})
 }
 
 // Destroy takes the access token claim id and access token claim id and removes the access token claim from the API.

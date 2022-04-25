@@ -40,7 +40,7 @@
       Timeout:      5,
       ClientID:     "your_onelogin_developer_client_id",
       ClientSecret: "your_onelogin_developer_client_secret",
-      Region:       "us",
+      Url:       "https://<your-subdomain>.onelogin.com",
     })
     if err != nil {
       // handle error

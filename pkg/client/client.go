@@ -2,6 +2,7 @@
 package client
 
 import (
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/groups"
 	"net/http"
 	"time"
 
@@ -47,6 +48,7 @@ type Services struct {
 	SmartHooksEnvVarsV1  *smarthookenvs.V1Service
 	RolesV1              *roles.V1Service
 	PrivilegesV1         *privileges.V1Service
+	GroupsV1             *groups.V1Service
 }
 
 // NewClient uses the config to generate the api client with services attached, and returns
@@ -90,6 +92,7 @@ func NewClient(cfg *APIClientConfig) (*APIClient, error) {
 			SmartHooksEnvVarsV1:  smarthookenvs.New(resourceRepository, cfg.Url),
 			RolesV1:              roles.New(resourceRepository, cfg.Url),
 			PrivilegesV1:         privileges.New(resourceRepository, cfg.Url),
+			GroupsV1:             groups.New(resourceRepository, cfg.Url),
 		},
 	}, nil
 }

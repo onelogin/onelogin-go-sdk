@@ -2,7 +2,6 @@
 package client
 
 import (
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/groups"
 	"net/http"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	authservers "github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers"
 	accesstokenclaims "github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/access_token_claims"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/auth_servers/scopes"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/groups"
 	legalvalues "github.com/onelogin/onelogin-go-sdk/pkg/services/legal_values"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services/privileges"

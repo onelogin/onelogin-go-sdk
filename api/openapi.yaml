@@ -1,0 +1,6164 @@
+openapi: 3.0.3
+info:
+  title: OneLogin API
+  version: 3.0.0-alpha.1
+servers:
+- url: "https://{subdomain}.{domain}.com"
+  variables:
+    subdomain:
+      default: onelogininc
+    domain:
+      default: onelogin
+paths:
+  /auth/oauth2/v2/token:
+    post:
+      operationId: generateToken
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/generateToken_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_200_response'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: "Typically, either grant_type value is incorrect or Authorization\
+            \ header is incorrectly formatted."
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: "Typically, this error means that your client_id and/or client_secret\
+            \ values are invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: "Typically, this error means that you are using the incorrect\
+            \ method. Ensure that you are making a POST."
+  /auth/oauth2/revoke:
+    post:
+      operationId: revokeToken
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/revokeToken_request'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: "Possibly, the Authorization header is incorrectly formatted."
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: "Typically, this error means that your client_id and/or client_secret\
+            \ values are invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: "Typically, this error means that you are using the incorrect\
+            \ method. Ensure that you are making a POST."
+  /auth/rate_limit:
+    get:
+      operationId: getRateLimit
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getRateLimit_200_response'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateToken_400_response'
+  /api/2/api_authorizations:
+    get:
+      operationId: listAuthorizationServers
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listAuthorizationServers_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    post:
+      operationId: createAuthorizationServer
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/auth_server'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id'
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Audiences are required
+  /api/2/api_authorizations/{id}:
+    delete:
+      operationId: deleteAuthorizationServer
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getAuthorizationServer
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getAuthorizationServer_200_response'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: NOT FOUND
+    put:
+      operationId: updateAuthorizationServer
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        $ref: '#/components/requestBodies/auth_server'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateAuthorizationServer_400_response'
+          description: You need to submit all of the attributes
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/api_authorizations/{id}/claims:
+    get:
+      operationId: listAccessTokenClaims
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listAccessTokenClaims_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    post:
+      operationId: addAccessTokenClaim
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        $ref: '#/components/requestBodies/claim'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: This name already exists
+  /api/2/api_authorizations/{id}/claims/{claim_id}:
+    delete:
+      operationId: deleteAccessTokenClaim
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: claim_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateAccessTokenClaim
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: claim_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        $ref: '#/components/requestBodies/claim'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: This name already exists
+  /api/2/api_authorizations/{id}/scopes:
+    get:
+      operationId: listScopes
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listScopes_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    post:
+      operationId: addScope
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        $ref: '#/components/requestBodies/scope'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: This name already exists
+  /api/2/api_authorizations/{id}/scopes/{scope_id}:
+    delete:
+      operationId: deleteScope
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: scope_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateScope
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: scope_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        $ref: '#/components/requestBodies/scope'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: This name already exists
+  /api/2/api_authorizations/{id}/clients:
+    get:
+      operationId: getClientApps
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/getClientApps_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    post:
+      operationId: addClientApp
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addClientApp_request'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/client_app'
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: An invalid scope id has been provided
+  /api/2/api_authorizations/{id}/clients/{client_app_id}:
+    delete:
+      operationId: removeClientApp
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: client_app_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+    put:
+      operationId: updateClientApp
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: client_app_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateClientApp_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/client_app'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: An invalid scope id has been provided
+  /api/2/apps:
+    get:
+      operationId: listApps
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: The name or partial name of the app to search for. When using
+          a partial name you must append a wildcard `*`
+        in: query
+        name: name
+        schema:
+          $ref: '#/components/schemas/name'
+      - description: Returns all apps based off a specific connector. See List Connectors
+          for a complete list of Connector IDs.
+        in: query
+        name: connector_id
+        schema:
+          $ref: '#/components/schemas/connector_id'
+      - description: Returns all apps based of a given type.
+        in: query
+        name: auth_method
+        schema:
+          $ref: '#/components/schemas/auth_method'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/schema'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+    post:
+      operationId: createApp
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/app'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/schema'
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/apps/{app_id}:
+    delete:
+      operationId: deleteApp
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getApp
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/schema'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateApp
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      requestBody:
+        $ref: '#/components/requestBodies/app'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/schema'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/apps/{app_id}/parameters/{parameter_id}:
+    delete:
+      operationId: deleteAppParameter
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - in: path
+        name: parameter_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: You attempted to delete a connector level parameter.
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+  /api/2/apps/{app_id}/users:
+    get:
+      operationId: listAppUsers
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listAppUsers_200_response_inner'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/{app_id}/rules:
+    get:
+      operationId: listRules
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: Defaults to true. When set to `false` will return all disabled
+          rules.
+        in: query
+        name: enabled
+        schema:
+          type: boolean
+      - description: Filters Rules based on their Conditions.
+        in: query
+        name: has_condition
+        schema:
+          type: string
+      - description: Filters Rules based on their condition types.
+        in: query
+        name: has_condition_type
+        schema:
+          type: string
+      - description: Filters Rules based on their Actions.
+        in: query
+        name: has_action
+        schema:
+          type: string
+      - description: Filters Rules based on their action types.
+        in: query
+        name: has_action_type
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/rule'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    post:
+      operationId: createRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      requestBody:
+        $ref: '#/components/requestBodies/rule'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rule_id'
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_status'
+          description: UNPROCESSABLE ENTRY
+  /api/2/apps/{app_id}/rules/{rule_id}:
+    delete:
+      operationId: deleteRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: The id of the app rule to locate.
+        in: path
+        name: rule_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_2'
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: The id of the app rule to locate.
+        in: path
+        name: rule_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_2'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rule'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: The id of the app rule to locate.
+        in: path
+        name: rule_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_2'
+      requestBody:
+        $ref: '#/components/requestBodies/rule'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rule_id'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_status'
+          description: ID should not be included in the payload body.
+  /api/2/apps/{app_id}/rules/conditions:
+    get:
+      operationId: listConditions
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listConditions_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/{app_id}/rules/conditions/{condition_value}/operators:
+    get:
+      operationId: listConditionOperators
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: The value for the selected condition.
+        in: path
+        name: condition_value
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listConditionOperators_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/{app_id}/rules/conditions/{condition_value}/values:
+    get:
+      operationId: listConditionValues
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: The value for the selected condition.
+        in: path
+        name: condition_value
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listConditionValues_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/{app_id}/rules/actions:
+    get:
+      operationId: listActions
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listActions_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/{app_id}/rules/actions/{actuion_value}/values:
+    get:
+      operationId: listActionValues
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      - description: The value for the selected action.
+        in: path
+        name: action_value
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listConditionValues_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/{app_id}/rules/sort:
+    put:
+      operationId: bulkSort
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: app_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/rule_id_list'
+        description: The request body must contain an array of App Rule IDs in the
+          desired order.
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rule_id_list'
+          description: On success a complete list of ordered rules is returned.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_status'
+          description: Indicates that not all rule IDs were included in the request.
+  /api/2/connectors:
+    get:
+      operationId: listConnectors
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: The name or partial name of the connector to search for. When
+          using a partial name you must append a wildcard `*`
+        in: query
+        name: name
+        schema:
+          $ref: '#/components/schemas/name_1'
+      - description: Returns all connectors of a given type.
+        in: query
+        name: auth_method
+        schema:
+          $ref: '#/components/schemas/auth_method'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/connector'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/mfa/users/{user_id}/factors:
+    get:
+      operationId: getAvailableFactors
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/getAvailableFactors_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/mfa/users/{user_id}/registrations:
+    post:
+      operationId: enrollFactor
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/enrollFactor_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/factor'
+                type: array
+          description: OK
+        "201":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/factor'
+                type: array
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/mfa/users/{user_id}/registrations/{registration_id}:
+    get:
+      operationId: verifyEnrollmentVoiceProtect
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      - description: Set to the uuid of the registration. This was included in the
+          response as part of the initial request in Enroll Factor.
+        in: path
+        name: registration_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/registration'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    put:
+      operationId: verifyEnrollment
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      - description: Set to the uuid of the registration. This was included in the
+          response as part of the initial request in Enroll Factor.
+        in: path
+        name: registration_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/verifyEnrollment_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/registration'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/mfa/users/{user_id}/devices:
+    get:
+      operationId: getEnrolledFactors
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/device'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/mfa/users/{user_id}/devices/{device_id}:
+    delete:
+      operationId: deleteFactor
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      - description: Set to the device_id of the MFA device.
+        in: path
+        name: device_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: NO CONTENT
+  /api/2/mfa/users/{user_id}/verifications:
+    post:
+      operationId: activateFactor
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/activateFactor_request'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json: {}
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/mfa/users/{user_id}/verifications/{verification_id}:
+    get:
+      operationId: verifyFactorVoice
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      - description: The verification_id is returned on activation of the factor or
+          you can get the device_id using the Activate Factor API call.
+        in: path
+        name: verification_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/verifyFactorVoice_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_2'
+          description: NOT FOUND
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: verifyFactor
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+      - description: The verification_id is returned on activation of the factor or
+          you can get the device_id using the Activate Factor API call.
+        in: path
+        name: verification_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/verifyFactor_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_2'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: FORBIDDEN
+  /api/2/mfs/users/{user_id}/mfa_token:
+    post:
+      operationId: generateMfaToken
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/generateMfaToken_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateMfaToken_200_response'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/generateMfaToken_422_response'
+          description: The structure of the request payload is correct but it contains
+            an invalid value.
+  /api/2/roles:
+    get:
+      operationId: listRoles
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: Optional. Filters by role name.
+        in: query
+        name: name
+        schema:
+          $ref: '#/components/schemas/name_2'
+      - description: Optional. Returns roles that contain this app name.
+        in: query
+        name: app_id
+        schema:
+          $ref: '#/components/schemas/name'
+      - description: Optional. Comma delimited list of fields to return.
+        in: query
+        name: fields
+        schema:
+          enum:
+          - apps
+          - users
+          - admins
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/role'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    post:
+      operationId: createRoles
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/createRoles_201_response_inner'
+                type: array
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/roles/{role_id}:
+    delete:
+      operationId: deleteRole
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getRole
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/role'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateRole
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      requestBody:
+        $ref: '#/components/requestBodies/role'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updateRole_200_response'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/roles/{role_id}/apps:
+    get:
+      operationId: getRoleApps
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: Optional. Defaults to true. Returns all apps not yet assigned
+          to the role.
+        in: query
+        name: assigned
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            applcation/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/schema'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: setRoleApps
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: The complete list of app_id values to assign to the role.
+                Don't submit a partial list of app IDs.
+              items:
+                $ref: '#/components/schemas/id_1'
+              type: array
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/setRoleApps_200_response_inner'
+                type: array
+          description: The response returns an array of app IDs sent in the request.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+  /api/2/roles/{role_id}/users:
+    delete:
+      operationId: removeRoleUsers
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/removeRoleUsers_request'
+        required: true
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getRoleUsers
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: "Allows you to filter on first name, last name, username, and\
+          \ email address."
+        in: query
+        name: name
+        schema:
+          type: string
+      - description: Optional. Defaults to false. Include users that aren’t assigned
+          to the role.
+        in: query
+        name: include_unassigned
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            applcation/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/schema_1'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    post:
+      operationId: addRoleUsers
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: "Set user_id values in array,"
+              items:
+                $ref: '#/components/schemas/id_2'
+              type: array
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/addRoleUsers_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/roles/{role_id}/admins:
+    delete:
+      operationId: removeRoleAdmins
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/removeRoleUsers_request'
+        required: true
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getRoleAdmins
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: "Allows you to filter on first name, last name, username, and\
+          \ email address."
+        in: query
+        name: name
+        schema:
+          type: string
+      - description: Optional. Defaults to false. Include users that aren’t assigned
+          to the role.
+        in: query
+        name: include_unassigned
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            applcation/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/schema_1'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    post:
+      operationId: addRoleAdmins
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the role you want to return.
+        in: path
+        name: role_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/role_id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: "Set user_id values in array,"
+              items:
+                $ref: '#/components/schemas/id_2'
+              type: array
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/addRoleUsers_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/saml_assertion:
+    post:
+      operationId: generateSamlAssertion
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/generateSamlAssertion_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json: {}
+          description: OK
+  /api/2/saml_assertion/verify_factor:
+    post:
+      operationId: verifyFactorSaml
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/verifyFactorSaml_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/verifyFactorSaml_200_response'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: BAD REQUEST
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: UNAUTHORIZED
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+  /api/2/hooks:
+    get:
+      operationId: listHooks
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/hook'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    post:
+      operationId: createHook
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/hook'
+  /api/2/hooks/{hook_id}:
+    delete:
+      operationId: deleteHook
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the Hook that you want to return.
+        in: path
+        name: hook_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_3'
+      responses:
+        "202":
+          description: Success. The hook function has been queued for deletion. This
+            typically happens within seconds of making the request.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getHook
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the Hook that you want to return.
+        in: path
+        name: hook_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_3'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/hook'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateHook
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the Hook that you want to return.
+        in: path
+        name: hook_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_3'
+      requestBody:
+        $ref: '#/components/requestBodies/hook'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/hook'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/hook_status'
+          description: You function is not base64 encoded.
+  /api/2/hooks/{hook_id}/logs:
+    get:
+      operationId: getLogs
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the Hook that you want to return.
+        in: path
+        name: hook_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_3'
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: Returns logs that contain this request_id.
+        in: query
+        name: request_id
+        schema:
+          type: string
+      - description: Returns logs that contain this correlation_id.
+        in: query
+        name: correlation_id
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/log'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+  /api/2/hooks/envs:
+    get:
+      operationId: listEnvironmentVariables
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/envvar'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    post:
+      operationId: createEnvironmentVariable
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createEnvironmentVariable_request'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/envvar'
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/hooks/envs/{envvar_id}:
+    delete:
+      operationId: deleteEnvironmentVariable
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the Hook Environment Variable that you want
+          to fetch.
+        in: path
+        name: envvar_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_4'
+      responses:
+        "204":
+          description: Success. The environment variable has been deleted. No content
+            is returned.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getEnvironmentVariable
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the Hook Environment Variable that you want
+          to fetch.
+        in: path
+        name: envvar_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_4'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/envvar'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    put:
+      operationId: updateEnvironmentVariable
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the Hook Environment Variable that you want
+          to fetch.
+        in: path
+        name: envvar_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_4'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateEnvironmentVariable_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/envvar'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: BAD REQUEST
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/hook_status'
+          description: The name of a var can not be changed
+  /api/2/users:
+    get:
+      operationId: listUsers
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: "The total number of items returned per page. The maximum limit\
+          \ varies between endpoints, see the relevant endpoint documentation for\
+          \ the specific limit."
+        in: query
+        name: limit
+        schema:
+          type: integer
+      - description: The page number of results to return.
+        in: query
+        name: page
+        schema:
+          type: integer
+      - description: Set to the value extracted from Before-Cursor or After-Cursor
+          headers to return the previous or next page.
+        in: query
+        name: cursor
+        schema:
+          type: string
+      - description: An ISO8601 timestamp value that returns all users created after
+          a given date & time.
+        in: query
+        name: created_since
+        schema:
+          type: string
+      - description: An ISO8601 timestamp value that returns all users created before
+          a given date & time.
+        in: query
+        name: created_until
+        schema:
+          type: string
+      - description: An ISO8601 timestamp value that returns all users updated after
+          a given date & time.
+        in: query
+        name: updated_since
+        schema:
+          type: string
+      - description: An ISO8601 timestamp value that returns all users updated before
+          a given date & time.
+        in: query
+        name: updated_until
+        schema:
+          type: string
+      - description: An ISO8601 timestamp value that returns all users that logged
+          in after a given date & time.
+        in: query
+        name: last_login_since
+        schema:
+          type: string
+      - in: query
+        name: last_login_until
+        schema:
+          type: string
+      - description: The first name of the user
+        in: query
+        name: firstname
+        schema:
+          type: string
+      - description: The last name of the user
+        in: query
+        name: lastname
+        schema:
+          type: string
+      - description: The email address of the user
+        in: query
+        name: email
+        schema:
+          type: string
+      - description: The username for the user
+        in: query
+        name: username
+        schema:
+          type: string
+      - description: The AD login name for the user
+        in: query
+        name: samaccountname
+        schema:
+          type: string
+      - description: The ID in OneLogin of the Directory that the user belongs to
+        in: query
+        name: directory_id
+        schema:
+          type: string
+      - description: An external identifier that has been set on the user
+        in: query
+        name: external_id
+        schema:
+          type: string
+      - description: The ID of a OneLogin Application
+        in: query
+        name: app_id
+        schema:
+          type: string
+      - description: A comma separated list of OneLogin User IDs
+        in: query
+        name: user_ids
+        schema:
+          type: string
+      - description: The short name of a custom attribute. Note that the attribute
+          name is prefixed with custom_attributes.
+        in: query
+        name: "custom_attributes.{attribute_name}"
+        schema:
+          type: string
+      - description: A comma separated list user attributes to return.
+        in: query
+        name: fields
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/user'
+                type: array
+          description: OK
+          headers:
+            Current-Page:
+              $ref: '#/components/headers/Current-Page'
+            Page-Items:
+              $ref: '#/components/headers/Page-Items'
+            Total-Count:
+              $ref: '#/components/headers/Total-Count'
+            Total-Pages:
+              $ref: '#/components/headers/Total-Pages'
+            Link:
+              $ref: '#/components/headers/Link'
+            Before-Cursor:
+              $ref: '#/components/headers/Before-Cursor'
+            After-Cursor:
+              $ref: '#/components/headers/After-Cursor'
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: An invalid search parameter was used.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: You cant sort on this field.
+    post:
+      operationId: createUser
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Controls how mappings will be applied to the user on creation.
+          Defaults to async.
+        in: query
+        name: mappings
+        schema:
+          enum:
+          - async
+          - sync
+          - disabled
+          type: string
+      - description: Will passwords validate against the User Policy? Defaults to
+          true.
+        in: query
+        name: validate_policy
+        schema:
+          type: boolean
+      requestBody:
+        $ref: '#/components/requestBodies/user'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+          description: The full user resource is returned
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: BAD REQUEST
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/users/{user_id}:
+    delete:
+      operationId: deleteUser
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user that you want to return.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_2'
+      responses:
+        "204":
+          description: "On success, no content is returned in the response body."
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getUser
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user that you want to return.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_2'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateUser
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user that you want to return.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_2'
+      - description: Controls how mappings will be applied to the user on creation.
+          Defaults to async.
+        in: query
+        name: mappings
+        schema:
+          enum:
+          - async
+          - sync
+          - disabled
+          type: string
+      - description: Will passwords validate against the User Policy? Defaults to
+          true.
+        in: query
+        name: validate_policy
+        schema:
+          type: boolean
+      requestBody:
+        $ref: '#/components/requestBodies/user'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+          description: The full user resource is returned
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: BAD REQUEST
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Indicates that the syntax of the request is good but a value
+            supplied is not valid.
+  /api/2/users/{user_id}/apps:
+    get:
+      operationId: getUserApps
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Set to the id of the user that you want to return.
+        in: path
+        name: user_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_2'
+      - description: Defaults to `false`. When `true` will show all apps that are
+          assigned to a user regardless of their portal visibility setting.
+        in: query
+        name: ignore_visibility
+        schema:
+          type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/getUserApps_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+  /api/2/mappings:
+    get:
+      operationId: listMappings
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Defaults to true. When set to `false` will return all disabled
+          mappings.
+        in: query
+        name: enabled
+        schema:
+          default: true
+          type: boolean
+      - description: Filters Mappings based on their Conditions.
+        example: "has_condition=has_role:123456,status:1"
+        in: query
+        name: has_condition
+        schema:
+          type: string
+      - description: Filters Mappings based on their condition types.
+        in: query
+        name: has_condition_type
+        schema:
+          enum:
+          - builtin
+          - custom
+          - none
+          type: string
+      - description: Filters Mappings based on their Actions.
+        example: "has_action=set_groups:123456,set_usertype:*"
+        in: query
+        name: has_action
+        schema:
+          type: string
+      - description: Filters Mappings based on their action types.
+        in: query
+        name: has_action_type
+        schema:
+          enum:
+          - builtin
+          - custom
+          - none
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/mapping'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+    post:
+      operationId: createMapping
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/mapping'
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id_2'
+          description: CREATED
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_status'
+          description: UNPROCESSABLE_ENTRY
+  /api/2/mappings/{mapping_id}:
+    delete:
+      operationId: deleteMapping
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: The id of the user mapping to locate.
+        in: path
+        name: mapping_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "204":
+          description: NO CONTENT
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    get:
+      operationId: getMapping
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: The id of the user mapping to locate.
+        in: path
+        name: mapping_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mapping'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: Invalid ID
+    put:
+      operationId: updateMapping
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: The id of the user mapping to locate.
+        in: path
+        name: mapping_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        $ref: '#/components/requestBodies/mapping'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/id_2'
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_status'
+          description: UNPROCESSABLE_ENTRY
+  /api/2/mappings/{mapping_id}/dryrun:
+    post:
+      operationId: dryRunMapping
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: The id of the user mapping to locate.
+        in: path
+        name: mapping_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              items:
+                type: integer
+              type: array
+        description: Request body is a list of user IDs tested against the mapping
+          conditions to verify that the mapping would be applied
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_status'
+          description: UNPROCESSABLE_ENTRY
+  /api/2/apps/mappings/conditions:
+    get:
+      operationId: listMappingConditions
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listMappingConditions_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/mappings/conditions/{condition_value}/operators:
+    get:
+      operationId: listMappingConditionOperators
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: The value for the selected condition.
+        in: path
+        name: condition_value
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listMappingConditionOperators_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/mappings/conditions/{condition_value}/values:
+    get:
+      operationId: listMappingConditionValues
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: The value for the selected condition.
+        in: path
+        name: condition_value
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listConditionValues_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/mappings/actions:
+    get:
+      operationId: listMappingActions
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listActions_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/mappings/actions/{actuion_value}/values:
+    get:
+      operationId: listMappingActionValues
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: The value for the selected action.
+        in: path
+        name: action_value
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/listConditionValues_200_response_inner'
+                type: array
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+  /api/2/apps/mappings/sort:
+    put:
+      operationId: bulkMappingSort
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mapping_id_list'
+        description: The request body must contain an array of User Mapping IDs in
+          the desired order.
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mapping_id_list'
+          description: On success a complete list of ordered mappings is returned.
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status_1'
+          description: "Typically, this error means that your access token value is\
+            \ invalid."
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_status'
+          description: Indicates that not all mapping IDs were included in the request.
+  /api/2/risk/events:
+    post:
+      operationId: trackEvent
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/trackEvent_request'
+        required: true
+      responses:
+        "200":
+          description: No content is returned. This API is fire and forget.
+        "400":
+          description: BAD REQUEST
+        "401":
+          description: Invalid API Key
+  /api/2/risk/verify:
+    post:
+      operationId: getRiskScore
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getRiskScore_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getRiskScore_200_response'
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getRiskScore_400_response'
+          description: BAD REQUEST
+        "401":
+          description: Invalid API Key
+  /api/2/risk/rules:
+    get:
+      operationId: listRiskRules
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: createRiskRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      requestBody:
+        $ref: '#/components/requestBodies/risk_rule'
+  /api/2/risk/rules/{risk_rule_id}:
+    delete:
+      operationId: deleteRiskRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: risk_rule_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_5'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/risk_rule'
+          description: OK
+        "401":
+          description: Invalid API Key
+    get:
+      operationId: getRiskRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: risk_rule_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_5'
+    put:
+      operationId: updateRiskRule
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: risk_rule_id
+        required: true
+        schema:
+          $ref: '#/components/schemas/id_5'
+      requestBody:
+        $ref: '#/components/requestBodies/risk_rule'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/risk_rule'
+          description: OK
+        "400":
+          description: BAD REQUEST
+        "401":
+          description: UNAUTHORIZED
+  /api/2/risk/scores:
+    get:
+      operationId: getScoreInsights
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - description: Optional ISO8601 formatted date string. Defaults to current date.
+          Maximum date is 90 days ago.
+        in: query
+        name: before
+        schema:
+          type: string
+      - description: Optional ISO8601 formatted date string. Defaults to 30 days ago.
+          Maximum date is 90 days ago.
+        in: query
+        name: after
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getScoreInsights_200_response'
+          description: OK
+        "401":
+          description: Invalid Access Token
+components:
+  headers:
+    Current-Page:
+      description: The index number of the current page being returned.
+      schema:
+        type: integer
+    Page-Items:
+      description: The number of items returned in the response.
+      schema:
+        type: integer
+    Total-Count:
+      description: The total number of items across all pages.
+      schema:
+        type: integer
+    Total-Pages:
+      description: The total number of pages to return all results.
+      schema:
+        type: integer
+    Link:
+      description: "A set of urls which contains premade links for first, next"
+      schema:
+        items:
+          type: string
+        type: array
+    Before-Cursor:
+      description: A string that can be used to request the page of results that preceed
+        the current page using the same set of search filters and pagination options.
+      schema:
+        type: string
+    After-Cursor:
+      description: A string that can be used to request the page of results that follows
+        the current page using the same set of search filters and pagination options.
+      schema:
+        type: string
+  requestBodies:
+    auth_server:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/createAuthorizationServer_request'
+      required: true
+    claim:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/addAccessTokenClaim_request'
+      required: true
+    scope:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/addScope_request'
+      required: true
+    app:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/schema'
+      required: true
+    rule:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/rule'
+      required: true
+    role:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/role'
+      required: true
+    hook:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/hook'
+      required: true
+    user:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/user'
+      required: true
+    mapping:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/mapping'
+      required: true
+    risk_rule:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/risk_rule'
+      required: true
+  responses:
+    token_401:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generateToken_400_response'
+      description: "Typically, this error means that your client_id and/or client_secret\
+        \ values are invalid."
+    token_404:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/generateToken_400_response'
+      description: "Typically, this error means that you are using the incorrect method.\
+        \ Ensure that you are making a POST."
+    "401_invalid_access_token":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: "Typically, this error means that your access token value is invalid."
+    status_200:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/id'
+      description: OK
+    "404_not_found":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: Invalid ID
+    status_422:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: This name already exists
+    status_invalid_scope:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: An invalid scope id has been provided
+    "422_invalid_value":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: Indicates that the syntax of the request is good but a value supplied
+        is not valid.
+    app:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/schema'
+      description: OK
+    "422_id_included":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_status'
+      description: ID should not be included in the payload body.
+    "403_forbidden":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: FORBIDDEN
+    "400_bad_request":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: BAD REQUEST
+    "401_unauthorized":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/status_1'
+      description: UNAUTHORIZED
+    "422_function_not_base64":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/hook_status'
+      description: You function is not base64 encoded.
+    "200_envvar":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/envvar'
+      description: OK
+    "422_unprocessable_entry":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_status'
+      description: UNPROCESSABLE_ENTRY
+    "200_risk_rule":
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/risk_rule'
+      description: OK
+  schemas:
+    status:
+      example:
+        code: 0
+        error: true
+        type: type
+        message: message
+      properties:
+        error:
+          type: boolean
+        code:
+          type: integer
+        type:
+          type: string
+        message:
+          type: string
+      type: object
+    id:
+      example:
+        id: id
+      properties:
+        id:
+          type: string
+      type: object
+    status_1:
+      properties:
+        message:
+          type: string
+        statusCode:
+          type: integer
+        name:
+          type: string
+      type: object
+    auth_server_configuration:
+      example:
+        access_token_expiration_minutes: 6
+        resource_identifier: resource_identifier
+        audiences:
+        - audiences
+        - audiences
+        refresh_token_expiration_minutes: 0
+      properties:
+        audiences:
+          items:
+            type: string
+          type: array
+        refresh_token_expiration_minutes:
+          type: integer
+        resource_identifier:
+          type: string
+        access_token_expiration_minutes:
+          type: integer
+      type: object
+    client_app:
+      example:
+        api_auth_id: 6
+        app_id: 0
+      properties:
+        app_id:
+          type: integer
+        api_auth_id:
+          type: integer
+      type: object
+    name:
+      description: App name.
+      type: string
+    connector_id:
+      description: ID of the apps underlying connector.
+      type: integer
+    auth_method:
+      description: An ID indicating the type of app.
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 6
+      - 7
+      - 8
+      type: integer
+    schema:
+      example:
+        icon_url: icon_url
+        notes: notes
+        visible: true
+        policy_id: 1
+        configuration: "{}"
+        allow_assumed_signin: true
+        description: description
+        created_at: created_at
+        role_ids:
+        - 7
+        - 7
+        sso: "{}"
+        brand_id: 5
+        auth_method: 5
+        tab_id: 2
+        enforcement_point: "{}"
+        updated_at: updated_at
+        connector_id: 6
+        name: name
+        provisioning:
+          enabled: true
+        id: 0
+        parameters: "{}"
+      properties:
+        id:
+          description: Apps unique ID in OneLogin.
+          type: integer
+        connector_id:
+          description: ID of the apps underlying connector.
+          type: integer
+        name:
+          description: App name.
+          type: string
+        description:
+          description: Freeform description of the app.
+          type: string
+        notes:
+          description: Freeform notes about the app.
+          type: string
+        policy_id:
+          description: The security policy assigned to the app.
+          type: integer
+        brand_id:
+          description: The custom login page branding to use for this app. Applies
+            to app initiated logins via OIDC or SAML.
+          type: integer
+        icon_url:
+          description: A link to the apps icon url.
+          type: string
+        visible:
+          description: Indicates if the app is visible in the OneLogin portal.
+          type: boolean
+        auth_method:
+          description: An ID indicating the type of app.
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 6
+          - 7
+          - 8
+          type: integer
+        tab_id:
+          description: ID of the OneLogin portal tab that the app is assigned to.
+          type: integer
+        created_at:
+          description: The date the app was created.
+          type: string
+        updated_at:
+          description: The date the app was last updated.
+          type: string
+        role_ids:
+          description: List of Role IDs that are assigned to the app. On App Create
+            or Update the entire array is replaced with the values provided.
+          items:
+            type: integer
+          type: array
+        allow_assumed_signin:
+          description: Indicates whether or not administrators can access the app
+            as a user that they have assumed control over.
+          type: boolean
+        provisioning:
+          $ref: '#/components/schemas/schema_provisioning'
+        sso:
+          type: object
+        configuration:
+          type: object
+        parameters:
+          type: object
+        enforcement_point:
+          type: object
+      type: object
+    id_1:
+      description: Apps unique ID in OneLogin.
+      type: integer
+    rule:
+      example:
+        name: name
+        match: all
+        id: 0
+        position: 6
+        conditions:
+        - source: source
+          value: value
+          operator: operator
+        - source: source
+          value: value
+          operator: operator
+        actions:
+        - macro: macro
+          expression: expression
+          scriplet: scriplet
+          action: action
+          value:
+          - value
+          - value
+        - macro: macro
+          expression: expression
+          scriplet: scriplet
+          action: action
+          value:
+          - value
+          - value
+        enabled: true
+      properties:
+        id:
+          type: integer
+        name:
+          description: The name of the rule.
+          type: string
+        match:
+          description: Indicates how conditions should be matched.
+          enum:
+          - all
+          - any
+          type: string
+        enabled:
+          description: Indicates if the rule is enabled or not.
+          type: boolean
+        position:
+          description: Indicates the order of the rule. When `null` this will default
+            to last position.
+          type: integer
+        conditions:
+          description: An array of conditions that the user must meet in order for
+            the rule to be applied.
+          items:
+            $ref: '#/components/schemas/condition'
+          type: array
+        actions:
+          description: An array of actions that will be applied to the users that
+            are matched by the conditions.
+          items:
+            $ref: '#/components/schemas/action'
+          type: array
+      type: object
+    rule_id:
+      example:
+        id: 0
+      properties:
+        id:
+          type: integer
+      type: object
+    id_2:
+      type: integer
+    error_status:
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        errors:
+          items:
+            $ref: '#/components/schemas/error_status_errors_inner'
+          type: array
+      type: object
+    rule_id_list:
+      items:
+        type: integer
+      type: array
+    connector:
+      example:
+        icon_url: icon_url
+        allows_new_parameters: true
+        auth_method: null
+        name: name
+        id: 0
+      properties:
+        id:
+          description: The connectors unique ID in OneLogin.
+          type: integer
+        name:
+          description: The name of the connector.
+          type: string
+        auth_method:
+          $ref: '#/components/schemas/auth_method'
+        allows_new_parameters:
+          description: Indicates if apps created using this connector will be allowed
+            to create custom parameters.
+          type: boolean
+        icon_url:
+          description: A link to the apps icon url.
+          type: string
+      type: object
+    name_1:
+      description: The name of the connector.
+      type: string
+    factor:
+      items:
+        $ref: '#/components/schemas/factor_inner'
+      type: array
+    registration:
+      example:
+        device_id: device_id
+        id: id
+        status: pending
+      properties:
+        id:
+          description: Registration identifier.
+          type: string
+        status:
+          description: pending registration has not been completed successfully. accepted
+            registration has successfully completed.
+          enum:
+          - pending
+          - accepted
+          type: string
+        device_id:
+          description: Device id to be used with Verify the Factor.
+          type: string
+      type: object
+    device:
+      example:
+        type_display_name: type_display_name
+        default: true
+        device_id: device_id
+        auth_factor_name: auth_factor_name
+        user_display_name: user_display_name
+      properties:
+        device_id:
+          type: string
+        user_display_name:
+          type: string
+        type_display_name:
+          type: string
+        auth_factor_name:
+          type: string
+        default:
+          type: boolean
+      type: object
+    status_2:
+      example:
+        status:
+          code: 0
+          type: type
+          message: message
+          error: true
+      properties:
+        status:
+          $ref: '#/components/schemas/status_2_status'
+      type: object
+    role:
+      example:
+        name: name
+        id: 0
+        users:
+        - 6
+        - 6
+        admins:
+        - 1
+        - 1
+        apps:
+        - null
+        - null
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        apps:
+          items:
+            $ref: '#/components/schemas/id_1'
+          type: array
+        users:
+          items:
+            type: integer
+          type: array
+        admins:
+          items:
+            type: integer
+          type: array
+      required:
+      - name
+      type: object
+    role_id:
+      type: integer
+    name_2:
+      type: string
+    schema_1:
+      example:
+        added_at: added_at
+        added_by:
+          name: name
+          id: 6
+        name: name
+        assigned: true
+        id: 0
+        username: username
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        username:
+          type: string
+        added_by:
+          $ref: '#/components/schemas/schema_1_added_by'
+        added_at:
+          type: string
+        assigned:
+          description: Indicates if assigned to role or not. Defaults to true.
+          type: boolean
+      type: object
+    hook:
+      example:
+        runtime: runtime
+        created_at: created_at
+        type: type
+        packages: "{}"
+        timeout: 0
+        env_vars:
+        - env_vars
+        - env_vars
+        retries: 2
+        updated_at: updated_at
+        context_version: context_version
+        function: function
+        options:
+          risk_enabled: true
+          mfa_device_info_enabled: true
+          location_enabled: true
+        disabled: true
+        id: id
+        conditions:
+        - source: source
+          value: value
+          operator: operator
+        - source: source
+          value: value
+          operator: operator
+        status: ready
+      properties:
+        id:
+          description: The Hook unique ID in OneLogin.
+          type: string
+        type:
+          description: A string describing the type of hook. e.g. `pre-authentication`
+          type: string
+        disabled:
+          default: true
+          description: Boolean to enable or disable the hook. Disabled hooks will
+            not run.
+          type: boolean
+        timeout:
+          default: 1
+          description: The number of seconds to allow the hook function to run before
+            before timing out. Maximum timeout varies based on the type of hook.
+          type: integer
+        env_vars:
+          description: Environment Variable objects that will be available via process.env.ENV_VAR_NAME
+            in the hook code.
+          items:
+            type: string
+          type: array
+        runtime:
+          description: The Smart Hooks supported Node.js version to execute this hook
+            with.
+          type: string
+        retries:
+          default: 0
+          description: Number of retries if execution fails.
+          maximum: 4
+          type: integer
+        packages:
+          description: An object containing NPM packages that are bundled with the
+            hook function.
+          type: object
+        function:
+          description: A base64 encoded string containing the javascript function
+            code.
+          type: string
+        context_version:
+          description: The semantic version of the content that will be injected into
+            this hook.
+          type: string
+        status:
+          description: String describing the state of the hook function. When a hook
+            is ready and disabled is false it will be executed.
+          enum:
+          - ready
+          - create-queued
+          - create-running
+          - create-failed
+          - update-queued
+          - update-running
+          - update-failed
+          type: string
+        options:
+          $ref: '#/components/schemas/hook_options'
+        conditions:
+          description: An array of objects that let you limit the execution of a hook
+            to users in specific roles.
+          items:
+            $ref: '#/components/schemas/hook_conditions_inner'
+          type: array
+        created_at:
+          description: ISO8601 format date that they hook function was created.
+          type: string
+        updated_at:
+          description: ISO8601 format date that they hook function was last updated.
+          type: string
+      required:
+      - disabled
+      - env_vars
+      - function
+      - packages
+      - retries
+      - runtime
+      - timeout
+      - type
+      type: object
+    id_3:
+      description: The Hook unique ID in OneLogin.
+      type: string
+    hook_status:
+      properties:
+        name:
+          type: string
+        message:
+          type: string
+      type: object
+    log:
+      example:
+        correlation_id: correlation_id
+        created_at: created_at
+        request_id: request_id
+        events:
+        - events
+        - events
+      properties:
+        request_id:
+          type: string
+        correlation_id:
+          type: string
+        created_at:
+          type: string
+        events:
+          items:
+            type: string
+          type: array
+      type: object
+    envvar:
+      example:
+        updated_at: updated_at
+        name: name
+        created_at: created_at
+        id: id
+      properties:
+        id:
+          description: A unique identifier for the Hook Environment Variable
+          type: string
+        name:
+          description: The name of the environment variable.
+          type: string
+        created_at:
+          description: The ISO8601 formatted date that the environment variable was
+            created.
+          type: string
+        updated_at:
+          description: The ISO8601 formatted date that the environment variable was
+            last updated.
+          type: string
+      type: object
+    id_4:
+      description: A unique identifier for the Hook Environment Variable
+      type: string
+    user:
+      example:
+        firstname: firstname
+        password_confirmation: password_confirmation
+        created_at: created_at
+        external_id: external_id
+        locked_until: locked_until
+        title: title
+        invitation_sent_at: invitation_sent_at
+        role_ids:
+        - null
+        - null
+        custom_attributes: "{}"
+        samaccount_name: samaccount_name
+        password: password
+        updated_at: updated_at
+        password_algorithm: password_algorithm
+        company: company
+        id: 0
+        state: 1
+        directory_id: 5
+        department: department
+        member_of: member_of
+        email: email
+        manager_ad_id: manager_ad_id
+        password_changed_at: password_changed_at
+        salt: salt
+        last_login: last_login
+        invalid_login_attempts: 7
+        preferred_locale_code: preferred_locale_code
+        manager_user_id: manager_user_id
+        lastname: lastname
+        activated_at: activated_at
+        userprincipalname: userprincipalname
+        group_id: 6
+        phone: phone
+        distinguished_name: distinguished_name
+        trusted_idp_id: 2
+        comment: comment
+        username: username
+        status: 5
+      properties:
+        id:
+          type: integer
+        username:
+          description: A username for the user.
+          type: string
+        email:
+          description: A valid email for the user.
+          type: string
+        firstname:
+          description: The user's first name.
+          type: string
+        lastname:
+          description: The user's last name.
+          type: string
+        title:
+          description: The user's job title.
+          type: string
+        department:
+          description: The user's department.
+          type: string
+        company:
+          description: The user's company.
+          type: string
+        comment:
+          description: Free text related to the user.
+          type: string
+        group_id:
+          description: The ID of the Group in OneLogin that the user is assigned to.
+          type: integer
+        role_ids:
+          description: A list of OneLogin Role IDs of the user
+          items:
+            $ref: '#/components/schemas/role_id'
+          type: array
+        phone:
+          description: The E.164 format phone number for a user.
+          type: string
+        state:
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          type: integer
+        status:
+          enum:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          - 7
+          - 8
+          type: integer
+        directory_id:
+          description: The ID of the OneLogin Directory of the user.
+          type: integer
+        trusted_idp_id:
+          description: The ID of the OneLogin Trusted IDP of the user.
+          type: integer
+        manager_ad_id:
+          description: The ID of the user's manager in Active Directory.
+          type: string
+        manager_user_id:
+          description: The OneLogin User ID for the user's manager.
+          type: string
+        samaccount_name:
+          description: The user's Active Directory username.
+          type: string
+        member_of:
+          description: The user's directory membership.
+          type: string
+        userprincipalname:
+          description: The principle name of the user.
+          type: string
+        distinguished_name:
+          description: The distinguished name of the user.
+          type: string
+        external_id:
+          description: The ID of the user in an external directory.
+          type: string
+        activated_at:
+          type: string
+        last_login:
+          type: string
+        invitation_sent_at:
+          type: string
+        updated_at:
+          type: string
+        preferred_locale_code:
+          type: string
+        created_at:
+          type: string
+        custom_attributes:
+          type: object
+        invalid_login_attempts:
+          type: integer
+        locked_until:
+          type: string
+        password_changed_at:
+          type: string
+        password:
+          description: The password to set for a user.
+          type: string
+        password_confirmation:
+          description: Required if the password is being set.
+          type: string
+        password_algorithm:
+          description: Use this when importing a password that's already hashed. Prepend
+            the salt value to the cleartext password value before SHA-256-encoding
+            it
+          type: string
+        salt:
+          description: The salt value used with the password_algorithm.
+          type: string
+      type: object
+    mapping:
+      example:
+        name: name
+        match: all
+        id: 0
+        position: 6
+        conditions:
+        - source: source
+          value: value
+          operator: operator
+        - source: source
+          value: value
+          operator: operator
+        actions:
+        - macro: macro
+          expression: expression
+          scriplet: scriplet
+          action: action
+          value:
+          - value
+          - value
+        - macro: macro
+          expression: expression
+          scriplet: scriplet
+          action: action
+          value:
+          - value
+          - value
+        enabled: true
+      properties:
+        id:
+          type: integer
+        name:
+          description: The name of the mapping.
+          type: string
+        enabled:
+          description: Indicates if the mapping is enabled or not.
+          type: boolean
+        match:
+          description: Indicates how conditions should be matched.
+          enum:
+          - all
+          - any
+          type: string
+        position:
+          description: Indicates the order of the mapping. When `null` this will default
+            to last position.
+          type: integer
+        conditions:
+          description: An array of conditions that the user must meet in order for
+            the mapping to be applied.
+          items:
+            $ref: '#/components/schemas/condition'
+          type: array
+        actions:
+          description: An array of actions that will be applied to the users that
+            are matched by the conditions.
+          items:
+            $ref: '#/components/schemas/action'
+          type: array
+      required:
+      - actions
+      - contiditions
+      - enabled
+      - match
+      - name
+      - position
+      type: object
+    mapping_id_list:
+      items:
+        type: integer
+      type: array
+    ip:
+      description: The IP address of the User's request.
+      type: string
+    user_agent:
+      description: The user agent of the User's request.
+      type: string
+    risk_user:
+      description: An Object containing User details.
+      properties:
+        id:
+          description: A unique identifier for the user.
+          type: string
+        name:
+          description: A name for the user.
+          type: string
+        authenticated:
+          default: false
+          description: Indicates if the metadata supplied in this event should be
+            considered as trusted for the user.
+          type: boolean
+      required:
+      - id
+      type: object
+    source:
+      description: "Used for targeting custom rules based on a group of people, customers,\
+        \ accounts, or even a single user."
+      example:
+        name: name
+        id: id
+      properties:
+        id:
+          type: string
+        name:
+          description: The name of the source
+          type: string
+      type: object
+    session:
+      description: "A dictionary of extra information that provides useful context\
+        \ about the session, for example the session ID, or some cookie information."
+      properties:
+        id:
+          description: "If you use a database to track sessions, you can send us the\
+            \ session ID."
+          type: string
+      type: object
+    risk_device:
+      description: Information about the device being used.
+      properties:
+        id:
+          description: This device's unique identifier
+          type: string
+      type: object
+    fp:
+      description: Set to the value of the __tdli_fp cookie.
+      type: string
+    risk_rule:
+      example:
+        name: name
+        description: description
+        id: id
+        filters:
+        - filters
+        - filters
+        source:
+          name: name
+          id: id
+        type: blacklist
+        target: location.ip
+      properties:
+        id:
+          type: string
+        name:
+          description: The name of this rule
+          type: string
+        description:
+          type: string
+        type:
+          description: The type parameter specifies the type of rule that will be
+            created.
+          enum:
+          - blacklist
+          - whitelist
+          type: string
+        target:
+          description: The target parameter that will be used when evaluating the
+            rule against an incoming event.
+          enum:
+          - location.ip
+          - location.address.country_iso_code
+          type: string
+        filters:
+          description: A list of IP addresses or country codes or names to evaluate
+            against each event.
+          items:
+            type: string
+          type: array
+        source:
+          $ref: '#/components/schemas/source'
+      type: object
+    id_5:
+      type: string
+    condition:
+      example:
+        source: source
+        value: value
+        operator: operator
+      properties:
+        source:
+          description: The source field to check.
+          type: string
+        operator:
+          description: A valid operator for the selected condition source
+          type: string
+        value:
+          description: A plain text string or valid value for the selected condition
+            source.
+          type: string
+      type: object
+    action:
+      example:
+        macro: macro
+        expression: expression
+        scriplet: scriplet
+        action: action
+        value:
+        - value
+        - value
+      properties:
+        action:
+          description: The action to apply
+          type: string
+        value:
+          description: Only applicable to provisioned and set_* actions. Items in
+            the array will be a plain text string or valid value for the selected
+            action.
+          items:
+            type: string
+          type: array
+        expression:
+          description: "A regular expression to extract a value. Applies to provisionable,\
+            \ multi-selects, and string actions."
+          type: string
+        scriplet:
+          description: A hash containing scriptlet code that returns a value.
+          type: string
+        macro:
+          description: "A template to construct a value. Applies to default, string,\
+            \ and list actions."
+          type: string
+      type: object
+    generateToken_request:
+      properties:
+        grant_type:
+          enum:
+          - client_credentials
+          type: string
+      type: object
+    generateToken_200_response:
+      example:
+        access_token: access_token
+        refresh_token: refresh_token
+        created_at: created_at
+        token_type: token_type
+        expires_in: 0
+        accountt_id: 6
+      properties:
+        access_token:
+          type: string
+        created_at:
+          type: string
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+        accountt_id:
+          type: integer
+      type: object
+    generateToken_400_response:
+      example:
+        status:
+          code: 0
+          error: true
+          type: type
+          message: message
+      properties:
+        status:
+          $ref: '#/components/schemas/status'
+      type: object
+    revokeToken_request:
+      properties:
+        access_token:
+          type: string
+      type: object
+    getRateLimit_200_response_data:
+      example:
+        X-RateLimit-Remaining: 6
+        X-RateLimit-Reset: 1
+        X-RateLimit-Limit: 0
+      properties:
+        X-RateLimit-Limit:
+          type: integer
+        X-RateLimit-Remaining:
+          type: integer
+        X-RateLimit-Reset:
+          type: integer
+      type: object
+    getRateLimit_200_response:
+      example:
+        data:
+          X-RateLimit-Remaining: 6
+          X-RateLimit-Reset: 1
+          X-RateLimit-Limit: 0
+        status:
+          code: 0
+          error: true
+          type: type
+          message: message
+      properties:
+        status:
+          $ref: '#/components/schemas/status'
+        data:
+          $ref: '#/components/schemas/getRateLimit_200_response_data'
+      type: object
+    listAuthorizationServers_200_response_inner_configuration:
+      example:
+        resource_identifier: resource_identifier
+        audiences:
+        - audiences
+        - audiences
+      properties:
+        resource_identifier:
+          type: string
+        audiences:
+          items:
+            type: string
+          type: array
+      type: object
+    listAuthorizationServers_200_response_inner:
+      example:
+        configuration:
+          resource_identifier: resource_identifier
+          audiences:
+          - audiences
+          - audiences
+        name: name
+        description: description
+        id: 0
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        configuration:
+          $ref: '#/components/schemas/listAuthorizationServers_200_response_inner_configuration'
+        description:
+          type: string
+      type: object
+    createAuthorizationServer_request:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        configuration:
+          $ref: '#/components/schemas/auth_server_configuration'
+      type: object
+    getAuthorizationServer_200_response:
+      example:
+        configuration:
+          access_token_expiration_minutes: 6
+          resource_identifier: resource_identifier
+          audiences:
+          - audiences
+          - audiences
+          refresh_token_expiration_minutes: 0
+        name: name
+        description: description
+        id: 1
+      properties:
+        configuration:
+          $ref: '#/components/schemas/auth_server_configuration'
+        id:
+          type: integer
+        description:
+          type: string
+        name:
+          type: string
+      type: object
+    updateAuthorizationServer_400_response:
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+        statusCode:
+          type: integer
+        name:
+          type: string
+      type: object
+    listAccessTokenClaims_200_response_inner:
+      example:
+        default_values: default_values
+        provisioned_entitlements: true
+        attributes_transformations: attributes_transformations
+        values:
+        - values
+        - values
+        user_attribute_macros: user_attribute_macros
+        skip_if_blank: true
+        id: 0
+        label: label
+        user_attribute_mappings: user_attribute_mappings
+      properties:
+        id:
+          type: integer
+        label:
+          type: string
+        user_attribute_mappings:
+          type: string
+        user_attribute_macros:
+          type: string
+        attributes_transformations:
+          type: string
+        skip_if_blank:
+          type: boolean
+        values:
+          items:
+            type: string
+          type: array
+        default_values:
+          type: string
+        provisioned_entitlements:
+          type: boolean
+      type: object
+    addAccessTokenClaim_request:
+      properties:
+        name:
+          type: string
+        user_attribute_mappings:
+          type: string
+        user_attribute_macros:
+          type: string
+      type: object
+    listScopes_200_response_inner:
+      example:
+        description: description
+        id: 0
+        value: value
+      properties:
+        id:
+          type: integer
+        value:
+          type: string
+        description:
+          type: string
+      type: object
+    addScope_request:
+      properties:
+        value:
+          type: string
+        description:
+          type: string
+      type: object
+    getClientApps_200_response_inner_scopes_inner:
+      example:
+        description: description
+        id: 0
+        value: value
+      properties:
+        description:
+          type: string
+        value:
+          type: string
+        id:
+          type: integer
+      type: object
+    getClientApps_200_response_inner:
+      example:
+        name: name
+        scopes:
+        - description: description
+          id: 0
+          value: value
+        - description: description
+          id: 0
+          value: value
+        api_auth_id: 1
+        app_id: 6
+      properties:
+        scopes:
+          items:
+            $ref: '#/components/schemas/getClientApps_200_response_inner_scopes_inner'
+          type: array
+        app_id:
+          type: integer
+        name:
+          type: string
+        api_auth_id:
+          type: integer
+      type: object
+    addClientApp_request:
+      properties:
+        app_id:
+          type: integer
+        scopes:
+          items:
+            type: integer
+          type: array
+      type: object
+    updateClientApp_request:
+      properties:
+        scopes:
+          items:
+            type: integer
+          type: array
+      type: object
+    listAppUsers_200_response_inner:
+      example:
+        firstname: firstname
+        id: 0
+        email: email
+        lastname: lastname
+        username: username
+      properties:
+        firstname:
+          type: string
+        id:
+          type: integer
+        email:
+          type: string
+        lastname:
+          type: string
+        username:
+          type: string
+      type: object
+    listConditions_200_response_inner:
+      example:
+        name: name
+        value: value
+      properties:
+        name:
+          description: The name of the Condition.
+          type: string
+        value:
+          description: The unique identifier of the condition. This should be used
+            when defining conditions for a rule.
+          type: string
+      type: object
+    listConditionOperators_200_response_inner:
+      example:
+        name: name
+        value: value
+      properties:
+        name:
+          description: The name or description of the operator.
+          type: string
+        value:
+          description: The condition operator value to use when creating or updating
+            App Rules.
+          type: string
+      type: object
+    listConditionValues_200_response_inner:
+      example:
+        name: name
+        value: value
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+      type: object
+    listActions_200_response_inner:
+      example:
+        name: name
+        value: value
+      properties:
+        name:
+          description: The name of the Action.
+          type: string
+        value:
+          description: The unique identifier of the action. This should be used when
+            defining actions for a User Mapping.
+          type: string
+      type: object
+    getAvailableFactors_200_response_inner:
+      example:
+        name: name
+        factor_id: 0
+        auth_factor_name: auth_factor_name
+      properties:
+        factor_id:
+          description: Identifier for the factor which will be used for user enrollment
+          type: integer
+        name:
+          description: "Authentication factor name, as it appears to administrators\
+            \ in OneLogin."
+          type: string
+        auth_factor_name:
+          description: Internal use only
+          type: string
+      type: object
+    enrollFactor_request:
+      properties:
+        factor_id:
+          description: The identifier of the factor to enroll the user with.
+          type: integer
+        display_name:
+          description: A name for the users device.
+          type: string
+        expires_in:
+          description: "Defaults to 120. Valid values are: 120-900 seconds."
+          type: string
+        verified:
+          description: Defaults to false.
+          type: boolean
+        redirect_to:
+          description: Redirects MagicLink success page to specified URL after 2 seconds.
+          type: string
+        custom_message:
+          description: A message template that will be sent via SMS. Max length of
+            the message after template items are inserted is 160 characters including
+            the OTP code.
+          type: string
+      required:
+      - display_name
+      - factor_id
+      type: object
+    verifyEnrollment_request:
+      properties:
+        otp:
+          type: integer
+      type: object
+    activateFactor_request:
+      properties:
+        device_id:
+          description: Required. Specifies the factor to be verified.
+          type: integer
+        expires_in:
+          description: 'Optional. Sets the window of time in seconds that the factor
+            must be verified within. '
+          type: integer
+        redirect_to:
+          description: Optional. Only applies to Email MagicLink factor.
+          type: string
+        custom_message:
+          description: Optional. Only applies to SMS factor. A message template that
+            will be sent via SMS.
+          type: string
+      type: object
+    verifyFactorVoice_200_response_inner:
+      example:
+        device_id: device_id
+        id: id
+        status: pending
+      properties:
+        id:
+          type: string
+        status:
+          enum:
+          - pending
+          - accepted
+          - rejected
+          type: string
+        device_id:
+          type: string
+      type: object
+    verifyFactor_request:
+      properties:
+        otp:
+          description: OTP code provided by the device or SMS message sent to user.
+          type: string
+        device_id:
+          description: ID of the specified device which has been registerd for the
+            given user.
+          type: integer
+      type: object
+    generateMfaToken_request:
+      properties:
+        expires_in:
+          description: Set the duration of the token in seconds.
+          type: string
+        reusable:
+          description: Defines if the token is reusable multiple times within the
+            expiry window.
+          type: boolean
+      type: object
+    generateMfaToken_200_response:
+      example:
+        expires_at: expires_at
+        device_id: device_id
+        mfa_token: mfa_token
+        reusable: true
+      properties:
+        mfa_token:
+          description: Token can function as a temporary MFA token. It can be used
+            to authenticate for any app when valid.
+          type: string
+        reusable:
+          description: true indcates the token can be used multiple times. false indicates
+            the token is invalid after a single use
+          type: boolean
+        expires_at:
+          description: Defines the expiration time and date for the token. Format
+            is UTC time.
+          type: string
+        device_id:
+          description: Defines the expiration time and date for the token. Format
+            is UTC time.
+          type: string
+      type: object
+    generateMfaToken_422_response_details:
+      properties:
+        parameters:
+          items:
+            type: string
+          type: array
+      type: object
+    generateMfaToken_422_response:
+      properties:
+        statusCode:
+          type: integer
+        name:
+          type: string
+        message:
+          type: string
+        details:
+          $ref: '#/components/schemas/generateMfaToken_422_response_details'
+      type: object
+    createRoles_201_response_inner:
+      example:
+        id: 0
+      properties:
+        id:
+          type: integer
+      type: object
+    updateRole_200_response:
+      example:
+        id: 0
+      properties:
+        id:
+          type: integer
+      type: object
+    setRoleApps_200_response_inner:
+      example:
+        id: 0
+      properties:
+        id:
+          description: Apps unique ID in OneLogin.
+          type: integer
+      type: object
+    addRoleUsers_200_response_inner:
+      example:
+        id: 0
+      properties:
+        id:
+          type: integer
+      type: object
+    removeRoleUsers_request:
+      properties:
+        user_id:
+          items:
+            $ref: '#/components/schemas/id_2'
+          type: array
+      type: object
+    generateSamlAssertion_request:
+      properties:
+        username_or_email:
+          description: Set this to the username or email of the OneLogin user accessing
+            the app for which you want to generate a SAML token.
+          type: string
+        password:
+          description: Password of the OneLogin user accessing the app for which you
+            want to generate a SAML token.
+          type: string
+        app_id:
+          description: App ID of the app for which you want to generate a SAML token.
+            This is the app ID in OneLogin.
+          type: string
+        subdomain:
+          description: Set to the subdomain of the OneLogin user accessing the app
+            for which you want to generate a SAML token.
+          type: string
+        ip_address:
+          description: "Whitelisted IP address, if MFA is required and you need to\
+            \ honor IP address whitelisting defined in MFA policies."
+          type: string
+      required:
+      - app_id
+      - password
+      - subdomain
+      - username_or_email
+      type: object
+    verifyFactorSaml_request:
+      properties:
+        app_id:
+          description: App ID of the app for which you want to generate a SAML token.
+            This is the app ID in OneLogin.
+          type: string
+        device_id:
+          description: Provide the MFA device_id you are submitting for verification.
+            The device_id is supplied by the Generate SAML Assertion API.
+          type: string
+        state_token:
+          description: state_token associated with the MFA device_id you are submitting.
+            The state_token is supplied by the Generate SAML Assertion API.
+          type: string
+        otp_token:
+          description: Provide the OTP value for the MFA factor you are submitting
+            for verification.
+          type: string
+        do_not_notify:
+          description: "When verifying MFA via Protect Push, set this to true to stop\
+            \ additional push notifications being sent to the OneLogin Protect device."
+          type: boolean
+      required:
+      - app_id
+      - device_id
+      - state_token
+      type: object
+    verifyFactorSaml_200_response:
+      example:
+        data: data
+        message: message
+      properties:
+        data:
+          description: Provides the SAML assertion.
+          type: string
+        message:
+          description: Plain text description describing the outcome of the response.
+          type: string
+      type: object
+    createEnvironmentVariable_request:
+      properties:
+        name:
+          description: The name for the environment variable that will be used to
+            retrieve the value from a hook function.
+          type: string
+        value:
+          description: The secret value that will be encrypted at rest and injected
+            in applicable hook functions at run time.
+          type: string
+      required:
+      - name
+      - value
+      type: object
+    updateEnvironmentVariable_request:
+      properties:
+        value:
+          description: The secret value that will be encrypted at rest and injected
+            in applicable hook functions at run time.
+          type: string
+      required:
+      - value
+      type: object
+    getUserApps_200_response_inner:
+      example:
+        icon_url: icon_url
+        provisioning_enabled: true
+        login_id: 6
+        provisioning_state: unknown
+        extension: true
+        name: name
+        provisioning_status: enabling
+        id: 0
+      properties:
+        id:
+          description: The App ID
+          type: integer
+        icon_url:
+          description: A url for the icon that represents the app in the OneLogin
+            portal
+          type: string
+        extension:
+          description: Boolean that indicates if the OneLogin browser extension is
+            required to launch this app.
+          type: boolean
+        login_id:
+          description: Unqiue identifier for this user and app combination.
+          type: integer
+        name:
+          description: The name of the app.
+          type: string
+        provisioning_status:
+          enum:
+          - enabling
+          - disabling
+          - enabling_pending_approval
+          - disabling_pendding_approval
+          - enabled
+          - disabled
+          - disabling_failed
+          - enabling_failed
+          type: string
+        provisioning_state:
+          description: If provisioning is enabled this indicates the state of provisioning
+            for the given user.
+          enum:
+          - unknown
+          - provisioning
+          - modifying
+          - deleting
+          - provisioning_pending_approval
+          - deleting_pending_approval
+          - modifying_pending_approval
+          - linking
+          - provisioned
+          - deleted
+          - modifying_failed
+          - provisioning_failed
+          - deleting_failed
+          - linking_failed
+          - disabled
+          - nonexistent
+          - modifying_pending_approval_then_disabled
+          type: string
+        provisioning_enabled:
+          description: Indicates if provisioning is enabled for this app.
+          type: boolean
+      type: object
+    listMappingConditions_200_response_inner:
+      example:
+        name: name
+        value: value
+      properties:
+        name:
+          description: The name of the Condition.
+          type: string
+        value:
+          description: The unique identifier of the condition. This should be used
+            when defining conditions for a User Mapping.
+          type: string
+      type: object
+    listMappingConditionOperators_200_response_inner:
+      example:
+        name: name
+        value: value
+      properties:
+        name:
+          description: The name or description of the operator.
+          type: string
+        value:
+          description: The condition operator value to use when creating or updating
+            User Mappings.
+          type: string
+      type: object
+    trackEvent_request:
+      properties:
+        verb:
+          description: Verbs are used to distinguish between different types of events.
+          type: string
+        ip:
+          description: The IP address of the User's request.
+          type: string
+        user_agent:
+          description: The user agent of the User's request.
+          type: string
+        user:
+          $ref: '#/components/schemas/risk_user'
+        source:
+          $ref: '#/components/schemas/source'
+        session:
+          $ref: '#/components/schemas/session'
+        device:
+          $ref: '#/components/schemas/risk_device'
+        fp:
+          description: Set to the value of the __tdli_fp cookie.
+          type: string
+        published:
+          description: Date and time of the event in IS08601 format. Useful for preloading
+            old events. Defaults to date time this API request is received.
+          type: string
+      required:
+      - ip
+      - user
+      - user_agent
+      - verb
+      type: object
+    getRiskScore_request:
+      properties:
+        ip:
+          description: The IP address of the User's request.
+          type: string
+        user_agent:
+          description: The user agent of the User's request.
+          type: string
+        user:
+          $ref: '#/components/schemas/risk_user'
+        source:
+          $ref: '#/components/schemas/source'
+        session:
+          $ref: '#/components/schemas/session'
+        device:
+          $ref: '#/components/schemas/risk_device'
+        fp:
+          description: Set to the value of the __tdli_fp cookie.
+          type: string
+      required:
+      - ip
+      - user
+      - user_agent
+      type: object
+    getRiskScore_200_response:
+      example:
+        score: 8.008281904610115
+        triggers:
+        - triggers
+        - triggers
+      properties:
+        score:
+          description: A risk score 0 is low risk and 100 is the highest risk level
+            possible.
+          maximum: 100.0
+          minimum: 0.0
+          type: number
+        triggers:
+          description: Triggers are indicators of some of the key items that influenced
+            the risk score.
+          items:
+            type: string
+          type: array
+      type: object
+    getRiskScore_400_response:
+      properties:
+        messages:
+          items:
+            type: string
+          type: array
+      type: object
+    getScoreInsights_200_response_scores:
+      example:
+        minimal: 0
+        high: 5
+        low: 6
+        very_high: 5
+        medium: 1
+      properties:
+        minimal:
+          type: integer
+        low:
+          type: integer
+        medium:
+          type: integer
+        high:
+          type: integer
+        very_high:
+          type: integer
+      type: object
+    getScoreInsights_200_response:
+      example:
+        total: 2
+        scores:
+          minimal: 0
+          high: 5
+          low: 6
+          very_high: 5
+          medium: 1
+      properties:
+        scores:
+          $ref: '#/components/schemas/getScoreInsights_200_response_scores'
+        total:
+          type: integer
+      type: object
+    schema_provisioning:
+      example:
+        enabled: true
+      properties:
+        enabled:
+          description: Indicates if provisioning is enabled for this app.
+          type: boolean
+      type: object
+    error_status_errors_inner:
+      properties:
+        field:
+          type: string
+        message:
+          items:
+            type: string
+          type: array
+      type: object
+    factor_inner_factor_data:
+      description: "Array of factor specific properties. For example, the token or\
+        \ totp code for OneLogin Protect."
+      properties:
+        verification_token:
+          description: The token which can be used to verify the factor registration.
+          type: string
+        totp_url:
+          description: OTP Url that can be leveraged for any authenticator that supports
+            the key uri format.
+          type: string
+      type: object
+    factor_inner:
+      properties:
+        id:
+          description: MFA device identifier.
+          type: string
+        status:
+          description: "accepted : factor has been verified. pending: registered but\
+            \ has not been verified."
+          enum:
+          - pending
+          - accepted
+          type: string
+        default:
+          description: True = is user's default MFA device for OneLogin.
+          type: boolean
+        auth_factor_name:
+          description: "\"Official\" authentication factor name, as it appears to\
+            \ administrators in OneLogin."
+          type: string
+        type_display_name:
+          description: "Authentication factor display name as it appears to users\
+            \ upon initial registration, as defined by admins at Settings > Authentication\
+            \ Factors."
+          type: string
+        user_display_name:
+          description: Authentication factor display name assigned by users when they
+            enroll the device.
+          type: string
+        expires_at:
+          description: A short lived token that is required to Verify the Factor.
+            This token expires based on the expires_in parameter passed in.
+          type: string
+        factor_data:
+          $ref: '#/components/schemas/factor_inner_factor_data'
+      type: object
+    status_2_status:
+      example:
+        code: 0
+        type: type
+        message: message
+        error: true
+      properties:
+        type:
+          type: string
+        code:
+          type: integer
+        message:
+          type: string
+        error:
+          type: boolean
+      type: object
+    schema_1_added_by:
+      example:
+        name: name
+        id: 6
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      type: object
+    hook_options:
+      description: A set of attributes allow control over the information that is
+        included in the hook context.
+      example:
+        risk_enabled: true
+        mfa_device_info_enabled: true
+        location_enabled: true
+      properties:
+        risk_enabled:
+          type: boolean
+        location_enabled:
+          type: boolean
+        mfa_device_info_enabled:
+          type: boolean
+      type: object
+    hook_conditions_inner:
+      example:
+        source: source
+        value: value
+        operator: operator
+      properties:
+        source:
+          type: string
+        operator:
+          type: string
+        value:
+          type: string
+      type: object

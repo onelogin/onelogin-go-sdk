@@ -82,6 +82,10 @@ func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
 			break
 		}
 		params := req.URL.Query()
+		// respect page size if given
+		if params.Has("limit") {
+			break
+		}
 		params.Set("cursor", next)
 		req.URL.RawQuery = params.Encode()
 		resp, data, err = svc.executeHTTP(req, resourceRequest)

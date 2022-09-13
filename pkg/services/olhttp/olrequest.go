@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
@@ -73,6 +74,11 @@ func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
 		allData = append(allData, data)
 		next = resp.Header.Get("After-Cursor")
 		if next == "" {
+			break
+		}
+		totalPages, _ := strconv.Atoi(resp.Header.Get("Total-Pages"))
+		currentPage, _ := strconv.Atoi(resp.Header.Get("Current-Page"))
+		if currentPage > totalPages {
 			break
 		}
 		params := req.URL.Query()

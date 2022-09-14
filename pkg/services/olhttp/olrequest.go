@@ -208,7 +208,7 @@ func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTT
 	switch strings.ToLower(resourceRequest.AuthMethod) {
 	case "bearer":
 		if (svc.ClientCredential == ClientCredential{}) {
-			if err := setBearerToken(svc); err != nil {
+			if err := SetBearerToken(svc); err != nil {
 				return err
 			}
 		}
@@ -244,7 +244,7 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 	switch {
 	case resp.StatusCode == http.StatusUnauthorized, resp.StatusCode == http.StatusForbidden:
 		if resourceRequest.AuthMethod == "bearer" {
-			if err := setBearerToken(svc); err != nil {
+			if err := SetBearerToken(svc); err != nil {
 				return nil, nil, err
 			}
 			return svc.executeHTTP(req, resourceRequest)
@@ -279,7 +279,7 @@ func (svc *OLHTTPService) mintBearerToken() (ClientCredential, error) {
 }
 
 // force overwrite the service's memoized access token
-func setBearerToken(svc *OLHTTPService) error {
+func SetBearerToken(svc *OLHTTPService) error {
 	cred, err := svc.mintBearerToken()
 	svc.ClientCredential = cred
 	if err != nil {

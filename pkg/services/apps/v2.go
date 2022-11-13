@@ -172,7 +172,14 @@ func (svc *V2Service) pruneParameters(requestedParams map[string]AppParameters, 
 	var delErrors []error
 	keepMap := make(map[int32]bool, len(requestedParams))
 	for _, param := range requestedParams {
-		keepMap[*param.ID] = true
+		var id int32
+		if param.ID == nil {
+			// If we weren't given an id for our parameter, get it from the app object
+			id = *app.Parameters[*param.ParamKeyName].ID
+		} else {
+			id = *param.ID
+		}
+		keepMap[id] = true
 	}
 	// no need to call down app parameters. parameters returned as part of app update
 	for _, delCandidate := range app.Parameters {

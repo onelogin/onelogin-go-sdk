@@ -4,11 +4,11 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | Pointer to **int32** |  | [optional] 
-**Name** | **string** |  | 
-**Apps** | Pointer to **[]int32** |  | [optional] 
-**Users** | Pointer to **[]int32** |  | [optional] 
-**Admins** | Pointer to **[]int32** |  | [optional] 
+**Id** | Pointer to **int32** | Role ID | [optional] [readonly] 
+**Name** | **string** | The name of the role. | 
+**Apps** | Pointer to **[]int32** | A list of app IDs that will be assigned to the role. | [optional] 
+**Users** | Pointer to **[]int32** | A list of user IDs to assign to the role. | [optional] 
+**Admins** | Pointer to **[]int32** | A list of user IDs to assign as role administrators. | [optional] 
 
 ## Methods
 

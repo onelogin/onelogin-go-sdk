@@ -4,8 +4,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Name** | Pointer to **string** |  | [optional] 
-**Message** | Pointer to **string** |  | [optional] 
+**Name** | Pointer to **string** | responses status nam | [optional] 
+**Message** | Pointer to **string** | your operation was successful | [optional] 
 
 ## Methods
 

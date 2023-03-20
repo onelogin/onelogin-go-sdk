@@ -4,16 +4,16 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Audiences** | Pointer to **[]string** |  | [optional] 
-**RefreshTokenExpirationMinutes** | Pointer to **int32** |  | [optional] 
-**ResourceIdentifier** | Pointer to **string** |  | [optional] 
-**AccessTokenExpirationMinutes** | Pointer to **int32** |  | [optional] 
+**Audiences** | **[]string** | List of API endpoints that will be returned in Access Tokens. | 
+**RefreshTokenExpirationMinutes** | Pointer to **int32** | The number of minutes until refresh token expires. There is no maximum expiry limit. | [optional] 
+**ResourceIdentifier** | **string** | Unique identifier for the API that the Authorization Server will issue Access Tokens for. | 
+**AccessTokenExpirationMinutes** | Pointer to **int32** | The number of minutes until access token expires. There is no maximum expiry limit. | [optional] 
 
 ## Methods
 
 ### NewAuthServerConfiguration
 
-`func NewAuthServerConfiguration() *AuthServerConfiguration`
+`func NewAuthServerConfiguration(audiences []string, resourceIdentifier string, ) *AuthServerConfiguration`
 
 NewAuthServerConfiguration instantiates a new AuthServerConfiguration object
 This constructor will assign default values to properties that have it defined,
@@ -47,11 +47,6 @@ and a boolean to check if the value has been set.
 
 SetAudiences sets Audiences field to given value.
 
-### HasAudiences
-
-`func (o *AuthServerConfiguration) HasAudiences() bool`
-
-HasAudiences returns a boolean if a field has been set.
 
 ### GetRefreshTokenExpirationMinutes
 
@@ -97,11 +92,6 @@ and a boolean to check if the value has been set.
 
 SetResourceIdentifier sets ResourceIdentifier field to given value.
 
-### HasResourceIdentifier
-
-`func (o *AuthServerConfiguration) HasResourceIdentifier() bool`
-
-HasResourceIdentifier returns a boolean if a field has been set.
 
 ### GetAccessTokenExpirationMinutes
 

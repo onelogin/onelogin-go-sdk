@@ -11,12 +11,12 @@ Name | Type | Description | Notes
 **EnvVars** | **[]string** | Environment Variable objects that will be available via process.env.ENV_VAR_NAME in the hook code. | 
 **Runtime** | **string** | The Smart Hooks supported Node.js version to execute this hook with. | 
 **Retries** | **int32** | Number of retries if execution fails. | [default to 0]
-**Packages** | **map[string]interface{}** | An object containing NPM packages that are bundled with the hook function. | 
+**Packages** | **map[string]string** | An object containing NPM packages that are bundled with the hook function. | 
 **Function** | **string** | A base64 encoded string containing the javascript function code. | 
 **ContextVersion** | Pointer to **string** | The semantic version of the content that will be injected into this hook. | [optional] 
 **Status** | Pointer to **string** | String describing the state of the hook function. When a hook is ready and disabled is false it will be executed. | [optional] 
 **Options** | Pointer to [**HookOptions**](HookOptions.md) |  | [optional] 
-**Conditions** | Pointer to [**[]HookConditionsInner**](HookConditionsInner.md) | An array of objects that let you limit the execution of a hook to users in specific roles. | [optional] 
+**Conditions** | Pointer to [**[]Condition**](Condition.md) | An array of objects that let you limit the execution of a hook to users in specific roles. | [optional] 
 **CreatedAt** | Pointer to **string** | ISO8601 format date that they hook function was created. | [optional] 
 **UpdatedAt** | Pointer to **string** | ISO8601 format date that they hook function was last updated. | [optional] 
 
@@ -24,7 +24,7 @@ Name | Type | Description | Notes
 
 ### NewHook
 
-`func NewHook(type_ string, disabled bool, timeout int32, envVars []string, runtime string, retries int32, packages map[string]interface{}, function string, ) *Hook`
+`func NewHook(type_ string, disabled bool, timeout int32, envVars []string, runtime string, retries int32, packages map[string]string, function string, ) *Hook`
 
 NewHook instantiates a new Hook object
 This constructor will assign default values to properties that have it defined,
@@ -186,20 +186,20 @@ SetRetries sets Retries field to given value.
 
 ### GetPackages
 
-`func (o *Hook) GetPackages() map[string]interface{}`
+`func (o *Hook) GetPackages() map[string]string`
 
 GetPackages returns the Packages field if non-nil, zero value otherwise.
 
 ### GetPackagesOk
 
-`func (o *Hook) GetPackagesOk() (*map[string]interface{}, bool)`
+`func (o *Hook) GetPackagesOk() (*map[string]string, bool)`
 
 GetPackagesOk returns a tuple with the Packages field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetPackages
 
-`func (o *Hook) SetPackages(v map[string]interface{})`
+`func (o *Hook) SetPackages(v map[string]string)`
 
 SetPackages sets Packages field to given value.
 
@@ -301,20 +301,20 @@ HasOptions returns a boolean if a field has been set.
 
 ### GetConditions
 
-`func (o *Hook) GetConditions() []HookConditionsInner`
+`func (o *Hook) GetConditions() []Condition`
 
 GetConditions returns the Conditions field if non-nil, zero value otherwise.
 
 ### GetConditionsOk
 
-`func (o *Hook) GetConditionsOk() (*[]HookConditionsInner, bool)`
+`func (o *Hook) GetConditionsOk() (*[]Condition, bool)`
 
 GetConditionsOk returns a tuple with the Conditions field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetConditions
 
-`func (o *Hook) SetConditions(v []HookConditionsInner)`
+`func (o *Hook) SetConditions(v []Condition)`
 
 SetConditions sets Conditions field to given value.
 

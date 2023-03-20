@@ -22,7 +22,7 @@ Name | Type | Description | Notes
 **TrustedIdpId** | Pointer to **int32** | The ID of the OneLogin Trusted IDP of the user. | [optional] 
 **ManagerAdId** | Pointer to **string** | The ID of the user&#39;s manager in Active Directory. | [optional] 
 **ManagerUserId** | Pointer to **string** | The OneLogin User ID for the user&#39;s manager. | [optional] 
-**SamaccountName** | Pointer to **string** | The user&#39;s Active Directory username. | [optional] 
+**Samaccountname** | Pointer to **string** | The user&#39;s Active Directory username. | [optional] 
 **MemberOf** | Pointer to **string** | The user&#39;s directory membership. | [optional] 
 **Userprincipalname** | Pointer to **string** | The principle name of the user. | [optional] 
 **DistinguishedName** | Pointer to **string** | The distinguished name of the user. | [optional] 
@@ -33,7 +33,6 @@ Name | Type | Description | Notes
 **UpdatedAt** | Pointer to **string** |  | [optional] 
 **PreferredLocaleCode** | Pointer to **string** |  | [optional] 
 **CreatedAt** | Pointer to **string** |  | [optional] 
-**CustomAttributes** | Pointer to **map[string]interface{}** |  | [optional] 
 **InvalidLoginAttempts** | Pointer to **int32** |  | [optional] 
 **LockedUntil** | Pointer to **string** |  | [optional] 
 **PasswordChangedAt** | Pointer to **string** |  | [optional] 
@@ -511,30 +510,30 @@ SetManagerUserId sets ManagerUserId field to given value.
 
 HasManagerUserId returns a boolean if a field has been set.
 
-### GetSamaccountName
+### GetSamaccountname
 
-`func (o *User) GetSamaccountName() string`
+`func (o *User) GetSamaccountname() string`
 
-GetSamaccountName returns the SamaccountName field if non-nil, zero value otherwise.
+GetSamaccountname returns the Samaccountname field if non-nil, zero value otherwise.
 
-### GetSamaccountNameOk
+### GetSamaccountnameOk
 
-`func (o *User) GetSamaccountNameOk() (*string, bool)`
+`func (o *User) GetSamaccountnameOk() (*string, bool)`
 
-GetSamaccountNameOk returns a tuple with the SamaccountName field if it's non-nil, zero value otherwise
+GetSamaccountnameOk returns a tuple with the Samaccountname field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetSamaccountName
+### SetSamaccountname
 
-`func (o *User) SetSamaccountName(v string)`
+`func (o *User) SetSamaccountname(v string)`
 
-SetSamaccountName sets SamaccountName field to given value.
+SetSamaccountname sets Samaccountname field to given value.
 
-### HasSamaccountName
+### HasSamaccountname
 
-`func (o *User) HasSamaccountName() bool`
+`func (o *User) HasSamaccountname() bool`
 
-HasSamaccountName returns a boolean if a field has been set.
+HasSamaccountname returns a boolean if a field has been set.
 
 ### GetMemberOf
 
@@ -785,31 +784,6 @@ SetCreatedAt sets CreatedAt field to given value.
 `func (o *User) HasCreatedAt() bool`
 
 HasCreatedAt returns a boolean if a field has been set.
-
-### GetCustomAttributes
-
-`func (o *User) GetCustomAttributes() map[string]interface{}`
-
-GetCustomAttributes returns the CustomAttributes field if non-nil, zero value otherwise.
-
-### GetCustomAttributesOk
-
-`func (o *User) GetCustomAttributesOk() (*map[string]interface{}, bool)`
-
-GetCustomAttributesOk returns a tuple with the CustomAttributes field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetCustomAttributes
-
-`func (o *User) SetCustomAttributes(v map[string]interface{})`
-
-SetCustomAttributes sets CustomAttributes field to given value.
-
-### HasCustomAttributes
-
-`func (o *User) HasCustomAttributes() bool`
-
-HasCustomAttributes returns a boolean if a field has been set.
 
 ### GetInvalidLoginAttempts
 

@@ -4,11 +4,11 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | Pointer to **int32** | The connectors unique ID in OneLogin. | [optional] 
-**Name** | Pointer to **string** | The name of the connector. | [optional] 
+**Id** | Pointer to **int32** | Connectors unique ID in OneLogin. | [optional] 
+**Name** | Pointer to **string** | Name of Connector | [optional] 
+**IconUrl** | Pointer to **string** | A link to the icon&#39;s url. | [optional] 
 **AuthMethod** | Pointer to [**AuthMethod**](AuthMethod.md) |  | [optional] 
 **AllowsNewParameters** | Pointer to **bool** | Indicates if apps created using this connector will be allowed to create custom parameters. | [optional] 
-**IconUrl** | Pointer to **string** | A link to the apps icon url. | [optional] 
 
 ## Methods
 
@@ -79,6 +79,31 @@ SetName sets Name field to given value.
 
 HasName returns a boolean if a field has been set.
 
+### GetIconUrl
+
+`func (o *Connector) GetIconUrl() string`
+
+GetIconUrl returns the IconUrl field if non-nil, zero value otherwise.
+
+### GetIconUrlOk
+
+`func (o *Connector) GetIconUrlOk() (*string, bool)`
+
+GetIconUrlOk returns a tuple with the IconUrl field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetIconUrl
+
+`func (o *Connector) SetIconUrl(v string)`
+
+SetIconUrl sets IconUrl field to given value.
+
+### HasIconUrl
+
+`func (o *Connector) HasIconUrl() bool`
+
+HasIconUrl returns a boolean if a field has been set.
+
 ### GetAuthMethod
 
 `func (o *Connector) GetAuthMethod() AuthMethod`
@@ -128,31 +153,6 @@ SetAllowsNewParameters sets AllowsNewParameters field to given value.
 `func (o *Connector) HasAllowsNewParameters() bool`
 
 HasAllowsNewParameters returns a boolean if a field has been set.
-
-### GetIconUrl
-
-`func (o *Connector) GetIconUrl() string`
-
-GetIconUrl returns the IconUrl field if non-nil, zero value otherwise.
-
-### GetIconUrlOk
-
-`func (o *Connector) GetIconUrlOk() (*string, bool)`
-
-GetIconUrlOk returns a tuple with the IconUrl field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetIconUrl
-
-`func (o *Connector) SetIconUrl(v string)`
-
-SetIconUrl sets IconUrl field to given value.
-
-### HasIconUrl
-
-`func (o *Connector) HasIconUrl() bool`
-
-HasIconUrl returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

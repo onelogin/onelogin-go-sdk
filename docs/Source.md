@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | Pointer to **string** |  | [optional] 
+**Id** | Pointer to **string** | A unique id that represents the source of the event. | [optional] 
 **Name** | Pointer to **string** | The name of the source | [optional] 
 
 ## Methods

@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Scopes** | Pointer to **[]int32** |  | [optional] 
+**Scopes** | Pointer to **[]int32** | An array of Scope IDs the scopes the app can request | [optional] 
 
 ## Methods
 

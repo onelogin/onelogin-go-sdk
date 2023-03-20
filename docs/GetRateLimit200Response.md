@@ -4,8 +4,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Status** | Pointer to [**Status**](Status.md) |  | [optional] 
-**Data** | Pointer to [**GetRateLimit200ResponseData**](GetRateLimit200ResponseData.md) |  | [optional] 
+**Status** | Pointer to [**Error**](Error.md) |  | [optional] 
+**Data** | Pointer to [**RateLimit**](RateLimit.md) |  | [optional] 
 
 ## Methods
 
@@ -28,20 +28,20 @@ but it doesn't guarantee that properties required by API are set
 
 ### GetStatus
 
-`func (o *GetRateLimit200Response) GetStatus() Status`
+`func (o *GetRateLimit200Response) GetStatus() Error`
 
 GetStatus returns the Status field if non-nil, zero value otherwise.
 
 ### GetStatusOk
 
-`func (o *GetRateLimit200Response) GetStatusOk() (*Status, bool)`
+`func (o *GetRateLimit200Response) GetStatusOk() (*Error, bool)`
 
 GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetStatus
 
-`func (o *GetRateLimit200Response) SetStatus(v Status)`
+`func (o *GetRateLimit200Response) SetStatus(v Error)`
 
 SetStatus sets Status field to given value.
 
@@ -53,20 +53,20 @@ HasStatus returns a boolean if a field has been set.
 
 ### GetData
 
-`func (o *GetRateLimit200Response) GetData() GetRateLimit200ResponseData`
+`func (o *GetRateLimit200Response) GetData() RateLimit`
 
 GetData returns the Data field if non-nil, zero value otherwise.
 
 ### GetDataOk
 
-`func (o *GetRateLimit200Response) GetDataOk() (*GetRateLimit200ResponseData, bool)`
+`func (o *GetRateLimit200Response) GetDataOk() (*RateLimit, bool)`
 
 GetDataOk returns a tuple with the Data field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetData
 
-`func (o *GetRateLimit200Response) SetData(v GetRateLimit200ResponseData)`
+`func (o *GetRateLimit200Response) SetData(v RateLimit)`
 
 SetData sets Data field to given value.
 

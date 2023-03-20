@@ -4,8 +4,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**AppId** | Pointer to **int32** |  | [optional] 
-**Scopes** | Pointer to **[]int32** |  | [optional] 
+**AppId** | Pointer to **int32** | The ID of the OpenId Connect app to allow access through. | [optional] 
+**Scopes** | Pointer to **[]int32** | An array of Scope IDs that represent scopes the app can request | [optional] 
 
 ## Methods
 

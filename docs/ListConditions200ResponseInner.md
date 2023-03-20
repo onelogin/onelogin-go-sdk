@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Name** | Pointer to **string** | The name of the Condition. | [optional] 
+**Name** | Pointer to **string** | Name of the rule condition | [optional] 
 **Value** | Pointer to **string** | The unique identifier of the condition. This should be used when defining conditions for a rule. | [optional] 
 
 ## Methods

@@ -4,9 +4,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Source** | Pointer to **string** | The source field to check. | [optional] 
+**Source** | Pointer to **string** | source field to check. | [optional] 
 **Operator** | Pointer to **string** | A valid operator for the selected condition source | [optional] 
-**Value** | Pointer to **string** | A plain text string or valid value for the selected condition source. | [optional] 
+**Value** | Pointer to **string** | A plain text string or valid value for the selected  condition source | [optional] 
 
 ## Methods
 

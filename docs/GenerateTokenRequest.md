@@ -4,13 +4,13 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**GrantType** | Pointer to **string** |  | [optional] 
+**GrantType** | **string** | Set to client_credentials. | [default to "client_credentials"]
 
 ## Methods
 
 ### NewGenerateTokenRequest
 
-`func NewGenerateTokenRequest() *GenerateTokenRequest`
+`func NewGenerateTokenRequest(grantType string, ) *GenerateTokenRequest`
 
 NewGenerateTokenRequest instantiates a new GenerateTokenRequest object
 This constructor will assign default values to properties that have it defined,
@@ -44,11 +44,6 @@ and a boolean to check if the value has been set.
 
 SetGrantType sets GrantType field to given value.
 
-### HasGrantType
-
-`func (o *GenerateTokenRequest) HasGrantType() bool`
-
-HasGrantType returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -9,14 +9,14 @@ Name | Type | Description | Notes
 **Enabled** | **bool** | Indicates if the mapping is enabled or not. | 
 **Match** | **string** | Indicates how conditions should be matched. | 
 **Position** | **int32** | Indicates the order of the mapping. When &#x60;null&#x60; this will default to last position. | 
-**Conditions** | Pointer to [**[]Condition**](Condition.md) | An array of conditions that the user must meet in order for the mapping to be applied. | [optional] 
-**Actions** | [**[]Action**](Action.md) | An array of actions that will be applied to the users that are matched by the conditions. | 
+**Conditions** | [**[]Condition**](Condition.md) | An array of conditions that the user must meet in order for the mapping to be applied. | 
+**Actions** | [**[]ActionObj**](ActionObj.md) | An array of actions that will be applied to the users that are matched by the conditions. | 
 
 ## Methods
 
 ### NewMapping
 
-`func NewMapping(name string, enabled bool, match string, position int32, actions []Action, ) *Mapping`
+`func NewMapping(name string, enabled bool, match string, position int32, conditions []Condition, actions []ActionObj, ) *Mapping`
 
 NewMapping instantiates a new Mapping object
 This constructor will assign default values to properties that have it defined,
@@ -155,28 +155,23 @@ and a boolean to check if the value has been set.
 
 SetConditions sets Conditions field to given value.
 
-### HasConditions
-
-`func (o *Mapping) HasConditions() bool`
-
-HasConditions returns a boolean if a field has been set.
 
 ### GetActions
 
-`func (o *Mapping) GetActions() []Action`
+`func (o *Mapping) GetActions() []ActionObj`
 
 GetActions returns the Actions field if non-nil, zero value otherwise.
 
 ### GetActionsOk
 
-`func (o *Mapping) GetActionsOk() (*[]Action, bool)`
+`func (o *Mapping) GetActionsOk() (*[]ActionObj, bool)`
 
 GetActionsOk returns a tuple with the Actions field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetActions
 
-`func (o *Mapping) SetActions(v []Action)`
+`func (o *Mapping) SetActions(v []ActionObj)`
 
 SetActions sets Actions field to given value.
 

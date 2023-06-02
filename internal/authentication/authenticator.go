@@ -32,13 +32,14 @@ func NewAuthenticator() *Authenticator {
 }
 
 func (a *Authenticator) GenerateToken() (string, error) {
-	// Read environment variables
+	// Read & Check environment variables
 	clientID := os.Getenv("ONELOGIN_CLIENT_ID")
+	if len(clientID) == 0 {
+		return "", olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_ID Env Variable")
+	}
 	clientSecret := os.Getenv("ONELOGIN_CLIENT_SECRET")
-
-	// Check if required environment variables are missing
-	if clientID == "" || clientSecret == "" {
-		return "", olError.NewAuthenticationError("Missing Environment Variable")
+	if len(clientSecret) == 0 {
+		return "", olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_SECRET Env Variable")
 	}
 
 	// Construct the authentication URL

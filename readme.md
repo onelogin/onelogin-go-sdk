@@ -22,6 +22,7 @@ go get github.com/onelogin/onelogin-go-sdk
 ## Requirements
 
 The SDK expects three environment variables to be set:
+
 - `ONELOGIN_CLIENT_ID`
 - `ONELOGIN_CLIENT_SECRET`
 - `ONELOGIN_SUBDOMAIN`

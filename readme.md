@@ -19,6 +19,15 @@ To use the Onelogin SDK in your Go project, you need to have Go installed and se
 go get github.com/onelogin/onelogin-go-sdk
 ```
 
+## Requirements
+
+The SDK expects three environment variables to be set:
+- `ONELOGIN_CLIENT_ID`
+- `ONELOGIN_CLIENT_SECRET`
+- `ONELOGIN_SUBDOMAIN`
+
+The export_creds.sh can be filled in and used prior to running your program.
+
 ## Usage
 
 Here's a basic example demonstrating how to use the Onelogin SDK:

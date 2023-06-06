@@ -16,17 +16,17 @@ func (sdk *OneloginSDK) CreateRole(role mod.Role) ([]byte, error) {
 }
 
 func (sdk *OneloginSDK) GetRoles(queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Get(RolePath, queryParams)
+	return sdk.ApiClient.Get(RolePath, &queryParams)
 }
 
 func (sdk *OneloginSDK) GetRoleByID(id int, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Get(fmt.Sprintf(RolePathI, id), queryParams)
+	return sdk.ApiClient.Get(fmt.Sprintf(RolePathI, id), &queryParams)
 }
 
 func (sdk *OneloginSDK) UpdateRole(id int, role mod.Role, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Put(fmt.Sprintf(RolePathI, id), queryParams, role)
+	return sdk.ApiClient.Put(fmt.Sprintf(RolePathI, id), &queryParams, role)
 }
 
 func (sdk *OneloginSDK) DeleteRole(id int, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Delete(fmt.Sprintf(RolePathI, id), queryParams)
+	return sdk.ApiClient.Delete(fmt.Sprintf(RolePathI, id), &queryParams)
 }

@@ -57,7 +57,7 @@ func (a *Authenticator) GenerateToken() (string, error) {
 	}
 
 	// Create HTTP request
-	req, err := http.NewRequest("POST", authURL, strings.NewReader(string(jsonData)))
+	req, err := http.NewRequest(http.MethodPost, authURL, strings.NewReader(string(jsonData)))
 	if err != nil {
 		return "", olError.NewRequestError("Failed to create authentication request")
 	}

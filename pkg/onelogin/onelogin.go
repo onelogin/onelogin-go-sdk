@@ -2,35 +2,31 @@ package onelogin
 
 import (
 	"github.com/onelogin/onelogin-go-sdk/internal/api"
-	"github.com/onelogin/onelogin-go-sdk/internal/authentication"
-	olError "github.com/onelogin/onelogin-go-sdk/internal/error"
+	olerror "github.com/onelogin/onelogin-go-sdk/internal/error"
 )
 
 // OneloginSDK represents the Onelogin SDK.
 type OneloginSDK struct {
-	Auth      *authentication.Authenticator
-	ApiClient *api.Client
+	Client *api.Client
 }
 
 // NewOneloginSDK creates a new instance of the Onelogin SDK.
-func NewOneloginSDK() *OneloginSDK {
-	return &OneloginSDK{
-		Auth:      authentication.NewAuthenticator(),
-		ApiClient: api.NewClient(),
+func NewOneloginSDK() (*OneloginSDK, error) {
+	client, err := api.NewClient()
+	if err != nil {
+		return nil, err
 	}
+	return &OneloginSDK{Client: client}, nil
 }
 
 // GetToken performs the authentication process using the env credentials.
 func (sdk *OneloginSDK) GetToken() (string, error) {
 	// Call the authenticator to perform the authentication process
-	token, err := sdk.Auth.GetToken()
+	accessTk, err := sdk.Client.Auth.GetToken()
 	if err != nil {
-		return "", olError.NewAuthenticationError("OneLoginSDK token retrieval error")
+		return "", olerror.NewSDKError("Access Token retrieval unsuccessful")
 	}
-	if token == "" {
-		return sdk.Auth.GenerateToken()
-	}
-	return token, nil
+	return *accessTk, nil
 }
 
 // MFA-related endpoints

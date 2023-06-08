@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/authentication"
 	olerror "github.com/onelogin/onelogin-go-sdk/internal/error"
+	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
+	utl "github.com/onelogin/onelogin-go-sdk/internal/utilities"
 )
 
 // Client represents the API client.
@@ -29,45 +30,38 @@ type HTTPClient interface {
 // Authenticator is an interface that defines the GetToken method for retrieving authentication tokens.
 type Authenticator interface {
 	GetToken() (string, error)
+	NewAuthenticator() *authentication.Authenticator
 }
 
 // NewClient creates a new instance of the API client.
-func NewClient() *Client {
-	authenticator := authentication.NewAuthenticator()
-	token, err := authenticator.GetToken()
-
-	if err != nil || token == "" {
-		_, err := authenticator.GenerateToken()
-		if err != nil {
-			// Handle error
-			fmt.Printf("Failed to generate token: %s", err.Error())
-			os.Exit(1)
-		}
+func NewClient() (*Client, error) {
+	old := fmt.Sprintf("https://%s.onelogin.com", os.Getenv("ONELOGIN_SUBDOMAIN"))
+	authenticator := authentication.NewAuthenticator(old)
+	err := authenticator.GenerateToken()
+	if err != nil {
+		return nil, olerror.NewSDKError("Failed to initialize client")
 	}
 
 	return &Client{
 		HttpClient: http.DefaultClient,
 		Auth:       authenticator,
-		OLdomain:   fmt.Sprintf("https://%s.onelogin.com", os.Getenv("ONELOGIN_SUBDOMAIN")),
-	}
+		OLdomain:   old,
+	}, nil
 }
 
 // newRequest creates a new HTTP request with the specified method, path, query parameters, and request body.
-func (c *Client) newRequest(method, path string, queryParams *map[string]string, body io.Reader) (*http.Request, error) {
-	// Parse the OneLogin domain and path
-	u, err := url.Parse(c.OLdomain + path)
+func (c *Client) newRequest(method string, path *string, queryParams *mod.Queryable, body io.Reader) (*http.Request, error) {
+
+	p, err := utl.AddQueryToPath(path, queryParams)
+	*path = p
 	if err != nil {
 		return nil, err
 	}
-
-	// Add query parameters to the URL
-	query := u.Query()
-	if queryParams != nil {
-		for key, value := range *queryParams {
-			query.Add(key, value)
-		}
+	// Parse the OneLogin domain and path
+	u, err := url.Parse(c.OLdomain + *path)
+	if err != nil {
+		return nil, err
 	}
-	u.RawQuery = query.Encode()
 
 	// Create a new HTTP request
 	req, err := http.NewRequest(method, u.String(), body)
@@ -82,14 +76,14 @@ func (c *Client) newRequest(method, path string, queryParams *map[string]string,
 	}
 
 	// Set request headers
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tk))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *tk))
 	req.Header.Set("Content-Type", "application/json")
 
 	return req, nil
 }
 
 // Get sends a GET request to the specified path with the given query parameters.
-func (c *Client) Get(path string, queryParams *map[string]string) ([]byte, error) {
+func (c *Client) Get(path *string, queryParams *mod.Queryable) (*http.Response, error) {
 	req, err := c.newRequest(http.MethodGet, path, queryParams, http.NoBody)
 	if err != nil {
 		return nil, err
@@ -99,8 +93,8 @@ func (c *Client) Get(path string, queryParams *map[string]string) ([]byte, error
 }
 
 // Delete sends a DELETE request to the specified path with the given query parameters.
-func (c *Client) Delete(path string, queryParams *map[string]string) ([]byte, error) {
-	req, err := c.newRequest(http.MethodDelete, path, queryParams, http.NoBody)
+func (c *Client) Delete(path *string) (*http.Response, error) {
+	req, err := c.newRequest(http.MethodDelete, path, nil, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +103,7 @@ func (c *Client) Delete(path string, queryParams *map[string]string) ([]byte, er
 }
 
 // Post sends a POST request to the specified path with the given query parameters and request body.
-func (c *Client) Post(path string, queryParams *map[string]string, body interface{}) ([]byte, error) {
+func (c *Client) Post(path *string, body interface{}) (*http.Response, error) {
 	var bodyReader io.Reader
 
 	if body != nil {
@@ -121,7 +115,7 @@ func (c *Client) Post(path string, queryParams *map[string]string, body interfac
 		bodyReader = bytes.NewReader(jsonBody)
 	}
 
-	req, err := c.newRequest(http.MethodPost, path, queryParams, bodyReader)
+	req, err := c.newRequest(http.MethodPost, path, nil, bodyReader)
 	if err != nil {
 		return nil, err
 	}
@@ -130,14 +124,14 @@ func (c *Client) Post(path string, queryParams *map[string]string, body interfac
 }
 
 // Put sends a PUT request to the specified path with the given query parameters and request body.
-func (c *Client) Put(path string, queryParams *map[string]string, body interface{}) ([]byte, error) {
+func (c *Client) Put(path *string, body interface{}) (*http.Response, error) {
 	// Convert request body to JSON
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := c.newRequest(http.MethodPut, path, queryParams, bytes.NewReader(jsonBody))
+	req, err := c.newRequest(http.MethodPut, path, nil, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -145,15 +139,9 @@ func (c *Client) Put(path string, queryParams *map[string]string, body interface
 	return c.sendRequest(req)
 }
 
-// sendRequest sends the specified HTTP request and returns the response body.
-func (c *Client) sendRequest(req *http.Request) ([]byte, error) {
+// sendRequest sends the specified HTTP request and returns the HTTP response.
+func (c *Client) sendRequest(req *http.Request) (*http.Response, error) {
 	resp, err := c.HttpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +149,7 @@ func (c *Client) sendRequest(req *http.Request) ([]byte, error) {
 	// Check for API errors
 	if resp.StatusCode == http.StatusUnauthorized {
 		// Regenerate the token and reattempt the request
-		_, err := c.Auth.GenerateToken()
+		err := c.Auth.GenerateToken()
 		if err != nil {
 			return nil, olerror.NewAuthenticationError("Failed to refresh access token")
 		}
@@ -171,17 +159,7 @@ func (c *Client) sendRequest(req *http.Request) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
-
-		respBody, err = ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-	} else if resp.StatusCode >= http.StatusBadRequest {
-		message := fmt.Sprintf("%b", respBody)
-		apiError := olerror.NewAPIError(message, resp.StatusCode)
-		return nil, apiError
 	}
 
-	return respBody, nil
+	return resp, nil
 }

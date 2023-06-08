@@ -23,3 +23,27 @@ type AppRule struct {
 	Conditions []Condition `json:"conditions"`
 	Actions    []Action    `json:"actions"`
 }
+
+type AppRuleQuery struct {
+	Limit            string
+	Page             string
+	Cursor           string
+	Enabled          bool    `json:"enabled,omitempty"`
+	HasCondition     *string `json:"has_condition,omitempty"`
+	HasConditionType *string `json:"has_condition_type,omitempty"`
+	HasAction        *string `json:"has_action,omitempty"`
+	HasActionType    *string `json:"has_action_type,omitempty"`
+}
+
+func (q *AppRuleQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":              validateString,
+		"page":               validateString,
+		"cursor":             validateString,
+		"enabled":            validateBool,
+		"has_condition":      validateString,
+		"has_condition_type": validateString,
+		"has_action":         validateString,
+		"has_action_type":    validateString,
+	}
+}

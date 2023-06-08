@@ -61,3 +61,12 @@ type AccessTokenClaim struct {
 	DefaultValues            *string  `json:"default_values,omitempty"`
 	ProvisionedEntitlements  *bool    `json:"provisioned_entitlements,omitempty"`
 }
+
+func (q *AuthServerQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"name":   validateString,
+		"limit":  validateString,
+		"page":   validateString,
+		"cursor": validateString,
+	}
+}

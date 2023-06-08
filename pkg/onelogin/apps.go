@@ -1,53 +1,132 @@
 package onelogin
 
 import (
-	"fmt"
-
 	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
+	utl "github.com/onelogin/onelogin-go-sdk/internal/utilities"
 )
 
 const (
-	AppPath      string = "/api/2/apps"
-	AppPathI     string = "/api/2/apps/%d"
-	AppRulePath  string = "/api/2/apps/%d/rules"
-	AppRulePathI string = "/api/2/apps/%d/rules/%d"
+	AppPath string = "/api/2/apps"
 )
 
-func (sdk *OneloginSDK) CreateApp(app mod.App) ([]byte, error) {
-	return sdk.ApiClient.Post(AppPath, nil, app)
+func (sdk *OneloginSDK) CreateApp(app *mod.App) (interface{}, error) {
+	p := AppPath
+	resp, err := sdk.Client.Post(&p, app)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
 }
 
-func (sdk *OneloginSDK) GetApps(queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Get(AppPath, &queryParams)
+func (sdk *OneloginSDK) GetApps(queryParams *mod.Queryable) (interface{}, error) {
+	p := AppPath
+	resp, err := sdk.Client.Get(&p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetAppByID(id int, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Get(fmt.Sprintf(AppPathI, id), &queryParams)
+func (sdk *OneloginSDK) GetAppByID(id int, queryParams *mod.Queryable) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
 }
 
-func (sdk *OneloginSDK) UpdateApp(id int, app mod.App, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Put(fmt.Sprintf(AppPathI, id), &queryParams, app)
+func (sdk *OneloginSDK) UpdateApp(id int, app mod.App) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, app)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
 }
 
-func (sdk *OneloginSDK) DeleteApp(id int, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Delete(fmt.Sprintf(AppPathI, id), &queryParams)
-}
-func (sdk *OneloginSDK) CreateAppRule(id int, appRule mod.AppRule) ([]byte, error) {
-	return sdk.ApiClient.Post(fmt.Sprintf(AppRulePath, id), nil, appRule)
+func (sdk *OneloginSDK) DeleteApp(id int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Delete(&p)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
 }
 
-func (sdk *OneloginSDK) GetAppRules(id int, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Get(fmt.Sprintf(AppRulePath, id), &queryParams)
+func (sdk *OneloginSDK) CreateAppRule(id int, appRule *mod.AppRule) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Post(&p, appRule)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
 }
 
-func (sdk *OneloginSDK) GetAppRuleByID(id, ruleID int, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Get(fmt.Sprintf(AppRulePathI, id, ruleID), &queryParams)
+func (sdk *OneloginSDK) GetAppRules(id int, queryParams *mod.Queryable) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
 }
 
-func (sdk *OneloginSDK) UpdateAppRule(id, ruleID int, appRule mod.AppRule, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Put(fmt.Sprintf(AppRulePathI, id, ruleID), &queryParams, appRule)
+func (sdk *OneloginSDK) GetAppRuleByID(id, ruleID int, queryParams *mod.Queryable) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
 }
 
-func (sdk *OneloginSDK) DeleteAppRule(id, ruleID int, queryParams map[string]string) ([]byte, error) {
-	return sdk.ApiClient.Delete(fmt.Sprintf(AppRulePathI, id, ruleID), &queryParams)
+func (sdk *OneloginSDK) UpdateAppRule(id, ruleID int, appRule mod.AppRule, queryParams map[string]string) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id, "rules", ruleID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, appRule)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+
+}
+
+func (sdk *OneloginSDK) DeleteAppRule(id, ruleID int, queryParams map[string]string) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, id, "rules", ruleID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Delete(&p)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
 }

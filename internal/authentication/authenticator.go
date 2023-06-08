@@ -13,7 +13,6 @@ import (
 )
 
 const (
-	Domain     string = "https://api.onelogin.com"
 	TokenPath  string = "/auth/oauth2/v2/token"
 	RevokePath string = "/auth/oauth2/revoke"
 )
@@ -23,23 +22,24 @@ type Authenticator struct {
 	OLDomain    *string
 }
 
-func NewAuthenticator() *Authenticator {
+func NewAuthenticator(Domain string) *Authenticator {
 	var domain = Domain
 	var token string = ""
 	return &Authenticator{
-		&token, &domain,
+		accessToken: &token,
+		OLDomain:    &domain,
 	}
 }
 
-func (a *Authenticator) GenerateToken() (string, error) {
+func (a *Authenticator) GenerateToken() error {
 	// Read & Check environment variables
 	clientID := os.Getenv("ONELOGIN_CLIENT_ID")
 	if len(clientID) == 0 {
-		return "", olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_ID Env Variable")
+		return olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_ID Env Variable")
 	}
 	clientSecret := os.Getenv("ONELOGIN_CLIENT_SECRET")
 	if len(clientSecret) == 0 {
-		return "", olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_SECRET Env Variable")
+		return olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_SECRET Env Variable")
 	}
 
 	// Construct the authentication URL
@@ -53,13 +53,13 @@ func (a *Authenticator) GenerateToken() (string, error) {
 	// Convert payload to JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return "", olError.NewSerializationError("Unable to convert payload to JSON")
+		return olError.NewSerializationError("Unable to convert payload to JSON")
 	}
 
 	// Create HTTP request
 	req, err := http.NewRequest(http.MethodPost, authURL, strings.NewReader(string(jsonData)))
 	if err != nil {
-		return "", olError.NewRequestError("Failed to create authentication request")
+		return olError.NewRequestError("Failed to create authentication request")
 	}
 
 	// Add authorization header with base64-encoded credentials
@@ -71,31 +71,31 @@ func (a *Authenticator) GenerateToken() (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", olError.NewRequestError("Failed to send authentication request")
+		return olError.NewRequestError("Failed to send authentication request")
 	}
 
 	// Parse the authentication response
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return "", olError.NewSerializationError("Failed to read authentication response")
+		return olError.NewSerializationError("Failed to read authentication response")
 	}
 
 	// Check if authentication failed
 	if resp.StatusCode != http.StatusOK {
-		return "", olError.NewAuthenticationError("Authentication failed")
+		return olError.NewAuthenticationError("Authentication failed")
 	}
 
 	// Extract access token from the response
 	accessToken, ok := result["access_token"].(string)
 	if !ok {
-		return "", olError.NewAuthenticationError("Authentication Failed at Endpoint")
+		return olError.NewAuthenticationError("Authentication Failed at Endpoint")
 	}
 
 	// Store access token
 	*a.accessToken = accessToken
 
-	return accessToken, nil
+	return nil
 }
 
 func (a *Authenticator) RevokeToken(token, domain *string) error {
@@ -153,6 +153,6 @@ func (a *Authenticator) RevokeToken(token, domain *string) error {
 	return nil
 }
 
-func (a *Authenticator) GetToken() (string, error) {
-	return *a.accessToken, nil
+func (a *Authenticator) GetToken() (*string, error) {
+	return a.accessToken, nil
 }

@@ -83,6 +83,30 @@ type User struct {
 	CustomAttributes     map[string]interface{} `json:"custom_attributes,omitempty"`
 }
 
+func (q *UserQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":          validateString,
+		"page":           validateString,
+		"cursor":         validateString,
+		"createdSince":   validateTime,
+		"createdUntil":   validateTime,
+		"updatedSince":   validateTime,
+		"updatedUntil":   validateTime,
+		"lastLoginSince": validateTime,
+		"lastLoginUntil": validateTime,
+		"firstname":      validateString,
+		"lastname":       validateString,
+		"email":          validateString,
+		"username":       validateString,
+		"samaccountname": validateString,
+		"directoryID":    validateString,
+		"externalID":     validateString,
+		"appID":          validateString,
+		"userIDs":        validateString,
+		"fields":         validateString,
+	}
+}
+
 // UserApp is the contract for a users app.
 type UserApp struct {
 	ID                  *int32  `json:"id,omitempty"`

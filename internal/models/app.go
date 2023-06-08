@@ -113,3 +113,23 @@ const (
 	UnitMinutes = 1
 	UnitHours   = 2
 )
+
+type AppQuery struct {
+	Limit       string
+	Page        string
+	Cursor      string
+	Name        *string `json:"name,omitempty"`
+	ConnectorID *int    `json:"connector_id,omitempty"`
+	AuthMethod  *int    `json:"auth_method,omitempty"`
+}
+
+func (q *AppQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":        validateString,
+		"page":         validateString,
+		"cursor":       validateString,
+		"name":         validateString,
+		"connector_id": validateInt,
+		"auth_method":  validateInt,
+	}
+}

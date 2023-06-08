@@ -3,29 +3,23 @@ package main
 import (
 	"fmt"
 
+	"github.com/onelogin/onelogin-go-sdk/internal/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
 )
 
 func main() {
-
-	// Create a new instance of the Onelogin SDK
-	ol := onelogin.NewOneloginSDK()
-
-	// Use the Onelogin SDK to make API calls
-
-	token, err := ol.GetToken()
+	ol, err := onelogin.NewOneloginSDK()
 	if err != nil {
-		fmt.Printf("Failed to get token: %s\n", err)
+		fmt.Println("Unable to initialize client:", err)
 		return
 	}
 
-	fmt.Printf("Testing to see token: %s\n", token)
-	query := make(map[string]string)
-	resp, err := ol.GetUsers(query)
+	userQuery := models.UserQuery{}
+	userList, err := ol.GetUsers(&userQuery)
 	if err != nil {
-		fmt.Printf("Failed to get user: %s\n", err)
+		fmt.Println("Failed to get user:", err)
 		return
 	}
+	fmt.Println(userList)
 
-	fmt.Printf("Testing to see user: %s\n", resp)
 }

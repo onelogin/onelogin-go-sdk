@@ -26,7 +26,7 @@ func (sdk *OneloginSDK) GetToken() (string, error) {
 	if err != nil {
 		return "", olerror.NewSDKError("Access Token retrieval unsuccessful")
 	}
-	return *accessTk, nil
+	return accessTk, nil
 }
 
 // MFA-related endpoints

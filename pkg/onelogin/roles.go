@@ -18,7 +18,7 @@ func (sdk *OneloginSDK) CreateRole(role *mod.Role) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetRoles(queryParams *mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetRoles(queryParams mod.Queryable) (interface{}, error) {
 	p := RolePath
 	resp, err := sdk.Client.Get(&p, queryParams)
 	if err != nil {
@@ -27,7 +27,7 @@ func (sdk *OneloginSDK) GetRoles(queryParams *mod.Queryable) (interface{}, error
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetRoleByID(id int, queryParams *mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetRoleByID(id int, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, id)
 	if err != nil {
 		return nil, err

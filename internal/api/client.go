@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -35,11 +36,12 @@ type Authenticator interface {
 
 // NewClient creates a new instance of the API client.
 func NewClient() (*Client, error) {
-	old := fmt.Sprintf("https://%s.onelogin.com", os.Getenv("ONELOGIN_SUBDOMAIN"))
-	authenticator := authentication.NewAuthenticator(old)
+	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
+	old := fmt.Sprintf("https://%s.onelogin.com", subdomain)
+	authenticator := authentication.NewAuthenticator()
 	err := authenticator.GenerateToken()
 	if err != nil {
-		return nil, olerror.NewSDKError("Failed to initialize client")
+		return nil, err
 	}
 
 	return &Client{
@@ -50,15 +52,15 @@ func NewClient() (*Client, error) {
 }
 
 // newRequest creates a new HTTP request with the specified method, path, query parameters, and request body.
-func (c *Client) newRequest(method string, path *string, queryParams *mod.Queryable, body io.Reader) (*http.Request, error) {
+func (c *Client) newRequest(method string, path *string, queryParams mod.Queryable, body io.Reader) (*http.Request, error) {
 
-	p, err := utl.AddQueryToPath(path, queryParams)
-	*path = p
+	p, err := utl.AddQueryToPath(*path, queryParams)
 	if err != nil {
 		return nil, err
 	}
+	log.Println("Path:", p)
 	// Parse the OneLogin domain and path
-	u, err := url.Parse(c.OLdomain + *path)
+	u, err := url.Parse(c.OLdomain + p)
 	if err != nil {
 		return nil, err
 	}
@@ -70,20 +72,23 @@ func (c *Client) newRequest(method string, path *string, queryParams *mod.Querya
 	}
 
 	// Get authentication token
+	log.Println("Getting authentication token...")
 	tk, err := c.Auth.GetToken()
 	if err != nil {
+		log.Println("Error getting authentication token:", err)
 		return nil, olerror.NewAuthenticationError("Access Token Retrieval Error")
 	}
+	log.Println("Authentication token retrieved successfully.")
 
 	// Set request headers
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", *tk))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tk))
 	req.Header.Set("Content-Type", "application/json")
 
 	return req, nil
 }
 
 // Get sends a GET request to the specified path with the given query parameters.
-func (c *Client) Get(path *string, queryParams *mod.Queryable) (*http.Response, error) {
+func (c *Client) Get(path *string, queryParams mod.Queryable) (*http.Response, error) {
 	req, err := c.newRequest(http.MethodGet, path, queryParams, http.NoBody)
 	if err != nil {
 		return nil, err

@@ -9,13 +9,21 @@ import (
 // ValidateQueryParams validates the query parameters based on the provided validators.
 func ValidateQueryParams(query interface{}, validators map[string]func(interface{}) bool) bool {
 	queryValue := reflect.ValueOf(query)
+	if queryValue.Kind() == reflect.Ptr {
+		queryValue = queryValue.Elem()
+	}
 	queryType := queryValue.Type()
 
 	for i := 0; i < queryValue.NumField(); i++ {
 		fieldValue := queryValue.Field(i)
 		fieldType := queryType.Field(i)
 
-		// Skip empty fields
+		// Skip non-pointer fields
+		if fieldValue.Kind() != reflect.Ptr {
+			continue
+		}
+
+		// Skip nil fields
 		if fieldValue.IsNil() {
 			continue
 		}

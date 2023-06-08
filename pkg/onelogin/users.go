@@ -1,6 +1,8 @@
 package onelogin
 
 import (
+	"errors"
+
 	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
 	utl "github.com/onelogin/onelogin-go-sdk/internal/utilities"
 )
@@ -23,19 +25,19 @@ func (sdk *OneloginSDK) GetUsers(query mod.Queryable) (interface{}, error) {
 	p := UserPath
 
 	// Validate query parameters
-	//validators := query.GetKeyValidators()
-	//if !utl.ValidateQueryParams(query, validators) {
-	//	return nil, errors.New("invalid query parameters")
-	//}
+	validators := query.GetKeyValidators()
+	if !utl.ValidateQueryParams(query, validators) {
+		return nil, errors.New("invalid query parameters")
+	}
 
-	resp, err := sdk.Client.Get(&p, &query)
+	resp, err := sdk.Client.Get(&p, query)
 	if err != nil {
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetUserByID(id int, queryParams *mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetUserByID(id int, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(UserPath, id)
 	if err != nil {
 		return nil, err

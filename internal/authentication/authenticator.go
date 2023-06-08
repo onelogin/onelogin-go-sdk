@@ -18,17 +18,11 @@ const (
 )
 
 type Authenticator struct {
-	accessToken *string
-	OLDomain    *string
+	accessToken string
 }
 
-func NewAuthenticator(Domain string) *Authenticator {
-	var domain = Domain
-	var token string = ""
-	return &Authenticator{
-		accessToken: &token,
-		OLDomain:    &domain,
-	}
+func NewAuthenticator() *Authenticator {
+	return &Authenticator{}
 }
 
 func (a *Authenticator) GenerateToken() error {
@@ -37,13 +31,14 @@ func (a *Authenticator) GenerateToken() error {
 	if len(clientID) == 0 {
 		return olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_ID Env Variable")
 	}
+	//fmt.Println("clientID", clientID)
 	clientSecret := os.Getenv("ONELOGIN_CLIENT_SECRET")
 	if len(clientSecret) == 0 {
 		return olError.NewAuthenticationError("Missing ONELOGIN_CLIENT_SECRET Env Variable")
 	}
 
 	// Construct the authentication URL
-	authURL := fmt.Sprintf("%s%s", *a.OLDomain, TokenPath)
+	authURL := fmt.Sprintf("https://api.onelogin.com%s", TokenPath)
 
 	// Create authentication request payload
 	data := map[string]string{
@@ -91,9 +86,8 @@ func (a *Authenticator) GenerateToken() error {
 	if !ok {
 		return olError.NewAuthenticationError("Authentication Failed at Endpoint")
 	}
-
 	// Store access token
-	*a.accessToken = accessToken
+	a.accessToken = accessToken
 
 	return nil
 }
@@ -109,7 +103,7 @@ func (a *Authenticator) RevokeToken(token, domain *string) error {
 	}
 
 	// Construct the revoke URL
-	revokeURL := fmt.Sprintf("%s%s", *domain, RevokePath)
+	revokeURL := fmt.Sprintf("api.onelogin.com%s", RevokePath)
 
 	// Create revoke request payload
 	data := struct {
@@ -153,6 +147,6 @@ func (a *Authenticator) RevokeToken(token, domain *string) error {
 	return nil
 }
 
-func (a *Authenticator) GetToken() (*string, error) {
+func (a *Authenticator) GetToken() (string, error) {
 	return a.accessToken, nil
 }

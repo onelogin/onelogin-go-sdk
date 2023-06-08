@@ -26,8 +26,7 @@ func TestGenerateToken(t *testing.T) {
 	defer server.Close()
 
 	// Update the domain in the Authenticator
-	authenticator := authentication.NewAuthenticator("http://localhost")
-	*authenticator.OLDomain = server.URL
+	authenticator := authentication.NewAuthenticator()
 
 	// Generate a token
 	token, err := authenticator.GetToken()
@@ -35,7 +34,7 @@ func TestGenerateToken(t *testing.T) {
 		t.Errorf("Expected no error, but got %v", err)
 	}
 
-	if *token != "test-token" {
+	if token != "test-token" {
 		t.Errorf("Expected token 'test-token', but got '%v'", token)
 	}
 }
@@ -52,7 +51,7 @@ func TestRevokeToken(t *testing.T) {
 	defer server.Close()
 
 	// Update the domain in the Authenticator
-	authenticator := authentication.NewAuthenticator("http://localhost")
+	authenticator := authentication.NewAuthenticator()
 
 	// Revoke a token
 	domain := server.URL

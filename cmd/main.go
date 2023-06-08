@@ -13,7 +13,6 @@ func main() {
 		fmt.Println("Unable to initialize client:", err)
 		return
 	}
-
 	userQuery := models.UserQuery{}
 	userList, err := ol.GetUsers(&userQuery)
 	if err != nil {

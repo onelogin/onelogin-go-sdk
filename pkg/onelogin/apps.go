@@ -19,7 +19,7 @@ func (sdk *OneloginSDK) CreateApp(app *mod.App) (interface{}, error) {
 
 }
 
-func (sdk *OneloginSDK) GetApps(queryParams *mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetApps(queryParams mod.Queryable) (interface{}, error) {
 	p := AppPath
 	resp, err := sdk.Client.Get(&p, queryParams)
 	if err != nil {
@@ -28,7 +28,7 @@ func (sdk *OneloginSDK) GetApps(queryParams *mod.Queryable) (interface{}, error)
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetAppByID(id int, queryParams *mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetAppByID(id int, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath, id)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (sdk *OneloginSDK) CreateAppRule(id int, appRule *mod.AppRule) (interface{}
 
 }
 
-func (sdk *OneloginSDK) GetAppRules(id int, queryParams *mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetAppRules(id int, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath, id)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (sdk *OneloginSDK) GetAppRules(id int, queryParams *mod.Queryable) (interfa
 
 }
 
-func (sdk *OneloginSDK) GetAppRuleByID(id, ruleID int, queryParams *mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetAppRuleByID(id, ruleID int, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath, id)
 	if err != nil {
 		return nil, err

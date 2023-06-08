@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	olerror "github.com/onelogin/onelogin-go-sdk/internal/error"
-	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
 )
 
 // receive http response, check error code status, if good return json of resp.Body
@@ -32,13 +33,24 @@ func CheckHTTPResponse(resp *http.Response) (interface{}, error) {
 	}
 
 	// Try to unmarshal the response body into a map[string]interface{}
-	var data map[string]interface{}
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		// If unmarshaling fails, return the response body as a string
-		return string(body), nil
+	var data interface{}
+	if strings.HasPrefix(string(body), "[") {
+		var slice []interface{}
+		err = json.Unmarshal(body, &slice)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal response body into []interface{}: %w", err)
+		}
+		data = slice
+	} else {
+		var dict map[string]interface{}
+		err = json.Unmarshal(body, &dict)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal response body into map[string]interface{}: %w", err)
+		}
+		data = dict
 	}
 
+	log.Printf("Response body unmarshaled successfully: %v\n", data)
 	return data, nil
 }
 
@@ -74,26 +86,39 @@ func BuildAPIPath(parts ...interface{}) (string, error) {
 }
 
 // AddQueryToPath adds the model as a JSON-encoded query parameter to the path and returns the new path.
-func AddQueryToPath(path *string, model *mod.Queryable) (string, error) {
-	// Convert the model to a JSON string
-	jsonBytes, err := json.Marshal(model)
+func AddQueryToPath(path string, query interface{}) (string, error) {
+	if query == nil {
+		return path, nil
+	}
+
+	// Convert query parameters to URL-encoded string
+	values, err := queryToValues(query)
 	if err != nil {
 		return "", err
 	}
 
-	// URL-encode the JSON string
-	encodedModel := url.QueryEscape(string(jsonBytes))
-
-	// Parse the original path
-	u, err := url.Parse(*path)
-	if err != nil {
-		return "", err
+	// Append query parameters to path
+	if values.Encode() != "" {
+		path += "?" + values.Encode()
 	}
 
-	// Add the encoded model to the path's query string
-	q := u.Query()
-	q.Set("model", encodedModel)
-	u.RawQuery = q.Encode()
+	return path, nil
+}
 
-	return u.String(), nil
+func queryToValues(query interface{}) (url.Values, error) {
+	values := url.Values{}
+
+	// Convert query parameters to URL-encoded string
+	if query != nil {
+		queryBytes, err := json.Marshal(query)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(queryBytes, &values)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return values, nil
 }

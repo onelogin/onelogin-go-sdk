@@ -31,7 +31,7 @@ func TestNewRequest(t *testing.T) {
 		},
 	}
 
-	authenticator := authentication.NewAuthenticator("http://localhost")
+	authenticator := authentication.NewAuthenticator()
 
 	client := api.Client{
 		HttpClient: &httpmock,
@@ -79,7 +79,7 @@ func TestGet(t *testing.T) {
 	}
 
 	// Create an API client with the mock HTTP client
-	authenticator := authentication.NewAuthenticator("http://localhost")
+	authenticator := authentication.NewAuthenticator()
 	client := api.Client{
 		HttpClient: &httpmock,
 		Auth:       authenticator,

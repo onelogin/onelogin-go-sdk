@@ -115,9 +115,9 @@ const (
 )
 
 type AppQuery struct {
-	Limit       string
-	Page        string
-	Cursor      string
+	Limit       string  `json:"limit,omitempty"`
+	Page        string  `json:"page,omitempty"`
+	Cursor      string  `json:"cursor,omitempty"`
 	Name        *string `json:"name,omitempty"`
 	ConnectorID *int    `json:"connector_id,omitempty"`
 	AuthMethod  *int    `json:"auth_method,omitempty"`

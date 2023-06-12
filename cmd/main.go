@@ -21,4 +21,17 @@ func main() {
 	}
 	fmt.Println(userList)
 
+	appQuery := models.AppQuery{}
+	appResponse, err := ol.GetApps(&appQuery)
+	if err != nil {
+		fmt.Println("Failed to get app list:", err)
+		return
+	}
+	appList, ok := appResponse.([]string) // or whatever the correct type should be
+	if !ok {
+		fmt.Println("Failed to assert appResponse as type []string")
+		return
+	}
+	fmt.Println(appList)
+
 }

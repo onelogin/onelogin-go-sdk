@@ -6,11 +6,14 @@ import (
 )
 
 const (
-	AppPath string = "/api/2/apps"
+	AppPath string = "api/2/apps"
 )
 
 func (sdk *OneloginSDK) CreateApp(app *mod.App) (interface{}, error) {
-	p := AppPath
+	p, err := utl.BuildAPIPath(AppPath)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := sdk.Client.Post(&p, app)
 	if err != nil {
 		return nil, err
@@ -20,7 +23,10 @@ func (sdk *OneloginSDK) CreateApp(app *mod.App) (interface{}, error) {
 }
 
 func (sdk *OneloginSDK) GetApps(queryParams mod.Queryable) (interface{}, error) {
-	p := AppPath
+	p, err := utl.BuildAPIPath(AppPath)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := sdk.Client.Get(&p, queryParams)
 	if err != nil {
 		return nil, err

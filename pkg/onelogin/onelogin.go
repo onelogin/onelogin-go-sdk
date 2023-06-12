@@ -124,9 +124,7 @@ func (sdk *OneloginSDK) ListActions()                              {}
 func (sdk *OneloginSDK) SortMappings()                             {}
 func (sdk *OneloginSDK) UpdateMapping(mappingID string)            {}
 func (sdk *OneloginSDK) AddRolesToUser(userID string)              {}
-func (sdk *OneloginSDK) DeleteUser(userID string)                  {}
 func (sdk *OneloginSDK) GetCustomAttributes()                      {}
-func (sdk *OneloginSDK) GetUserApps(userID string)                 {}
 func (sdk *OneloginSDK) GetUserRoles(userID string)                {}
 func (sdk *OneloginSDK) ListUsers()                                {}
 func (sdk *OneloginSDK) LockUserAccount(userID string)             {}
@@ -134,4 +132,3 @@ func (sdk *OneloginSDK) LogOutUser(userID string)                  {}
 func (sdk *OneloginSDK) RemoveUserRole(userID string)              {}
 func (sdk *OneloginSDK) SetUserState(userID string)                {}
 func (sdk *OneloginSDK) UpdatePasswordInsecure(userID string)      {}
-func (sdk *OneloginSDK) UpdatePasswordSecure(userID string)        {}

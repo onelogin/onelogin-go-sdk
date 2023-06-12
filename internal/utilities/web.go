@@ -32,35 +32,30 @@ func CheckHTTPResponse(resp *http.Response) (interface{}, error) {
 		return nil, fmt.Errorf("failed to close response body: %w", err)
 	}
 
-	// Try to unmarshal the response body into a map[string]interface{}
+	// Try to unmarshal the response body into a map[string]interface{} or []interface{}
 	var data interface{}
-	if strings.HasPrefix(string(body), "[") {
+	bodyStr := string(body)
+	log.Printf("Response body: %s\n", bodyStr)
+	if strings.HasPrefix(bodyStr, "[") {
 		var slice []interface{}
 		err = json.Unmarshal(body, &slice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal response body into []interface{}: %w", err)
 		}
 		data = slice
-	} else {
+	} else if strings.HasPrefix(bodyStr, "{") {
 		var dict map[string]interface{}
 		err = json.Unmarshal(body, &dict)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal response body into map[string]interface{}: %w", err)
 		}
 		data = dict
+	} else {
+		data = bodyStr
 	}
 
 	log.Printf("Response body unmarshaled successfully: %v\n", data)
 	return data, nil
-}
-
-func ModelToJson(model interface{}) (string, error) {
-	jsonData, err := json.Marshal(model)
-	if err != nil {
-		return "", olerror.NewSDKError("Error marshalling model into json.")
-	}
-
-	return string(jsonData), nil
 }
 
 func BuildAPIPath(parts ...interface{}) (string, error) {

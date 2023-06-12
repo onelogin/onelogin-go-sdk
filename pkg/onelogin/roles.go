@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	RolePath string = "/api/2/roles"
+	RolePath string = "api/2/roles"
 )
 
 func (sdk *OneloginSDK) CreateRole(role *mod.Role) (interface{}, error) {

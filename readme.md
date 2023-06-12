@@ -87,15 +87,13 @@ func main() {
 
 ## Documentation
 
-Comprehensive documentation for the Onelogin SDK is available in the `docs` directory. The following documents provide detailed information on using the SDK and its various modules:
+[Comprehensive documentation](docs/index.md) for the Onelogin SDK is available in the `docs` directory. The following documents provide detailed information on using the SDK and its various modules:
 
 - `api.md`: Documentation for the API module, including request construction, communication, and response handling.
 - `authentication.md`: Detailed documentation for the Authentication module, including the process of obtaining and revoking access tokens as well as retrieving the token for other applications or services.
 - `error_handling.md`: Documentation for error handling, including information on error types and codes.
 - `index.md`: Introduction and overview of the SDK, including goals and architecture.
-- `models.md`:
-
- Documentation for the models module, describing the data models that represent Onelogin entities and resources.
+- `models.md`: Documentation for the models module, describing the data models that represent Onelogin entities and resources.
 - `usage_examples.md`: Contains usage examples and code snippets demonstrating various SDK functionalities.
 
 ## Contributing

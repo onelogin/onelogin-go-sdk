@@ -21,6 +21,7 @@ func (sdk *OneloginSDK) CreateAuthServer(authServer *mod.AuthServer) (interface{
 	return utl.CheckHTTPResponse(resp)
 }
 
+// was ListAuthServers
 func (sdk *OneloginSDK) GetAuthServers(queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(APIAuthPath)
 	if err != nil {

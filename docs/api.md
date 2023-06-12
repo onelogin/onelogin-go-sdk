@@ -1,66 +1,38 @@
 # API Module Documentation
 
-This document describes the use of the API module in the OneLogin Go SDK. The API module provides the basic HTTP methods (GET, POST, DELETE, PUT) for communicating with the OneLogin API, and handles the construction and sending of requests, as well as processing the responses.
+The API module is a crucial part of the OneLogin Go SDK. It is responsible for constructing and sending HTTP requests to the OneLogin API, and processing the responses. This document will explain the main components of the API module and their role in the SDK.
 
 ## Client
 
-The `Client` struct in the API module is responsible for making requests to the OneLogin API. It contains an `HttpClient` (for making the HTTP requests), an `Auth` (for handling authentication), and the `OLdomain` (the OneLogin domain to which requests are sent).
+The `Client` struct is the primary interface for interacting with the OneLogin API. It uses an `HttpClient` to make HTTP requests, an `Auth` object to handle authentication, and the `OLdomain` (OneLogin domain) for routing the requests.
 
-The `NewClient` function is used to create a new `Client`. It uses the `http.DefaultClient` as the `HttpClient`, creates a new `Authenticator`, and sets the `OLdomain` based on the `ONELOGIN_SUBDOMAIN` environment variable.
+### `NewClient` Function
 
-```go
-client := api.NewClient()
-```
+The `NewClient` function creates a new `Client` and initializes it with the `http.DefaultClient` as the `HttpClient`, a new `Authenticator` for `Auth`, and sets the `OLdomain` from the `ONELOGIN_SUBDOMAIN` environment variable. This function is typically called at the start of the program to instantiate the client, which is then used to make API calls.
+
+### `newRequest` Function
+
+This function creates a new HTTP request with the specified method, path, query parameters, and request body. It is a helper function, used by the HTTP methods (Get, Post, Delete, Put) of the `Client` to construct a new request. The function takes the method type (GET, POST, etc.), the API path, an object for query parameters, and a body for the request, and returns an HTTP request that is ready to be sent.
+
+### `sendRequest` Function
+
+This function sends an HTTP request and returns the HTTP response. It is used by the HTTP methods (Get, Post, Delete, Put) of the `Client` to send requests. This function also checks the response status code, and if it detects a `http.StatusUnauthorized` (HTTP 401), it attempts to refresh the token and retry the request.
 
 ## HTTP Methods
 
 The `Client` struct provides the following methods for making HTTP requests:
 
-- `Get`: This method makes a GET request to the specified path. It takes a `path` and a `queryParams` map as arguments, and returns the response body as a byte array.
+- `Get`: Makes a GET request to the specified path with optional query parameters. It is used to retrieve information from the OneLogin API.
+- `Post`: Makes a POST request to the specified path. It sends data to the OneLogin API to create a new resource.
+- `Delete`: Makes a DELETE request to the specified path. It is used to delete a resource from the OneLogin API.
+- `Put`: Makes a PUT request to the specified path. It is used to update a resource in the OneLogin API.
 
-```go
-response, err := client.Get("/api/1/users", nil)
-```
+Each of these methods uses the `newRequest` function to create the HTTP request, and the `sendRequest` function to send the request and retrieve the response. These methods make the process of interacting with the OneLogin API simpler and more intuitive.
 
-- `Post`: This method makes a POST request to the specified path. It takes a `path`, a `queryParams` map, and a `body` interface{} as arguments, and returns the response body as a byte array.
+## Authenticator
 
-```go
-response, err := client.Post("/api/1/users", nil, user)
-```
+The `Authenticator` interface is used for handling authentication. It uses the `GetToken` method for retrieving authentication tokens. The tokens are needed for authenticating requests to the OneLogin API.
 
-- `Delete`: This method makes a DELETE request to the specified path. It takes a `path` and a `queryParams` map as arguments, and returns the response body as a byte array.
+The `Authenticator` is initialized with the `NewAuthenticator` function and the token is generated with the `GenerateToken` method within the `NewClient` function. If a request is unauthorized (HTTP 401), the token is refreshed using the `GenerateToken` method in the `sendRequest` function.
 
-```go
-response, err := client.Delete("/api/1/users/1", nil)
-```
-
-- `Put`: This method makes a PUT request to the specified path. It takes a `path`, a `queryParams` map, and a `body` interface{} as arguments, and returns the response body as a byte array.
-
-```go
-response, err := client.Put("/api/1/users/1", nil, updatedUser)
-```
-
-## Request
-
-The `Request` struct represents an API request. It contains the `Url`, `Headers`, and `Body` of the request.
-
-A new `Request` can be created using the `NewRequest` function, which takes a `url`, a `headers` map, and a `body` interface{} as arguments.
-
-The `Send` method of the `Request` struct sends the API request and returns an `http.Response`.
-
-```go
-request := api.NewRequest("https://your-api-subdomain.onelogin.com/api/1/users", headers, body)
-response, err := request.Send()
-```
-
-## Response
-
-The `Response` struct represents an API response. It contains the `StatusCode`, `Body`, and `Headers` of the response.
-
-A new `Response` can be created using the `NewResponse` function, which takes an `http.Response` as an argument.
-
-```go
-response, err := api.NewResponse(httpResponse)
-```
-
-Note: Make sure to check the `StatusCode` of the `Response` to ensure that the request was successful. A `StatusCode` in the 200-299 range indicates success, while a `StatusCode` in the 400-499 range indicates an error.
+In summary, the API module simplifies the process of interacting with the OneLogin API by encapsulating the details of creating, sending, and processing HTTP requests. It uses environment variables for the API credentials and handles error scenarios such as unauthorized requests and token refresh. It forms the backbone of the OneLogin Go SDK, providing a streamlined interface for making API calls.

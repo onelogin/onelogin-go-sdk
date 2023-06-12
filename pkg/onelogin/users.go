@@ -1,6 +1,8 @@
 package onelogin
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 
 	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
@@ -12,6 +14,7 @@ const (
 	UserPathV2 string = "api/2/users"
 )
 
+// Users V2
 func (sdk *OneloginSDK) CreateUser(user *mod.User) (interface{}, error) {
 	p := UserPathV2
 	resp, err := sdk.Client.Post(&p, user)
@@ -22,6 +25,7 @@ func (sdk *OneloginSDK) CreateUser(user *mod.User) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
+// was ListUsers
 func (sdk *OneloginSDK) GetUsers(query mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(UserPathV2)
 	if err != nil {
@@ -89,4 +93,80 @@ func (sdk *OneloginSDK) DeleteUser(id int) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) UpdatePasswordSecure(userID string)
+// Users V1
+func (sdk *OneloginSDK) UpdatePasswordSecure(id int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, "set_password_using_salt", id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) UpdatePasswordInsecure(id int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, "set_password_clear", id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) LockUserAccount(id int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, id, "lock_user")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) GetUserRoles(id int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, id, "roles")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) LogOutUser(userID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, userID, "logout")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) AssignRolesToUser(userID int, roles []int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, userID, "add_roles")
+	if err != nil {
+		return nil, err
+	}
+	payload := map[string][]int{"role_id_array": roles}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}

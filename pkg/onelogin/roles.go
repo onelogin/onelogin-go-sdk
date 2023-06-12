@@ -18,6 +18,7 @@ func (sdk *OneloginSDK) CreateRole(role *mod.Role) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
+// was ListRoles
 func (sdk *OneloginSDK) GetRoles(queryParams mod.Queryable) (interface{}, error) {
 	p := RolePath
 	resp, err := sdk.Client.Get(&p, queryParams)
@@ -57,6 +58,106 @@ func (sdk *OneloginSDK) DeleteRole(id int, queryParams map[string]string) (inter
 		return nil, err
 	}
 	resp, err := sdk.Client.Delete(&p)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+// was ListRoleUsers
+func (sdk *OneloginSDK) GetRoleUsers(roleID int, queryParams mod.Queryable) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "users")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) AddRoleUsers(roleID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "users")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+// was removeRoleUsers
+func (sdk *OneloginSDK) DeleteRoleUsers(roleID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "users")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Delete(&p)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) GetRoleAdmins(roleID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "admins")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) AddRoleAdmins(roleID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "admins")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+// was removeRoleAdmins
+func (sdk *OneloginSDK) DeleteRoleAdmins(roleID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "admins")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Delete(&p)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) GetRoleApps(roleID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "apps")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+// was setRoleApps
+func (sdk *OneloginSDK) UpdateRoleApps(roleID int, apps []int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(RolePath, roleID, "apps")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, apps)
 	if err != nil {
 		return nil, err
 	}

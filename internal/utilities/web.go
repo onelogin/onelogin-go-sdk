@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -35,7 +34,7 @@ func CheckHTTPResponse(resp *http.Response) (interface{}, error) {
 	// Try to unmarshal the response body into a map[string]interface{} or []interface{}
 	var data interface{}
 	bodyStr := string(body)
-	log.Printf("Response body: %s\n", bodyStr)
+	//log.Printf("Response body: %s\n", bodyStr)
 	if strings.HasPrefix(bodyStr, "[") {
 		var slice []interface{}
 		err = json.Unmarshal(body, &slice)
@@ -54,7 +53,7 @@ func CheckHTTPResponse(resp *http.Response) (interface{}, error) {
 		data = bodyStr
 	}
 
-	log.Printf("Response body unmarshaled successfully: %v\n", data)
+	//log.Printf("Response body unmarshaled successfully: %v\n", data)
 	return data, nil
 }
 

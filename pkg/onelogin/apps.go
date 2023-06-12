@@ -22,6 +22,7 @@ func (sdk *OneloginSDK) CreateApp(app *mod.App) (interface{}, error) {
 
 }
 
+// was ListApps
 func (sdk *OneloginSDK) GetApps(queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath)
 	if err != nil {

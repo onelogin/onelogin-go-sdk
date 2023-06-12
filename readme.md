@@ -4,12 +4,12 @@ This is the Onelogin SDK, a Go package that provides a convenient interface for 
 
 ## Features
 
-- Authentication: Retrieve access tokens for authenticating API requests using environment variables.
-- API Requests: Construct and send requests to Onelogin's API.
-- Response Handling: Parse and handle API responses.
-- Error Management: Handle and recover from errors effectively.
-- Data Models: Represent Onelogin entities and resources.
-- Utilities: Provide utility functions and helper methods.
+- **Authentication**: Obtain and revoke access tokens for authenticating API requests using environment variables.
+- **API Requests**: Construct and send requests to Onelogin's API.
+- **Response Handling**: Parse and handle API responses.
+- **Error Management**: Handle and recover from errors effectively.
+- **Data Models**: Represent Onelogin entities and resources.
+- **Utilities**: Provide utility functions and helper methods.
 
 ## Installation
 
@@ -21,56 +21,67 @@ go get github.com/onelogin/onelogin-go-sdk
 
 ## Requirements
 
-The SDK expects three environment variables to be set:
+The SDK expects three environment variables to be set for authentication:
 
 - `ONELOGIN_CLIENT_ID`
 - `ONELOGIN_CLIENT_SECRET`
 - `ONELOGIN_SUBDOMAIN`
 
-The export_creds.sh can be filled in and used prior to running your program.
+These variables are used by the Authenticator for authentication with the OneLogin API. The Authenticator retrieves an access token using these credentials, which is then used for API requests. You can set these variables directly in your shell or in the environment of the program that will be using this SDK.
+
+In a Unix/Linux shell, you can use the `export` command to set these variables:
+
+```shell
+export ONELOGIN_CLIENT_ID=your_client_id
+export ONELOGIN_CLIENT_SECRET=your_client_secret
+export ONELOGIN_SUBDOMAIN=your_subdomain
+```
+
+In a Go program, you can use the `os` package to set these variables:
+
+```go
+os.Setenv("ONELOGIN_CLIENT_ID", "your_client_id")
+os.Setenv("ONELOGIN_CLIENT_SECRET", "your_client_secret")
+os.Setenv("ONELOGIN_SUBDOMAIN", "your_subdomain")
+```
+
+Please ensure these variables are set before attempting to use the SDK to make API requests.
 
 ## Usage
 
-Here's a basic example demonstrating how to use the Onelogin SDK:
+Here's an example demonstrating how to use the Onelogin SDK:
 
 ```go
 package main
 
 import (
 	"fmt"
+
+	"github.com/onelogin/onelogin-go-sdk/internal/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
 )
 
 func main() {
-	// Create a new instance of the Onelogin SDK
-	ol := onelogin.NewOneloginSDK()
-
-	// Authenticate and get the access token
-	token, err := ol.GetToken()
+	ol, err := onelogin.NewOneloginSDK()
 	if err != nil {
-		fmt.Printf("Failed to authenticate: %s\n", err)
+		fmt.Println("Unable to initialize client:", err)
 		return
 	}
-
-	// Use the Onelogin SDK to make API calls
-	// Example: Get user information
-	user, err := ol.GetUser("user_id")
+	userQuery := models.UserQuery{}
+	userList, err := ol.GetUsers(&userQuery)
 	if err != nil {
-		fmt.Printf("Failed to get user: %s\n", err)
+		fmt.Println("Failed to get user:", err)
 		return
 	}
+	fmt.Println(userList)
 
-	// Print the user information
-	fmt.Printf("User: %v\n", user)
-
-	// Revoke the access token
-	err = ol.Auth.RevokeToken(&token, ol.Auth.OLDomain)
+	appQuery := models.AppQuery{}
+	appList, err := ol.GetApps(&appQuery)
 	if err != nil {
-		fmt.Printf("Failed to revoke token: %s\n", err)
+		fmt.Println("Failed to get app list:", err)
 		return
 	}
-
-	fmt.Println("Token revoked successfully")
+	fmt.Println("App List:", appList)
 }
 ```
 
@@ -79,10 +90,12 @@ func main() {
 Comprehensive documentation for the Onelogin SDK is available in the `docs` directory. The following documents provide detailed information on using the SDK and its various modules:
 
 - `api.md`: Documentation for the API module, including request construction, communication, and response handling.
-- `authentication.md`: Documentation for the authentication module, covering the process of obtaining and revoking access tokens.
+- `authentication.md`: Detailed documentation for the Authentication module, including the process of obtaining and revoking access tokens as well as retrieving the token for other applications or services.
 - `error_handling.md`: Documentation for error handling, including information on error types and codes.
 - `index.md`: Introduction and overview of the SDK, including goals and architecture.
-- `models.md`: Documentation for the models module, describing the data models that represent Onelogin entities and resources.
+- `models.md`:
+
+ Documentation for the models module, describing the data models that represent Onelogin entities and resources.
 - `usage_examples.md`: Contains usage examples and code snippets demonstrating various SDK functionalities.
 
 ## Contributing

@@ -28,5 +28,13 @@ func main() {
 		return
 	}
 	fmt.Println("App List:", appList)
+	description := "Test App Description"
+	newApp := models.App{Name: "Go SDK Demo App", Description: &description, ConnectorID: 2}
+	createdApp, err := ol.CreateApp(&newApp)
+	if err != nil {
+		fmt.Println("Failed to create app:", err)
+		return
+	}
+	fmt.Println("Created App:", createdApp)
 
 }

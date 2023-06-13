@@ -1,7 +1,7 @@
 package models
 
 type App struct {
-	ID                 int32                 `json:"id"`
+	ID                 int32                 `json:"id,omitempty"`
 	ConnectorID        int32                 `json:"connector_id"`
 	Name               string                `json:"name"`
 	Description        *string               `json:"description,omitempty"`

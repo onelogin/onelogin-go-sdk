@@ -15,7 +15,7 @@ const (
 )
 
 // Users V2
-func (sdk *OneloginSDK) CreateUser(user *mod.User) (interface{}, error) {
+func (sdk *OneloginSDK) CreateUser(user mod.User) (interface{}, error) {
 	p := UserPathV2
 	resp, err := sdk.Client.Post(&p, user)
 	if err != nil {
@@ -165,6 +165,55 @@ func (sdk *OneloginSDK) AssignRolesToUser(userID int, roles []int) (interface{},
 		return nil, err
 	}
 	resp, err := sdk.Client.Put(&p, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) SetUserState(userID, state int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, userID, "set_state")
+	if err != nil {
+		return nil, err
+	}
+	payload := map[string]int{"state": state}
+	resp, err := sdk.Client.Put(&p, payload)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) RemoveUserRole(userID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, userID, "remove_roles")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) GetCustomAttributes() (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, "custom_attributes")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) SetCustomAttributes(userID int, attr interface{}) (interface{}, error) {
+	p, err := utl.BuildAPIPath(UserPathV1, userID, "set_custom_attributes")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, attr)
 	if err != nil {
 		return nil, err
 	}

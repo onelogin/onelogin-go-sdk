@@ -137,3 +137,15 @@ func (sdk *OneloginSDK) DeleteAppRule(id, ruleID int, queryParams map[string]str
 	}
 	return utl.CheckHTTPResponse(resp)
 }
+
+func (sdk *OneloginSDK) GetAppUsers(appID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, appID, "users")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}

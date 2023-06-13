@@ -62,10 +62,10 @@ type Options struct {
 
 // SmartHookEnvVarQuery represents available query parameters
 type SmartHookEnvVarQuery struct {
-	Limit  string
-	Page   string
-	Cursor string
-	Type   string
+	Limit  string `json:"limit,omitempty"`
+	Page   string `json:"page,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
+	Type   string `json:"type,omitempty"`
 }
 
 // EnvVar represents an Environment Variable to be associated with a SmartHook

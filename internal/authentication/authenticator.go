@@ -12,7 +12,7 @@ import (
 	olError "github.com/onelogin/onelogin-go-sdk/internal/error"
 )
 
-const (
+var (
 	TokenPath  string = "/auth/oauth2/v2/token"
 	RevokePath string = "/auth/oauth2/revoke"
 )

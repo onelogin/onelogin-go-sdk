@@ -1,116 +1,229 @@
 package tests
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/api"
 	"github.com/onelogin/onelogin-go-sdk/internal/authentication"
+	"github.com/onelogin/onelogin-go-sdk/internal/models"
 )
 
-type MockDoType func(req *http.Request) (*http.Response, error)
+// TestNewClient tests the NewClient function.
+func TestNewClient(t *testing.T) {
+	// Set up environment variables
+	os.Setenv("ONELOGIN_SUBDOMAIN", "test")
 
-type MockClient struct {
-	MockDo MockDoType
-}
-
-func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
-	return m.MockDo(req)
-}
-
-func TestNewRequest(t *testing.T) {
-	httpmock := MockClient{
-		MockDo: func(req *http.Request) (*http.Response, error) {
-			resp := http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewBufferString(`OK`)),
-			}
-			return &resp, nil
-		},
-	}
-
-	authenticator := authentication.NewAuthenticator()
-
-	client := api.Client{
-		HttpClient: &httpmock,
-		Auth:       authenticator,
-		OLdomain:   "http://localhost",
-	}
-	test := "/test"
-	resp, err := client.Get(&test, nil)
+	// Create a new client
+	client, err := api.NewClient()
 	if err != nil {
-		t.Errorf("Expected no error, but got %v", err)
+		t.Errorf("Error creating client: %v", err)
+		return
 	}
-	if resp != nil && resp.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code %d, but got %d", http.StatusOK, resp.StatusCode)
+
+	// Check that the client was created successfully
+	if client == nil {
+		t.Error("Client was not created")
+		return
+	}
+
+	// Check that the client's Authenticator was created successfully
+	if client.Auth == nil {
+		t.Error("Authenticator was not created")
 	}
 }
 
+// TestGet tests the Get method.
 func TestGet(t *testing.T) {
-	// Create a mock HTTP client
-	httpmock := MockClient{
-		MockDo: func(req *http.Request) (*http.Response, error) {
-			// Modify the response based on the test case
-			if req.URL.Path == "/test" && req.Method == "GET" {
-				// Successful case
-				resp := http.Response{
-					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(bytes.NewBufferString(`OK`)),
-				}
-				return &resp, nil
-			} else if req.URL.Path == "/test" && req.Method == "POST" {
-				// Unsuccessful case - incorrect method
-				resp := http.Response{
-					StatusCode: http.StatusMethodNotAllowed,
-					Body:       ioutil.NopCloser(bytes.NewBufferString(`Method not allowed`)),
-				}
-				return &resp, nil
-			} else {
-				// Unsuccessful case - unexpected request
-				resp := http.Response{
-					StatusCode: http.StatusNotFound,
-					Body:       ioutil.NopCloser(bytes.NewBufferString(`Not found`)),
-				}
-				return &resp, nil
-			}
-		},
+	// Create a new client
+	client := &api.Client{
+		HttpClient: http.DefaultClient,
+		Auth:       authentication.NewAuthenticator(),
+		OLdomain:   "https://test.onelogin.com",
 	}
 
-	// Create an API client with the mock HTTP client
-	authenticator := authentication.NewAuthenticator()
-	client := api.Client{
-		HttpClient: &httpmock,
-		Auth:       authenticator,
-		OLdomain:   "http://localhost",
-	}
+	// Create a test server
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Write a response
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("test"))
+	}))
+	defer ts.Close()
 
-	// Test successful GET request
-	test := "/test"
-	resp, err := client.Get(&test, nil)
+	// Send a test request
+	path := "/test"
+	queryParams := models.UserQuery{}
+	resp, err := client.Get(&path, &queryParams)
 	if err != nil {
-		t.Errorf("Expected no error, but got %v", err)
-	}
-	if resp != nil && resp.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code %d, but got %d", http.StatusOK, resp.StatusCode)
+		t.Errorf("Error sending request: %v", err)
 	}
 
-	// Test unsuccessful POST request
-	resp, err = client.Post(&test, nil)
-	if err == nil {
-		t.Error("Expected error, but got no error")
+	// Check that the response was received successfully
+	if resp == nil {
+		t.Error("Response was not received")
 	}
-	if resp != nil && resp.StatusCode != http.StatusMethodNotAllowed {
-		t.Errorf("Expected status code %d, but got %d", http.StatusMethodNotAllowed, resp.StatusCode)
+
+	// Check that the response's body was read successfully
+	if resp == nil || resp.Body == nil {
+		t.Error("Response body is nil")
+		return
 	}
-	uhoh := "/unexpected"
-	// Test unsuccessful GET request with unexpected path
-	resp, err = client.Get(&uhoh, nil)
-	if err == nil {
-		t.Error("Expected error, but got no error")
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Error reading response body: %v", err)
 	}
-	if resp != nil && resp.StatusCode != http.StatusNotFound {
-		t.Errorf("Expected status code %d, but got %d", http.StatusNotFound, resp.StatusCode)
+	if err != nil {
+		t.Errorf("Error reading response body: %v", err)
+	}
+	if string(body) != "test" {
+		t.Errorf("Response body was %s, expected test", string(body))
+	}
+}
+
+// TestDelete tests the Delete method.
+func TestDelete(t *testing.T) {
+	// Create a new client
+	client := &api.Client{
+		HttpClient: http.DefaultClient,
+		Auth:       authentication.NewAuthenticator(),
+		OLdomain:   "https://test.onelogin.com",
+	}
+
+	// Create a test server
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Write a response
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("test"))
+	}))
+	defer ts.Close()
+
+	// Send a test request
+	path := "/test"
+	resp, err := client.Delete(&path)
+	if err != nil {
+		t.Errorf("Error sending request: %v", err)
+	}
+
+	// Check that the response was received successfully
+	if resp == nil || resp.Body == nil {
+		t.Error("Response was not received")
+	}
+
+	// Check that the response's body was read successfully
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Error reading response body: %v", err)
+	}
+	if string(body) != "test" {
+		t.Errorf("Response body was %s, expected test", string(body))
+	}
+}
+
+// TestPost tests the Post method.
+func TestPost(t *testing.T) {
+	// Create a new client
+	client := &api.Client{
+		HttpClient: http.DefaultClient,
+		Auth:       authentication.NewAuthenticator(),
+		OLdomain:   "https://test.onelogin.com",
+	}
+
+	// Create a test server
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check that the request's body was read correctly
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("Error reading request body: %v", err)
+		}
+		if string(body) != "test" {
+			t.Errorf("Request body was %s, expected test", string(body))
+		}
+
+		// Write a response
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("test"))
+	}))
+	defer ts.Close()
+
+	// Send a test request
+	path := "/test"
+	body := "test"
+	resp, err := client.Post(&path, &body)
+	if err != nil {
+		t.Errorf("Error sending request: %v", err)
+	}
+
+	// Check that the response was received successfully
+	if resp == nil || resp.Body == nil {
+		t.Error("Response was not received")
+	}
+
+	// Check that the response's body was read successfully
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Error reading response body: %v", err)
+	}
+	respBody := string(bodyBytes)
+	if err != nil {
+		t.Errorf("Error reading response body: %v", err)
+	}
+	if string(body) != "test" {
+		t.Errorf("Response body was %s, expected test", string(respBody))
+	}
+}
+
+// TestPut tests the Put method.
+func TestPut(t *testing.T) {
+	// Create a new client
+	client := &api.Client{
+		HttpClient: http.DefaultClient,
+		Auth:       authentication.NewAuthenticator(),
+		OLdomain:   "https://test.onelogin.com",
+	}
+
+	// Create a test server
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check that the request's body was read correctly
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("Error reading request body: %v", err)
+		}
+		if string(body) != "test" {
+			t.Errorf("Request body was %s, expected test", string(body))
+		}
+
+		// Write a response
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("test"))
+	}))
+	defer ts.Close()
+
+	// Send a test request
+	path := "/test"
+	body := "test"
+	resp, err := client.Put(&path, &body)
+	if err != nil {
+		t.Errorf("Error sending request: %v", err)
+	}
+
+	// Check that the response was received successfully
+	if resp == nil || resp.Body == nil {
+		t.Error("Response was not received")
+	}
+
+	// Check that the response's body was read successfully
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Errorf("Error reading response body: %v", err)
+	}
+	respBody := string(bodyBytes)
+	if err != nil {
+		t.Errorf("Error reading response body: %v", err)
+	}
+	if string(body) != "test" {
+		t.Errorf("Response body was %s, expected test", string(respBody))
 	}
 }

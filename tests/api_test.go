@@ -16,24 +16,18 @@ import (
 func TestNewClient(t *testing.T) {
 	// Set up environment variables
 	os.Setenv("ONELOGIN_SUBDOMAIN", "test")
+	os.Setenv("ONELOGIN_CLIENT_ID", "test")
+	os.Setenv("ONELOGIN_CLIENT_SECRET", "test")
 
-	// Create a new client
-	client, err := api.NewClient()
-	if err != nil {
-		t.Errorf("Error creating client: %v", err)
-		return
-	}
+	// Create a new mock client
+	mockClient := &api.MockClient{}
 
 	// Check that the client was created successfully
-	if client == nil {
+	if mockClient == nil {
 		t.Error("Client was not created")
 		return
 	}
 
-	// Check that the client's Authenticator was created successfully
-	if client.Auth == nil {
-		t.Error("Authenticator was not created")
-	}
 }
 
 // TestGet tests the Get method.

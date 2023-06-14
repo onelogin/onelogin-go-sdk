@@ -11,6 +11,22 @@ This is the Onelogin SDK, a Go package that provides a convenient interface for 
 - **Data Models**: Represent Onelogin entities and resources.
 - **Utilities**: Provide utility functions and helper methods.
 
+
+## Supported APIs
+- [API Authorization] (https://developers.onelogin.com/api-docs/2/api-authorization/overview)
+- [Apps] (https://developers.onelogin.com/api-docs/2/apps)
+- [App Rules] (https://developers.onelogin.com/api-docs/2/app-rules)
+- [Groups] (https://developers.onelogin.com/api-docs/2/groups)
+- [Privileges] (https://developers.onelogin.com/api-docs/1/privileges)
+- [Roles] (https://developers.onelogin.com/api-docs/2/roles)
+- [SAML Assertions] (https://developers.onelogin.com/api-docs/2/saml-assertions)
+- [Smart Hooks] 
+- [Users] (https://developers.onelogin.com/api-docs/2/users)
+- [User Mappings] (https://developers.onelogin.com/api-docs/2/user-mappings)
+
+## Partially Support APIs
+- [MFA] (https://developers.onelogin.com/api-docs/2/multi-factor-authentication)
+
 ## Installation
 
 To use the Onelogin SDK in your Go project, you need to have Go installed and set up. Then, you can install the SDK using the `go get` command:

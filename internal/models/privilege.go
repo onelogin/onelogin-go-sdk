@@ -29,3 +29,11 @@ type StatementData struct {
 	Action []string `json:"Action"`
 	Scope  []string `json:"Scope"`
 }
+
+func (p *Privilege) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":  validateString,
+		"page":   validateString,
+		"cursor": validateString,
+	}
+}

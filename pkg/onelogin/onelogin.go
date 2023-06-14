@@ -29,31 +29,29 @@ func (sdk *OneloginSDK) GetToken() (string, error) {
 	return accessTk, nil
 }
 
-func (sdk *OneloginSDK) GenerateInviteLink() {
-	// Implementation for Generate Invite Link endpoint
+func (sdk *OneloginSDK) GenerateInviteLink(email string) (interface{}, error) {
+	p := "api/1/invites/get_invite_link"
+	resp, err := sdk.Client.Post(&p, email)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
-func (sdk *OneloginSDK) SendInviteLink() {
-	// Implementation for Send Invite Link endpoint
+func (sdk *OneloginSDK) ListConnectors() (interface{}, error) {
+	p := "api/2/connectors"
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
-func (sdk *OneloginSDK) ListConnectors() {
-	// Implementation for List Connectors endpoint
+func (sdk *OneloginSDK) SendInviteLink(email string) (interface{}, error) {
+	p := "api/1/invites/send_invite_link"
+	resp, err := sdk.Client.Post(&p, email)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
-
-func (sdk *OneloginSDK) CreateDeviceVerification(userID int) {
-	// Implementation for Create Device Verification endpoint
-}
-func (sdk *OneloginSDK) CreateFactorRegistration(userID int)                   {}
-func (sdk *OneloginSDK) DeleteEnrolledFactor(userID int, deviceID int)         {}
-func (sdk *OneloginSDK) GenerateOTP(userID int)                                {}
-func (sdk *OneloginSDK) GetAuthenticationDevices(userID int)                   {}
-func (sdk *OneloginSDK) GetUserRegistration(userID int, registrationID int)    {}
-func (sdk *OneloginSDK) GetUserVerification(userID int, verificationID int)    {}
-func (sdk *OneloginSDK) VerifyUserRegistration(userID int, registrationID int) {}
-func (sdk *OneloginSDK) VerifyUserVerification(userID int, verificationID int) {}
-func (sdk *OneloginSDK) GenerateMFAToken(userID int)                           {}
-func (sdk *OneloginSDK) GetEnrolledFactors(userID int)                         {}
-func (sdk *OneloginSDK) GetMFAFactors(userID int)                              {}
-func (sdk *OneloginSDK) RemoveMFAFactor(userID int, deviceID int)              {}
-func (sdk *OneloginSDK) VerifyMFAFactor(userID int, deviceID int)              {}

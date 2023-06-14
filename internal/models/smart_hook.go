@@ -76,3 +76,12 @@ type EnvVar struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
+
+func (s *SmartHook) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":  validateString,
+		"page":   validateString,
+		"cursor": validateString,
+		"type":   validateString,
+	}
+}

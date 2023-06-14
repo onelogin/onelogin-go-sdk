@@ -24,3 +24,14 @@ type EnrollFactorRequest struct {
 	RedirectTo    string `json:"redirect_to,omitempty"`
 	CustomMessage string `json:"custom_message,omitempty"`
 }
+type ActivateFactorRequest struct {
+	DeviceID      string `json:"device_id"`
+	ExpiresIn     string `json:"expires_in,omitempty"`
+	RedirectTo    string `json:"redirect_to,omitempty"`
+	CustomMessage string `json:"custom_message,omitempty"`
+}
+
+type GenerateMFATokenRequest struct {
+	ExpiresIn string `json:"expires_in,omitempty"`
+	Reusable  bool   `json:"reusable,omitempty"`
+}

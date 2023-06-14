@@ -2,9 +2,9 @@ package models
 
 type AuthServerQuery struct {
 	Name   string `json:"name,omitempty"`
-	Limit  string
-	Page   string
-	Cursor string
+	Limit  string `json:"limit,omitempty"`
+	Page   string `json:"page,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
 }
 
 type AuthServer struct {
@@ -22,7 +22,7 @@ type AuthServerConfiguration struct {
 }
 
 type ClientAppsQuery struct {
-	AuthServerID string
+	ID int `json:"id,omitempty"`
 }
 
 type ClientApp struct {
@@ -35,7 +35,7 @@ type ClientApp struct {
 }
 
 type ScopesQuery struct {
-	AuthServerID string
+	ID int `json:"id,omitempty"`
 }
 
 type Scope struct {
@@ -46,7 +46,7 @@ type Scope struct {
 }
 
 type AccessTokenClaimsQuery struct {
-	AuthServerID string
+	ID int `json:"id,omitempty"`
 }
 
 type AccessTokenClaim struct {
@@ -68,5 +68,23 @@ func (q *AuthServerQuery) GetKeyValidators() map[string]func(interface{}) bool {
 		"limit":  validateString,
 		"page":   validateString,
 		"cursor": validateString,
+	}
+}
+
+func (q *ClientAppsQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"auth_server_id": validateString,
+	}
+}
+
+func (q *ScopesQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"auth_server_id": validateString,
+	}
+}
+
+func (q *AccessTokenClaimsQuery) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"auth_server_id": validateString,
 	}
 }

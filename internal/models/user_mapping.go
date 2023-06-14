@@ -35,3 +35,16 @@ type UserMappingActions struct {
 	Action *string  `json:"action,omitempty"`
 	Value  []string `json:"value,omitempty"`
 }
+
+func (u *UserMapping) GetKeyValidators() map[string]func(interface{}) bool {
+	return map[string]func(interface{}) bool{
+		"limit":            validateString,
+		"page":             validateString,
+		"cursor":           validateString,
+		"has_condition":    validateString,
+		"has_condition_id": validateString,
+		"has_action":       validateString,
+		"has_action_id":    validateString,
+		"enabled":          validateBool,
+	}
+}

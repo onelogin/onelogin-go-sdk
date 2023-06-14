@@ -1,3 +1,4 @@
+
 # Onelogin Go SDK
 
 This is the Onelogin SDK, a Go package that provides a convenient interface for interacting with Onelogin's API. The SDK simplifies the integration process by providing developers an easy-to-use tool for managing authentication, making API requests, and handling responses.
@@ -20,7 +21,7 @@ This is the Onelogin SDK, a Go package that provides a convenient interface for 
 - [Privileges] (https://developers.onelogin.com/api-docs/1/privileges)
 - [Roles] (https://developers.onelogin.com/api-docs/2/roles)
 - [SAML Assertions] (https://developers.onelogin.com/api-docs/2/saml-assertions)
-- [Smart Hooks] 
+- [Smart Hooks] (https://developers.onelogin.com/api-docs/2/smart-hooks)
 - [Users] (https://developers.onelogin.com/api-docs/2/users)
 - [User Mappings] (https://developers.onelogin.com/api-docs/2/user-mappings)
 

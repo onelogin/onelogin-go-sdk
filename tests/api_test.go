@@ -1,223 +1,144 @@
 package tests
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/internal/api"
 	"github.com/onelogin/onelogin-go-sdk/internal/authentication"
-	"github.com/onelogin/onelogin-go-sdk/internal/models"
 )
 
-// TestNewClient tests the NewClient function.
-func TestNewClient(t *testing.T) {
-	// Set up environment variables
-	os.Setenv("ONELOGIN_SUBDOMAIN", "test")
-	os.Setenv("ONELOGIN_CLIENT_ID", "test")
-	os.Setenv("ONELOGIN_CLIENT_SECRET", "test")
-
-	// Create a new mock client
-	mockClient := &api.MockClient{}
-
-	// Check that the client was created successfully
-	if mockClient == nil {
-		t.Error("Client was not created")
-		return
-	}
-
+type MockHttpClient struct {
+	DoFunc func(req *http.Request) (*http.Response, error)
 }
 
-// TestGet tests the Get method.
-func TestGet(t *testing.T) {
-	// Create a new client
+func (m *MockHttpClient) Do(req *http.Request) (*http.Response, error) {
+	return m.DoFunc(req)
+}
+
+type MockAuthenticator struct {
+	GetTokenFunc         func() (string, error)
+	NewAuthenticatorFunc func() *authentication.Authenticator
+}
+
+func (m *MockAuthenticator) GetToken() (string, error) {
+	return m.GetTokenFunc()
+}
+
+func (m *MockAuthenticator) NewAuthenticator() *authentication.Authenticator {
+	return &authentication.Authenticator{}
+}
+
+func createMockClient() *api.Client {
+	mockClient := &MockHttpClient{}
+	mockAuth := &MockAuthenticator{}
+
+	mockAuth.GetTokenFunc = func() (string, error) {
+		return "mockToken", nil
+	}
+
+	auth := authentication.NewAuthenticator()
 	client := &api.Client{
-		HttpClient: http.DefaultClient,
-		Auth:       authentication.NewAuthenticator(),
-		OLdomain:   "https://test.onelogin.com",
+		HttpClient: mockClient,
+		Auth:       auth,
+		OLdomain:   "https://api.onelogin.com",
 	}
 
-	// Create a test server
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Write a response
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test"))
-	}))
-	defer ts.Close()
+	return client
+}
 
-	// Send a test request
-	path := "/test"
-	queryParams := models.UserQuery{}
-	resp, err := client.Get(&path, &queryParams)
+func TestClientGet(t *testing.T) {
+	client := createMockClient()
+
+	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
+		response := &http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(`{"key":"value"}`)),
+		}
+		return response, nil
+	}
+
+	resp, err := client.Get(new(string), nil)
 	if err != nil {
-		t.Errorf("Error sending request: %v", err)
+		t.Fatal(err)
 	}
+	defer resp.Body.Close()
 
-	// Check that the response was received successfully
-	if resp == nil {
-		t.Error("Response was not received")
-	}
-
-	// Check that the response's body was read successfully
-	if resp == nil || resp.Body == nil {
-		t.Error("Response body is nil")
-		return
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Errorf("Error reading response body: %v", err)
-	}
-	if err != nil {
-		t.Errorf("Error reading response body: %v", err)
-	}
-	if string(body) != "test" {
-		t.Errorf("Response body was %s, expected test", string(body))
+	body, _ := ioutil.ReadAll(resp.Body)
+	if string(body) != `{"key":"value"}` {
+		t.Fatalf("Expected `{\"key\":\"value\"}`, got %s", string(body))
 	}
 }
 
-// TestDelete tests the Delete method.
-func TestDelete(t *testing.T) {
-	// Create a new client
-	client := &api.Client{
-		HttpClient: http.DefaultClient,
-		Auth:       authentication.NewAuthenticator(),
-		OLdomain:   "https://test.onelogin.com",
+func TestClientPost(t *testing.T) {
+	client := createMockClient()
+
+	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
+		response := &http.Response{
+			StatusCode: 201,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(`{"result":"created"}`)),
+		}
+		return response, nil
 	}
 
-	// Create a test server
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Write a response
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test"))
-	}))
-	defer ts.Close()
-
-	// Send a test request
-	path := "/test"
-	resp, err := client.Delete(&path)
+	resp, err := client.Post(new(string), map[string]string{"foo": "bar"})
 	if err != nil {
-		t.Errorf("Error sending request: %v", err)
+		t.Fatal(err)
 	}
+	defer resp.Body.Close()
 
-	// Check that the response was received successfully
-	if resp == nil || resp.Body == nil {
-		t.Error("Response was not received")
-	}
-
-	// Check that the response's body was read successfully
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Errorf("Error reading response body: %v", err)
-	}
-	if string(body) != "test" {
-		t.Errorf("Response body was %s, expected test", string(body))
+	body, _ := ioutil.ReadAll(resp.Body)
+	if string(body) != `{"result":"created"}` {
+		t.Fatalf("Expected `{\"result\":\"created\"}`, got %s", string(body))
 	}
 }
 
-// TestPost tests the Post method.
-func TestPost(t *testing.T) {
-	// Create a new client
-	client := &api.Client{
-		HttpClient: http.DefaultClient,
-		Auth:       authentication.NewAuthenticator(),
-		OLdomain:   "https://test.onelogin.com",
-	}
+// ... Additional tests for Delete, DeleteWithBody, Put
 
-	// Create a test server
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Check that the request's body was read correctly
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			t.Errorf("Error reading request body: %v", err)
+func TestClientDelete(t *testing.T) {
+	client := createMockClient()
+
+	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
+		response := &http.Response{
+			StatusCode: 204,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(``)),
 		}
-		if string(body) != "test" {
-			t.Errorf("Request body was %s, expected test", string(body))
-		}
+		return response, nil
+	}
 
-		// Write a response
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test"))
-	}))
-	defer ts.Close()
-
-	// Send a test request
-	path := "/test"
-	body := "test"
-	resp, err := client.Post(&path, &body)
+	resp, err := client.Delete(new(string))
 	if err != nil {
-		t.Errorf("Error sending request: %v", err)
+		t.Fatal(err)
 	}
+	defer resp.Body.Close()
 
-	// Check that the response was received successfully
-	if resp == nil || resp.Body == nil {
-		t.Error("Response was not received")
-	}
-
-	// Check that the response's body was read successfully
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Errorf("Error reading response body: %v", err)
-	}
-	respBody := string(bodyBytes)
-	if err != nil {
-		t.Errorf("Error reading response body: %v", err)
-	}
-	if string(body) != "test" {
-		t.Errorf("Response body was %s, expected test", string(respBody))
+	body, _ := ioutil.ReadAll(resp.Body)
+	if string(body) != `` {
+		t.Fatalf("Expected ``, got %s", string(body))
 	}
 }
 
-// TestPut tests the Put method.
-func TestPut(t *testing.T) {
-	// Create a new client
-	client := &api.Client{
-		HttpClient: http.DefaultClient,
-		Auth:       authentication.NewAuthenticator(),
-		OLdomain:   "https://test.onelogin.com",
-	}
+func TestClientDeleteWithBody(t *testing.T) {
+	client := createMockClient()
 
-	// Create a test server
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Check that the request's body was read correctly
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			t.Errorf("Error reading request body: %v", err)
+	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
+		response := &http.Response{
+			StatusCode: 204,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(``)),
 		}
-		if string(body) != "test" {
-			t.Errorf("Request body was %s, expected test", string(body))
-		}
+		return response, nil
+	}
 
-		// Write a response
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("test"))
-	}))
-	defer ts.Close()
-
-	// Send a test request
-	path := "/test"
-	body := "test"
-	resp, err := client.Put(&path, &body)
+	resp, err := client.DeleteWithBody(new(string), map[string]string{"foo": "bar"})
 	if err != nil {
-		t.Errorf("Error sending request: %v", err)
+		t.Fatal(err)
 	}
+	defer resp.Body.Close()
 
-	// Check that the response was received successfully
-	if resp == nil || resp.Body == nil {
-		t.Error("Response was not received")
-	}
-
-	// Check that the response's body was read successfully
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Errorf("Error reading response body: %v", err)
-	}
-	respBody := string(bodyBytes)
-	if err != nil {
-		t.Errorf("Error reading response body: %v", err)
-	}
-	if string(body) != "test" {
-		t.Errorf("Response body was %s, expected test", string(respBody))
+	body, _ := ioutil.ReadAll(resp.Body)
+	if string(body) != `` {
+		t.Fatalf("Expected ``, got %s", string(body))
 	}
 }

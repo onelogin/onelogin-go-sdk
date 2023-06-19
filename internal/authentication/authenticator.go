@@ -12,8 +12,8 @@ import (
 	olError "github.com/onelogin/onelogin-go-sdk/internal/error"
 )
 
-var (
-	TokenPath  string = "/auth/oauth2/v2/token"
+const (
+	TkPath     string = "/auth/oauth2/v2/token"
 	RevokePath string = "/auth/oauth2/revoke"
 )
 
@@ -38,7 +38,7 @@ func (a *Authenticator) GenerateToken() error {
 	}
 
 	// Construct the authentication URL
-	authURL := fmt.Sprintf("https://api.onelogin.com%s", TokenPath)
+	authURL := fmt.Sprintf("https://api.onelogin.com%s", TkPath)
 
 	// Create authentication request payload
 	data := map[string]string{

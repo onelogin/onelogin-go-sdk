@@ -12,7 +12,7 @@ This documentation provides detailed information on how to use the SDK to intera
 
 ## Additional Resources
 
-- [Design](../Design.md): Dive into the design considerations and architecture of the SDK.
+- [Design](Design.md): Dive into the design considerations and architecture of the SDK.
 - [License](../LICENSE): View the license agreement for the SDK.
 - [README](../README.md): Read the SDK's introductory information, installation instructions, and basic usage guidelines.
 

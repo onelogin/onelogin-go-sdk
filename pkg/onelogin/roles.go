@@ -90,12 +90,12 @@ func (sdk *OneloginSDK) AddRoleUsers(roleID int) (interface{}, error) {
 }
 
 // was removeRoleUsers
-func (sdk *OneloginSDK) DeleteRoleUsers(roleID int) (interface{}, error) {
+func (sdk *OneloginSDK) DeleteRoleUsers(roleID int, users []int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, roleID, "users")
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Delete(&p)
+	resp, err := sdk.Client.DeleteWithBody(&p, users)
 	if err != nil {
 		return nil, err
 	}
@@ -127,12 +127,12 @@ func (sdk *OneloginSDK) AddRoleAdmins(roleID int) (interface{}, error) {
 }
 
 // was removeRoleAdmins
-func (sdk *OneloginSDK) DeleteRoleAdmins(roleID int) (interface{}, error) {
+func (sdk *OneloginSDK) DeleteRoleAdmins(roleID int, admins []int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, roleID, "admins")
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Delete(&p)
+	resp, err := sdk.Client.DeleteWithBody(&p, admins)
 	if err != nil {
 		return nil, err
 	}

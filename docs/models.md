@@ -1,6 +1,6 @@
 # SDK Models
 
-The SDK provides several models that are used for data representation and interaction with the API. These models define the structure of the data that can be sent or received when using the SDK methods.
+The SDK provides several models that define the structure of data used for data representation and interaction with the OneLogin API. These models are utilized in the SDK's client implementation to handle requests to the OneLogin API. The `Client` struct provides methods such as `Get`, `Delete`,`Post`, and `Put` that internally use the specified models to serialize data into JSON and send HTTP requests to the API. These methods handle authentication, path construction, query parameters, and request body serialization based on the provided models.
 
 The following is a list of models available in the SDK:
 
@@ -10,7 +10,7 @@ The `App` model represents an application within the OneLogin platform. It conta
 
 ```go
 type App struct {
-    ID          int64  `json:"id"`
+    ID          int64  `json:"id,omitempty"`
     Name        string `json:"name"`
     Description string `json:"description,omitempty"`
     // ...

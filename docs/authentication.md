@@ -52,12 +52,3 @@ func (a *Authenticator) GetToken() (string, error) {
 }
 ```
 
-## Error Handling
-
-Errors in the Authentication module are represented using the `olError` package, and they can be of the following types:
-
-- `AuthenticationError`: Represents an error that occurred during the authentication process, e.g., missing environment variables, failed authentication request, failed token generation or revocation.
-- `RequestError`: Represents an error that occurred while creating or sending an HTTP request.
-- `SerializationError`: Represents an error that occurred while marshalling or unmarshalling JSON data.
-
-Each error type is associated with a specific error message that provides more details about the error.

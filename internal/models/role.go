@@ -2,9 +2,9 @@ package models
 
 // RoleQuery represents available query parameters
 type RoleQuery struct {
-	Limit  string
-	Page   string
-	Cursor string
+	Limit  string `json:"limit,omitempty"`
+	Page   string `json:"page,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
 }
 
 // Role represents the Role resource in OneLogin

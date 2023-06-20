@@ -28,10 +28,10 @@ const (
 
 // SmartHookQuery represents available query parameters
 type SmartHookQuery struct {
-	Limit  string
-	Page   string
-	Cursor string
-	Type   string
+	Limit  string `json:"limit,omitempty"`
+	Page   string `json:"page,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
+	Type   string `json:"type,omitempty"`
 }
 
 // SmartHook represents a OneLogin SmartHook with associated resource data

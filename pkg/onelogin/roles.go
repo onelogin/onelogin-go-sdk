@@ -10,7 +10,10 @@ var (
 )
 
 func (sdk *OneloginSDK) CreateRole(role *mod.Role) (interface{}, error) {
-	p := RolePath
+	p, err := utl.BuildAPIPath(RolePath)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := sdk.Client.Post(&p, role)
 	if err != nil {
 		return nil, err

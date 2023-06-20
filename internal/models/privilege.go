@@ -2,9 +2,9 @@ package models
 
 // PrivilegeQuery represents available query parameters
 type PrivilegeQuery struct {
-	Limit  string
-	Page   string
-	Cursor string
+	Limit  string `json:"limit,omitempty"`
+	Page   string `json:"page,omitempty"`
+	Cursor string `json:"cursor,omitempty"`
 }
 
 // Privilege represents the Role resource in OneLogin

@@ -9,7 +9,7 @@ const (
 	AppPath string = "api/2/apps"
 )
 
-func (sdk *OneloginSDK) CreateApp(app *mod.App) (interface{}, error) {
+func (sdk *OneloginSDK) CreateApp(app mod.App) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (sdk *OneloginSDK) DeleteApp(id int) (interface{}, error) {
 
 }
 
-func (sdk *OneloginSDK) CreateAppRule(id int, appRule *mod.AppRule) (interface{}, error) {
+func (sdk *OneloginSDK) CreateAppRule(id int, appRule mod.AppRule) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath, id)
 	if err != nil {
 		return nil, err

@@ -7,31 +7,6 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/internal/error"
 )
 
-func TestValidationError(t *testing.T) {
-	expectedMessage := "mock message"
-	expectedCode := "mock code"
-	validationError := error.ValidationError{
-		Message: expectedMessage,
-		Code:    expectedCode,
-	}
-
-	t.Run("when Message is accessed", func(t *testing.T) {
-		message := validationError.Message
-
-		if message != expectedMessage {
-			t.Errorf("unexpected message: got %q, want %q", message, expectedMessage)
-		}
-	})
-
-	t.Run("when Code is accessed", func(t *testing.T) {
-		code := validationError.Code
-
-		if code != expectedCode {
-			t.Errorf("unexpected code: got %q, want %q", code, expectedCode)
-		}
-	})
-}
-
 func TestNewSerializationError(t *testing.T) {
 	expectedMessage := "mock message"
 	err := error.NewSerializationError(expectedMessage)

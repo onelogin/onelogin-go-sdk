@@ -1,9 +1,9 @@
 package models
 
 type App struct {
-	ID                 int32                 `json:"id,omitempty"`
-	ConnectorID        int32                 `json:"connector_id"`
-	Name               string                `json:"name"`
+	ID                 *int32                `json:"id,omitempty"`
+	ConnectorID        *int32                `json:"connector_id"`
+	Name               *string               `json:"name"`
 	Description        *string               `json:"description,omitempty"`
 	Notes              *string               `json:"notes,omitempty"`
 	PolicyID           *int                  `json:"policy_id,omitempty"`
@@ -17,14 +17,18 @@ type App struct {
 	RoleIDs            *[]int                `json:"role_ids,omitempty"`
 	AllowAssumedSignin *bool                 `json:"allow_assumed_signin,omitempty"`
 	Provisioning       *Provisioning         `json:"provisioning,omitempty"`
-	SSO                *interface{}          `json:"sso,omitempty"`
-	Configuration      *interface{}          `json:"configuration,omitempty"`
+	SSO                interface{}           `json:"sso,omitempty"`
+	Configuration      interface{}           `json:"configuration,omitempty"`
 	Parameters         *map[string]Parameter `json:"parameters,omitempty"`
 	EnforcementPoint   *EnforcementPoint     `json:"enforcement_point,omitempty"`
 }
 
 type Provisioning struct {
 	Enabled bool `json:"enabled"`
+}
+
+type SSO interface {
+	ValidateSSO() error
 }
 
 type SSOOpenId struct {

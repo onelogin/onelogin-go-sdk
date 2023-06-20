@@ -25,9 +25,9 @@ type AppRule struct {
 }
 
 type AppRuleQuery struct {
-	Limit            string
-	Page             string
-	Cursor           string
+	Limit            string  `json:"limit,omitempty"`
+	Page             string  `json:"page,omitempty"`
+	Cursor           string  `json:"cursor,omitempty"`
 	Enabled          bool    `json:"enabled,omitempty"`
 	HasCondition     *string `json:"has_condition,omitempty"`
 	HasConditionType *string `json:"has_condition_type,omitempty"`

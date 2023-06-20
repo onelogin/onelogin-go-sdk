@@ -20,7 +20,6 @@ This documentation provides detailed information on how to use the SDK to intera
 
 The SDK follows a modular structure with the following key components:
 
-- `cmd/main.go`: Entry point of the SDK application.
 - `internal/api`: Contains the implementation of the API client, request handling, and response parsing.
 - `internal/authentication`: Provides authentication mechanisms and related functionality.
 - `internal/error`: Defines various error types used by the SDK.

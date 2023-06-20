@@ -124,18 +124,13 @@ func (c *Client) DeleteWithBody(path *string, body interface{}) (*http.Response,
 
 // Post sends a POST request to the specified path with the given query parameters and request body.
 func (c *Client) Post(path *string, body interface{}) (*http.Response, error) {
-	var bodyReader io.Reader
-
-	if body != nil {
-		// Convert request body to JSON
-		jsonBody, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-		bodyReader = bytes.NewReader(jsonBody)
+	// Convert request body to JSON
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
 	}
 
-	req, err := c.newRequest(http.MethodPost, path, nil, bodyReader)
+	req, err := c.newRequest(http.MethodPost, path, nil, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, err
 	}

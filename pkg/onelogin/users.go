@@ -16,7 +16,11 @@ const (
 
 // Users V2
 func (sdk *OneloginSDK) CreateUser(user mod.User) (interface{}, error) {
-	p := UserPathV2
+	p, err := utl.BuildAPIPath(UserPathV2)
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := sdk.Client.Post(&p, user)
 	if err != nil {
 		return nil, err

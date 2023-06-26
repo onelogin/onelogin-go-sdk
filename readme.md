@@ -1,80 +1,118 @@
-# Onelogin-Go-SDK
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/onelogin/onelogin-go-sdk)](https://goreportcard.com/report/github.com/onelogin/onelogin-go-sdk)
-<a href='https://github.com/jpoles1/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-95%25-brightgreen.svg?longCache=true&style=flat)</a>
+# Onelogin Go SDK
 
-  This is the Onelogin Go SDK client, supporting the following apis:
+This is the Onelogin SDK, a Go package that provides a convenient interface for interacting with Onelogin's API. The SDK simplifies the integration process by providing developers an easy-to-use tool for managing authentication, making API requests, and handling responses.
 
-    - [Apps](https://developers.onelogin.com/api-docs/2/apps/overview) (v2)
-    - [App Rules](https://developers.onelogin.com/api-docs/2/app-rules/overview)
-    - [Auth Servers](https://developers.onelogin.com/api-docs/2/api-authorization/overview) (v2)
-    - [Roles](https://developers.onelogin.com/api-docs/2/roles/list-roles) (v2)
-    - [Privileges](https://developers.onelogin.com/api-docs/1/privileges/list-privileges) (v1)
-    - [Session Login Tokens](https://developers.onelogin.com/api-docs/1/login-page/create-session-login-token) (v1)
-    - [Smart Hooks](https://developers.onelogin.com/api-docs/2/smart-hooks/overview) (v2)
-    - [User Mappings](https://developers.onelogin.com/api-docs/2/user-mappings/overview) (v2)
-    - [Users](https://developers.onelogin.com/api-docs/2/users/list-users) (v2)
+## Features
+
+- **Authentication**: Obtain and revoke access tokens for authenticating API requests using environment variables.
+- **API Requests**: Construct and send requests to Onelogin's API.
+- **Response Handling**: Parse and handle API responses.
+- **Error Management**: Handle and recover from errors effectively.
+- **Data Models**: Represent Onelogin entities and resources.
+- **Utilities**: Provide utility functions and helper methods.
+
+
+## Supported APIs
+- [API Authorization](https://developers.onelogin.com/api-docs/2/api-authorization/overview)
+- [Apps](https://developers.onelogin.com/api-docs/2/apps)
+- [App Rules](https://developers.onelogin.com/api-docs/2/app-rules)
+- [Groups](https://developers.onelogin.com/api-docs/2/groups)
+- [Privileges](https://developers.onelogin.com/api-docs/1/privileges)
+- [Roles](https://developers.onelogin.com/api-docs/2/roles)
+- [SAML Assertions](https://developers.onelogin.com/api-docs/2/saml-assertions)
+- [Smart Hooks](https://developers.onelogin.com/api-docs/2/smart-hooks)
+- [Users](https://developers.onelogin.com/api-docs/2/users)
+- [User Mappings](https://developers.onelogin.com/api-docs/2/user-mappings)
+
+## Partially Support APIs
+- [MFA](https://developers.onelogin.com/api-docs/2/multi-factor-authentication)
 
 ## Installation
-  **Make sure you have [Go](https://golang.org/doc/install) installed.**
 
-  1. Install the package:
-    ```
-    go get -u "github.com/onelogin/onelogin-go-sdk/pkg/client"
-    ```
-  2. Import:
-    ```
-    import (
-      "github.com/onelogin/onelogin-go-sdk/pkg/client"
-    )
-    ```
-## Examples
+To use the Onelogin SDK in your Go project, you need to have Go installed and set up. Then, you can install the SDK using the `go get` command:
 
-  - Starting up the client:
-    ```go
-    import (
-      "github.com/onelogin/onelogin-go-sdk/pkg/client"
-    )
+```shell
+go get github.com/onelogin/onelogin-go-sdk
+```
 
-    sdkClient, err := client.NewClient(&client.APIClientConfig{
-      Timeout:      5,
-      ClientID:     "your_onelogin_developer_client_id",
-      ClientSecret: "your_onelogin_developer_client_secret",
-      Region:       "us",
-    })
-    if err != nil {
-      // handle error
-    }
+## Requirements
 
-    app, err := sdkClient.Services.AppsV2.GetOne(12345)
-    if err != nil {
-      // handle error
-    }
-    ```
+The SDK expects three environment variables to be set for authentication:
 
-  - Requesting Apps:
-  ```go
-  awsApps, err := sdkClient.AppsV2.Query(apps.AppsQuery{ConnectorID: 9, Limit: 10}) // get 10 aws apps
-  ```
+- `ONELOGIN_CLIENT_ID`
+- `ONELOGIN_CLIENT_SECRET`
+- `ONELOGIN_SUBDOMAIN`
 
-  - Creating Apps:
-  ```go
-  newApp := apps.App{Name: "new app", ConnectorID: 9}
-  err := sdkClient.AppsV2.Create(newApp) // Saves the app to OneLogin. Updates app in place with new state as represented in OneLogin
-  if err != nil {
-    return err
-  }
-  fmt.Println("my app", *newApp.ID)
-  ```
+These variables are used by the Authenticator for authentication with the OneLogin API. The Authenticator retrieves an access token using these credentials, which is then used for API requests. You can set these variables directly in your shell or in the environment of the program that will be using this SDK.
 
-  - Updating an App:
-  ```go
-  someApp, err := sdkClient.AppsV2.GetOne(123)
-  someApp.Name = "updated name"
-  sdkClient.AppsV2.Update(someApp) // saves the new app state to OneLogin
-  ```
+In a Unix/Linux shell, you can use the `export` command to set these variables:
 
-  - Destroying an App:
-  ```go
-  err := sdkClient.AppsV2.Destroy(*someApp.ID)
-  ```  
+```shell
+export ONELOGIN_CLIENT_ID=your_client_id
+export ONELOGIN_CLIENT_SECRET=your_client_secret
+export ONELOGIN_SUBDOMAIN=your_subdomain
+```
+
+In a Go program, you can use the `os` package to set these variables:
+
+```go
+os.Setenv("ONELOGIN_CLIENT_ID", "your_client_id")
+os.Setenv("ONELOGIN_CLIENT_SECRET", "your_client_secret")
+os.Setenv("ONELOGIN_SUBDOMAIN", "your_subdomain")
+```
+
+Please ensure these variables are set before attempting to use the SDK to make API requests.
+
+## Usage
+
+Here's an example demonstrating how to use the Onelogin SDK:
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/onelogin/onelogin-go-sdk/internal/models"
+	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
+)
+
+func main() {
+	ol, err := onelogin.NewOneloginSDK()
+	if err != nil {
+		fmt.Println("Unable to initialize client:", err)
+		return
+	}
+	userQuery := models.UserQuery{}
+	userList, err := ol.GetUsers(&userQuery)
+	if err != nil {
+		fmt.Println("Failed to get user:", err)
+		return
+	}
+	fmt.Println(userList)
+
+	appQuery := models.AppQuery{}
+	appList, err := ol.GetApps(&appQuery)
+	if err != nil {
+		fmt.Println("Failed to get app list:", err)
+		return
+	}
+	fmt.Println("App List:", appList)
+}
+```
+
+## Documentation
+
+[Comprehensive documentation](docs/index.md) for the Onelogin SDK is available in the `docs` directory. The following documents provide detailed information on using the SDK and its various modules:
+
+- `api.md`: Documentation for the API module, including request construction, communication, and response handling.
+- `authentication.md`: Detailed documentation for the Authentication module, including the process of obtaining and revoking access tokens as well as retrieving the token for other applications or services.
+- `error_handling.md`: Documentation for error handling, including information on error types and codes.
+- `index.md`: Introduction and overview of the SDK, including goals and architecture.
+- `models.md`: Documentation for the models module, describing the data models that represent Onelogin entities and resources.
+- `usage_examples.md`: Contains usage examples and code snippets demonstrating various SDK functionalities.
+
+## Contributing
+
+Contributions to the Onelogin SDK are welcome! If you encounter any issues or have suggestions for improvement, please open an issue or submit a pull request. We appreciate your feedback and contributions.

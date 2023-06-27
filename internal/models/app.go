@@ -65,16 +65,16 @@ type ConfigurationSAML struct {
 }
 
 type Parameter struct {
-	Values                    interface{} `json:"values"`
-	UserAttributeMappings     interface{} `json:"user_attribute_mappings"`
-	ProvisionedEntitlements   bool        `json:"provisioned_entitlements"`
-	SkipIfBlank               bool        `json:"skip_if_blank"`
-	ID                        int         `json:"id"`
+	Values                    interface{} `json:"values,omitempty"`
+	UserAttributeMappings     interface{} `json:"user_attribute_mappings,omitempty"`
+	ProvisionedEntitlements   bool        `json:"provisioned_entitlements,omitempty"`
+	SkipIfBlank               bool        `json:"skip_if_blank,omitempty"`
+	ID                        int         `json:"id,omitempty"`
 	DefaultValues             interface{} `json:"default_values"`
-	AttributesTransformations interface{} `json:"attributes_transformations"`
-	Label                     string      `json:"label"`
-	UserAttributeMacros       interface{} `json:"user_attribute_macros"`
-	IncludeInSamlAssertion    bool        `json:"include_in_saml_assertion"`
+	AttributesTransformations interface{} `json:"attributes_transformations,omitempty"`
+	Label                     string      `json:"label,omitempty"`
+	UserAttributeMacros       interface{} `json:"user_attribute_macros,omitempty"`
+	IncludeInSamlAssertion    bool        `json:"include_in_saml_assertion,omitempty"`
 }
 
 type EnforcementPoint struct {

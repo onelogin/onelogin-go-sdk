@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	olError "github.com/onelogin/onelogin-go-sdk/internal/error"
+	olError "github.com/onelogin/onelogin-go-sdk/v4/internal/error"
 )
 
 const (

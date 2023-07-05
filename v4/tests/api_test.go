@@ -1,4 +1,4 @@
-package v4/tests
+package v4_tests
 
 import (
 	"bytes"

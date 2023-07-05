@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/error"
+	"github.com/onelogin/onelogin-go-sdk/v4/internal/error"
 )
 
 func TestNewSerializationError(t *testing.T) {

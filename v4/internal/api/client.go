@@ -10,10 +10,10 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/authentication"
-	olerror "github.com/onelogin/onelogin-go-sdk/internal/error"
-	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
-	utl "github.com/onelogin/onelogin-go-sdk/internal/utilities"
+	"github.com/onelogin/onelogin-go-sdk/v4/internal/authentication"
+	olerror "github.com/onelogin/onelogin-go-sdk/v4/internal/error"
+	mod "github.com/onelogin/onelogin-go-sdk/v4/internal/models"
+	utl "github.com/onelogin/onelogin-go-sdk/v4/internal/utilities"
 )
 
 // Client represents the API client.

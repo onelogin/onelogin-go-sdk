@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
-	utl "github.com/onelogin/onelogin-go-sdk/internal/utilities"
+	mod "github.com/onelogin/onelogin-go-sdk/v4/internal/models"
+	utl "github.com/onelogin/onelogin-go-sdk/v4/internal/utilities"
 )
 
 const (

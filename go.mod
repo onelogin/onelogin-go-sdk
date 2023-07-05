@@ -1,3 +1,3 @@
-module github.com/onelogin/onelogin-go-sdk/v4
+module github.com/onelogin/onelogin-go-sdk
 
 go 1.18

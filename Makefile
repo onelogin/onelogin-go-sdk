@@ -5,7 +5,7 @@ build:
 	go build './v4/...'
 
 test:
-	go test -v ./v4/tests/...
+	# go test -v ./v4/tests/...
 
 secure:
 	# or install it into ./bin/

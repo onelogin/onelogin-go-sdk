@@ -1,8 +1,8 @@
 run:
-	go run './cmd/main.go'
+	go run './v4/cmd/main.go'
 
 build:
-	go build './...'
+	go build './v4/...'
 
 test:
 	go test -v ./v4/tests/...

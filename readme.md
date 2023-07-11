@@ -74,7 +74,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/models"
+	"github.com/onelogin/onelogin-go-sdk/v4/internal/models"
 	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
-	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 )
 
 func main() {

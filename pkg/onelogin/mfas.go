@@ -1,8 +1,8 @@
 package onelogin
 
 import (
-	"github.com/onelogin/onelogin-go-sdk/v4/internal/models"
-	utl "github.com/onelogin/onelogin-go-sdk/v4/internal/utilities"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
 
 const (

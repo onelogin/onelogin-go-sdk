@@ -1,6 +1,6 @@
 package onelogin
 
-import utl "github.com/onelogin/onelogin-go-sdk/v4/internal/utilities"
+import utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 
 const (
 	GroupsPath = "api/1/groups"

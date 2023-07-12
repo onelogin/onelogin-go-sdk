@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	olerror "github.com/onelogin/onelogin-go-sdk/v4/internal/error"
+	olerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
 )
 
 // receive http response, check error code status, if good return json of resp.Body

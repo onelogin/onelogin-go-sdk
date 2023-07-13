@@ -1,4 +1,3 @@
-
 # Onelogin Go SDK
 
 This is the Onelogin SDK, a Go package that provides a convenient interface for interacting with Onelogin's API. The SDK simplifies the integration process by providing developers an easy-to-use tool for managing authentication, making API requests, and handling responses.
@@ -12,8 +11,8 @@ This is the Onelogin SDK, a Go package that provides a convenient interface for 
 - **Data Models**: Represent Onelogin entities and resources.
 - **Utilities**: Provide utility functions and helper methods.
 
-
 ## Supported APIs
+
 - [API Authorization](https://developers.onelogin.com/api-docs/2/api-authorization/overview)
 - [Apps](https://developers.onelogin.com/api-docs/2/apps)
 - [App Rules](https://developers.onelogin.com/api-docs/2/app-rules)
@@ -26,6 +25,7 @@ This is the Onelogin SDK, a Go package that provides a convenient interface for 
 - [User Mappings](https://developers.onelogin.com/api-docs/2/user-mappings)
 
 ## Partially Support APIs
+
 - [MFA](https://developers.onelogin.com/api-docs/2/multi-factor-authentication)
 
 ## Installation
@@ -72,33 +72,33 @@ Here's an example demonstrating how to use the Onelogin SDK:
 package main
 
 import (
-	"fmt"
+ "fmt"
 
-	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
-	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+ "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+ "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 )
 
 func main() {
-	ol, err := onelogin.NewOneloginSDK()
-	if err != nil {
-		fmt.Println("Unable to initialize client:", err)
-		return
-	}
-	userQuery := models.UserQuery{}
-	userList, err := ol.GetUsers(&userQuery)
-	if err != nil {
-		fmt.Println("Failed to get user:", err)
-		return
-	}
-	fmt.Println(userList)
+ ol, err := onelogin.NewOneloginSDK()
+ if err != nil {
+  fmt.Println("Unable to initialize client:", err)
+  return
+ }
+ userQuery := models.UserQuery{}
+ userList, err := ol.GetUsers(&userQuery)
+ if err != nil {
+  fmt.Println("Failed to get user:", err)
+  return
+ }
+ fmt.Println(userList)
 
-	appQuery := models.AppQuery{}
-	appList, err := ol.GetApps(&appQuery)
-	if err != nil {
-		fmt.Println("Failed to get app list:", err)
-		return
-	}
-	fmt.Println("App List:", appList)
+ appQuery := models.AppQuery{}
+ appList, err := ol.GetApps(&appQuery)
+ if err != nil {
+  fmt.Println("Failed to get app list:", err)
+  return
+ }
+ fmt.Println("App List:", appList)
 }
 ```
 

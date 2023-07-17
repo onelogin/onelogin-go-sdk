@@ -38,7 +38,7 @@ type Authenticator interface {
 func NewClient() (*Client, error) {
 	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
 	old := fmt.Sprintf("https://%s.onelogin.com", subdomain)
-	authenticator := authentication.NewAuthenticator()
+	authenticator := authentication.NewAuthenticator(subdomain)
 	err := authenticator.GenerateToken()
 	if err != nil {
 		return nil, err

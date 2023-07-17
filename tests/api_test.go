@@ -39,7 +39,7 @@ func createMockClient() *api.Client {
 		return "mockToken", nil
 	}
 
-	auth := authentication.NewAuthenticator()
+	auth := authentication.NewAuthenticator("test")
 	client := &api.Client{
 		HttpClient: mockClient,
 		Auth:       auth,

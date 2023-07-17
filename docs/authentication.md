@@ -14,11 +14,11 @@ type Authenticator struct {
 
 ## NewAuthenticator Function
 
-The `NewAuthenticator` function is used to create a new `Authenticator` instance. It does not require any arguments and it initializes a new Authenticator with an empty `accessToken`.
+The `NewAuthenticator` function is used to create a new `Authenticator` instance. It requires the subdomain as an argument, and it initializes a new Authenticator with an empty `accessToken`.
 
 ```go
-func NewAuthenticator() *Authenticator {
-	return &Authenticator{}
+func NewAuthenticator(subdomain string) *Authenticator {
+	return &Authenticator{subdomain: subdomain}
 }
 ```
 
@@ -37,7 +37,7 @@ func (a *Authenticator) GenerateToken() error {
 The `RevokeToken` function is used to revoke an existing access token. It reads the `ONELOGIN_CLIENT_ID` and `ONELOGIN_CLIENT_SECRET` environment variables, creates a revocation request, sends it, and handles the response. If the revocation is successful, a confirmation message is printed.
 
 ```go
-func (a *Authenticator) RevokeToken(token, domain *string) error {
+func (a *Authenticator) RevokeToken(token *string) error {
     // implementation details
 }
 ```

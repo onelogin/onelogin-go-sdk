@@ -53,8 +53,8 @@ func NewClient() (*Client, error) {
 	
 	return &Client{
 		HttpClient: http.Client{
-			Timeout: timeout
-		}
+			Timeout: timeout,
+		},
 		Auth:       authenticator,
 		OLdomain:   old,
 	}, nil

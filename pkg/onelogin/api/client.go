@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/authentication"
 	olerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
@@ -21,6 +22,7 @@ type Client struct {
 	HttpClient HTTPClient                    // HTTPClient interface for making HTTP requests
 	Auth       *authentication.Authenticator // Authenticator for managing authentication
 	OLdomain   string                        // OneLogin domain
+	Timeout	   time.Duration
 }
 
 // HTTPClient is an interface that defines the Do method for making HTTP requests.
@@ -39,13 +41,20 @@ func NewClient() (*Client, error) {
 	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
 	old := fmt.Sprintf("https://%s.onelogin.com", subdomain)
 	authenticator := authentication.NewAuthenticator(subdomain)
+	timeout := os.Getenv("ONELOGIN_TIMEOUT")
+	if timeout == "" || timeout == nil {
+		timeout = 10
+	}
+	timeout := time.Second * timeout
 	err := authenticator.GenerateToken()
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return &Client{
-		HttpClient: http.DefaultClient,
+		HttpClient: http.Client{
+			Timeout: timeout
+		}
 		Auth:       authenticator,
 		OLdomain:   old,
 	}, nil

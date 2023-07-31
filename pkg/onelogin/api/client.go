@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/authentication"
@@ -22,7 +23,7 @@ type Client struct {
 	HttpClient HTTPClient                    // HTTPClient interface for making HTTP requests
 	Auth       *authentication.Authenticator // Authenticator for managing authentication
 	OLdomain   string                        // OneLogin domain
-	Timeout	   time.Duration
+	Timeout    time.Duration
 }
 
 // HTTPClient is an interface that defines the Do method for making HTTP requests.
@@ -47,17 +48,17 @@ func NewClient() (*Client, error) {
 		timeout = 10
 	}
 	timeoutDuration := time.Second * time.Duration(timeout)
-	err := authenticator.GenerateToken()
+
+	err = authenticator.GenerateToken()
 	if err != nil {
 		return nil, err
 	}
-	
 	return &Client{
-		HttpClient: http.Client{
+		HttpClient: &http.Client{
 			Timeout: timeoutDuration,
 		},
-		Auth:       authenticator,
-		OLdomain:   old,
+		Auth:     authenticator,
+		OLdomain: old,
 	}, nil
 }
 

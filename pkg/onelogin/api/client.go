@@ -41,11 +41,12 @@ func NewClient() (*Client, error) {
 	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
 	old := fmt.Sprintf("https://%s.onelogin.com", subdomain)
 	authenticator := authentication.NewAuthenticator(subdomain)
-	timeout := os.Getenv("ONELOGIN_TIMEOUT")
-	if timeout == "" || timeout == nil {
+	timeoutStr := os.Getenv("ONELOGIN_TIMEOUT")
+	timeout, err := strconv.Atoi(timeoutStr)
+	if err != nil || timeout <= 0 {
 		timeout = 10
 	}
-	timeout := time.Second * timeout
+	timeoutDuration := time.Second * time.Duration(timeout)
 	err := authenticator.GenerateToken()
 	if err != nil {
 		return nil, err
@@ -53,7 +54,7 @@ func NewClient() (*Client, error) {
 	
 	return &Client{
 		HttpClient: http.Client{
-			Timeout: timeout,
+			Timeout: timeoutDuration,
 		},
 		Auth:       authenticator,
 		OLdomain:   old,

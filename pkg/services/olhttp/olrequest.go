@@ -164,7 +164,19 @@ func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
 // Destroy executes a HTTP destroy and removes the resource from its location in a remote
 func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
 	resourceRequest := r.(OLHTTPRequest)
-	req, reqErr := http.NewRequest(http.MethodDelete, resourceRequest.URL, nil)
+	var (
+		req    *http.Request
+		reqErr error
+	)
+	if resourceRequest.Payload != nil {
+		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
+		if marshErr != nil {
+			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
+		}
+		req, reqErr = http.NewRequest(http.MethodDelete, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
+	} else {
+		req, reqErr = http.NewRequest(http.MethodDelete, resourceRequest.URL, nil)
+	}
 	if reqErr != nil {
 		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}

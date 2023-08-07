@@ -42,6 +42,7 @@ type UserQuery struct {
 	AppID          *string    `json:"app_id,omitempty"`
 	UserIDs        *string    `json:"user_ids,omitempty"`
 	Fields         *string    `json:"fields,omitempty"`
+	GroupId        *string    `json:"group_id,omitempty"`
 }
 
 // User represents a OneLogin User

@@ -23,7 +23,10 @@ func (sdk *OneloginSDK) CreateRole(role *mod.Role) (interface{}, error) {
 
 // was ListRoles
 func (sdk *OneloginSDK) GetRoles(queryParams mod.Queryable) (interface{}, error) {
-	p := RolePath
+	p, err := utl.BuildAPIPath(RolePath)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := sdk.Client.Get(&p, queryParams)
 	if err != nil {
 		return nil, err

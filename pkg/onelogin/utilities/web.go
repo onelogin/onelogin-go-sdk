@@ -108,9 +108,12 @@ func queryToValues(query interface{}) (url.Values, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(queryBytes, &values)
-		if err != nil {
+		var data map[string]string
+		if err := json.Unmarshal(queryBytes, &data); err != nil {
 			return nil, err
+		}
+		for key, value := range data {
+			values.Set(key, value)
 		}
 	}
 

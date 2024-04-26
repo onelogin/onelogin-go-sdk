@@ -80,7 +80,7 @@ type User struct {
 	ManagerUserID        int32                  `json:"manager_user_id,omitempty"`
 	ExternalID           int32                  `json:"external_id,omitempty"`
 	ID                   int32                  `json:"id,omitempty"`
-	CustomAttributes     map[string]interface{} `json:"custom_attributes,omitempty"`
+	CustomAttributes     map[string]string `json:"custom_attributes,omitempty"`
 }
 
 func (q *UserQuery) GetKeyValidators() map[string]func(interface{}) bool {

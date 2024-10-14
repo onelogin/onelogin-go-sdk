@@ -83,12 +83,12 @@ func (sdk *OneloginSDK) GetRoleUsers(roleID int, queryParams mod.Queryable) (int
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) AddRoleUsers(roleID int) (interface{}, error) {
+func (sdk *OneloginSDK) AddRoleUsers(roleID int, users []int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, roleID, "users")
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Put(&p, nil)
+	resp, err := sdk.Client.Post(&p, users)
 	if err != nil {
 		return nil, err
 	}
@@ -120,12 +120,12 @@ func (sdk *OneloginSDK) GetRoleAdmins(roleID int) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) AddRoleAdmins(roleID int) (interface{}, error) {
+func (sdk *OneloginSDK) AddRoleAdmins(roleID int, admins []int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RolePath, roleID, "admins")
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Put(&p, nil)
+	resp, err := sdk.Client.Post(&p, admins)
 	if err != nil {
 		return nil, err
 	}

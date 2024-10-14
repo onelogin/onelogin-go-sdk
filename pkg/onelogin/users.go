@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
@@ -47,6 +48,40 @@ func (sdk *OneloginSDK) GetUsers(query mod.Queryable) (interface{}, error) {
 		return nil, err
 	}
 	return utl.CheckHTTPResponse(resp)
+}
+func (sdk *OneloginSDK) GetUsersModels(query mod.Queryable) ([]models.User, error) {
+	p, err := utl.BuildAPIPath(UserPathV2)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate query parameters
+	validators := query.GetKeyValidators()
+	if !utl.ValidateQueryParams(query, validators) {
+		return nil, errors.New("invalid query parameters")
+	}
+
+	
+	resp, err := sdk.Client.Get(&p, query)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp,err := utl.CheckHTTPResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []models.User
+	tmpBytes,err := json.Marshal(tmp)
+	if err != nil {
+		return nil, err
+	}
+	err= json.Unmarshal(tmpBytes,&users)
+	if err != nil {
+		return nil, err
+	}
+	return users,nil
 }
 
 func (sdk *OneloginSDK) GetUserByID(id int, queryParams mod.Queryable) (interface{}, error) {

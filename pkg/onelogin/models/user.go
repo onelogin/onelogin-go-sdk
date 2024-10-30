@@ -62,6 +62,7 @@ type User struct {
 	Title                string                 `json:"title,omitempty"`
 	Company              string                 `json:"company,omitempty"`
 	Department           string                 `json:"department,omitempty"`
+	ManagerADID          string                 `json:"manager_ad_id,omitempty"`
 	Comment              string                 `json:"comment,omitempty"`
 	CreatedAt            time.Time              `json:"created_at,omitempty"`
 	UpdatedAt            time.Time              `json:"updated_at,omitempty"`
@@ -76,7 +77,6 @@ type User struct {
 	GroupID              int32                  `json:"group_id,omitempty"`
 	DirectoryID          int32                  `json:"directory_id,omitempty"`
 	TrustedIDPID         int32                  `json:"trusted_idp_id,omitempty"`
-	ManagerADID          int32                  `json:"manager_ad_id,omitempty"`
 	ManagerUserID        int32                  `json:"manager_user_id,omitempty"`
 	ExternalID           int32                  `json:"external_id,omitempty"`
 	ID                   int32                  `json:"id,omitempty"`

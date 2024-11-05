@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
+	"time"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/authentication"
-	olerror "github.com/onelogin/onelogin-go-sdk/internal/error"
-	mod "github.com/onelogin/onelogin-go-sdk/internal/models"
-	utl "github.com/onelogin/onelogin-go-sdk/internal/utilities"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/authentication"
+	olerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
+	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
 
 // Client represents the API client.
@@ -21,6 +23,7 @@ type Client struct {
 	HttpClient HTTPClient                    // HTTPClient interface for making HTTP requests
 	Auth       *authentication.Authenticator // Authenticator for managing authentication
 	OLdomain   string                        // OneLogin domain
+	Timeout    time.Duration
 }
 
 // HTTPClient is an interface that defines the Do method for making HTTP requests.
@@ -38,16 +41,24 @@ type Authenticator interface {
 func NewClient() (*Client, error) {
 	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
 	old := fmt.Sprintf("https://%s.onelogin.com", subdomain)
-	authenticator := authentication.NewAuthenticator()
-	err := authenticator.GenerateToken()
+	authenticator := authentication.NewAuthenticator(subdomain)
+	timeoutStr := os.Getenv("ONELOGIN_TIMEOUT")
+	timeout, err := strconv.Atoi(timeoutStr)
+	if err != nil || timeout <= 0 {
+		timeout = 10
+	}
+	timeoutDuration := time.Second * time.Duration(timeout)
+
+	err = authenticator.GenerateToken()
 	if err != nil {
 		return nil, err
 	}
-
 	return &Client{
-		HttpClient: http.DefaultClient,
-		Auth:       authenticator,
-		OLdomain:   old,
+		HttpClient: &http.Client{
+			Timeout: timeoutDuration,
+		},
+		Auth:     authenticator,
+		OLdomain: old,
 	}, nil
 }
 

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/api"
-	"github.com/onelogin/onelogin-go-sdk/internal/authentication"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/api"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/authentication"
 )
 
 type MockHttpClient struct {
@@ -39,7 +39,7 @@ func createMockClient() *api.Client {
 		return "mockToken", nil
 	}
 
-	auth := authentication.NewAuthenticator()
+	auth := authentication.NewAuthenticator("test")
 	client := &api.Client{
 		HttpClient: mockClient,
 		Auth:       auth,

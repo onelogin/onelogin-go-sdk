@@ -1,8 +1,8 @@
 package onelogin
 
 import (
-	"github.com/onelogin/onelogin-go-sdk/internal/api"
-	olerror "github.com/onelogin/onelogin-go-sdk/internal/error"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/api"
+	olerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
 )
 
 // OneloginSDK represents the Onelogin SDK.

@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	olerror "github.com/onelogin/onelogin-go-sdk/internal/error"
+	olerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
 )
 
 // receive http response, check error code status, if good return json of resp.Body
@@ -108,9 +108,12 @@ func queryToValues(query interface{}) (url.Values, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(queryBytes, &values)
-		if err != nil {
+		var data map[string]string
+		if err := json.Unmarshal(queryBytes, &data); err != nil {
 			return nil, err
+		}
+		for key, value := range data {
+			values.Set(key, value)
 		}
 	}
 

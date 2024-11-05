@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	olError "github.com/onelogin/onelogin-go-sdk/internal/error"
+	olError "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
 )
 
 const (
@@ -19,10 +19,11 @@ const (
 
 type Authenticator struct {
 	accessToken string
+	subdomain   string
 }
 
-func NewAuthenticator() *Authenticator {
-	return &Authenticator{}
+func NewAuthenticator(subdomain string) *Authenticator {
+	return &Authenticator{subdomain: subdomain}
 }
 
 func (a *Authenticator) GenerateToken() error {
@@ -38,7 +39,7 @@ func (a *Authenticator) GenerateToken() error {
 	}
 
 	// Construct the authentication URL
-	authURL := fmt.Sprintf("https://api.onelogin.com%s", TkPath)
+	authURL := fmt.Sprintf("https://%s.onelogin.com%s", a.subdomain, TkPath)
 
 	// Create authentication request payload
 	data := map[string]string{
@@ -92,7 +93,7 @@ func (a *Authenticator) GenerateToken() error {
 	return nil
 }
 
-func (a *Authenticator) RevokeToken(token, domain *string) error {
+func (a *Authenticator) RevokeToken(token *string) error {
 	// Read environment variables
 	clientID := os.Getenv("ONELOGIN_CLIENT_ID")
 	clientSecret := os.Getenv("ONELOGIN_CLIENT_SECRET")
@@ -103,7 +104,7 @@ func (a *Authenticator) RevokeToken(token, domain *string) error {
 	}
 
 	// Construct the revoke URL
-	revokeURL := fmt.Sprintf("api.onelogin.com%s", RevokePath)
+	revokeURL := fmt.Sprintf("%s.onelogin.com%s", a.subdomain, RevokePath)
 
 	// Create revoke request payload
 	data := struct {

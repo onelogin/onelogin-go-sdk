@@ -12,8 +12,8 @@ This is the Onelogin SDK, a Go package that provides a convenient interface for 
 - **Data Models**: Represent Onelogin entities and resources.
 - **Utilities**: Provide utility functions and helper methods.
 
-
 ## Supported APIs
+
 - [API Authorization](https://developers.onelogin.com/api-docs/2/api-authorization/overview)
 - [Apps](https://developers.onelogin.com/api-docs/2/apps)
 - [App Rules](https://developers.onelogin.com/api-docs/2/app-rules)
@@ -26,6 +26,7 @@ This is the Onelogin SDK, a Go package that provides a convenient interface for 
 - [User Mappings](https://developers.onelogin.com/api-docs/2/user-mappings)
 
 ## Partially Support APIs
+
 - [MFA](https://developers.onelogin.com/api-docs/2/multi-factor-authentication)
 
 ## Installation
@@ -43,6 +44,7 @@ The SDK expects three environment variables to be set for authentication:
 - `ONELOGIN_CLIENT_ID`
 - `ONELOGIN_CLIENT_SECRET`
 - `ONELOGIN_SUBDOMAIN`
+- `ONELOGIN_TIMEOUT`
 
 These variables are used by the Authenticator for authentication with the OneLogin API. The Authenticator retrieves an access token using these credentials, which is then used for API requests. You can set these variables directly in your shell or in the environment of the program that will be using this SDK.
 
@@ -52,6 +54,7 @@ In a Unix/Linux shell, you can use the `export` command to set these variables:
 export ONELOGIN_CLIENT_ID=your_client_id
 export ONELOGIN_CLIENT_SECRET=your_client_secret
 export ONELOGIN_SUBDOMAIN=your_subdomain
+export ONELOGIN_TIMEOUT=15
 ```
 
 In a Go program, you can use the `os` package to set these variables:
@@ -60,6 +63,7 @@ In a Go program, you can use the `os` package to set these variables:
 os.Setenv("ONELOGIN_CLIENT_ID", "your_client_id")
 os.Setenv("ONELOGIN_CLIENT_SECRET", "your_client_secret")
 os.Setenv("ONELOGIN_SUBDOMAIN", "your_subdomain")
+os.Setenv("ONELOGIN_TIMEOUT", 15)
 ```
 
 Please ensure these variables are set before attempting to use the SDK to make API requests.
@@ -72,33 +76,33 @@ Here's an example demonstrating how to use the Onelogin SDK:
 package main
 
 import (
-	"fmt"
+ "fmt"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/models"
-	"github.com/onelogin/onelogin-go-sdk/pkg/onelogin"
+ "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+ "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
 )
 
 func main() {
-	ol, err := onelogin.NewOneloginSDK()
-	if err != nil {
-		fmt.Println("Unable to initialize client:", err)
-		return
-	}
-	userQuery := models.UserQuery{}
-	userList, err := ol.GetUsers(&userQuery)
-	if err != nil {
-		fmt.Println("Failed to get user:", err)
-		return
-	}
-	fmt.Println(userList)
+ ol, err := onelogin.NewOneloginSDK()
+ if err != nil {
+  fmt.Println("Unable to initialize client:", err)
+  return
+ }
+ userQuery := models.UserQuery{}
+ userList, err := ol.GetUsers(&userQuery)
+ if err != nil {
+  fmt.Println("Failed to get user:", err)
+  return
+ }
+ fmt.Println(userList)
 
-	appQuery := models.AppQuery{}
-	appList, err := ol.GetApps(&appQuery)
-	if err != nil {
-		fmt.Println("Failed to get app list:", err)
-		return
-	}
-	fmt.Println("App List:", appList)
+ appQuery := models.AppQuery{}
+ appList, err := ol.GetApps(&appQuery)
+ if err != nil {
+  fmt.Println("Failed to get app list:", err)
+  return
+ }
+ fmt.Println("App List:", appList)
 }
 ```
 

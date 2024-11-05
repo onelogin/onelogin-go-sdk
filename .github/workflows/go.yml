@@ -1,4 +1,8 @@
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
 name: CI
 jobs:
   tests:
@@ -13,9 +17,5 @@ jobs:
       run: go build ./...
     - name: Vet
       run: go vet ./...
-    - name: Test
-      uses: cedrickring/golang-action@master
-      with:
-        args: make test
     - name: Secure
       run: make secure

@@ -61,27 +61,26 @@ func (sdk *OneloginSDK) GetUsersModels(query mod.Queryable) ([]models.User, erro
 		return nil, errors.New("invalid query parameters")
 	}
 
-	
 	resp, err := sdk.Client.Get(&p, query)
 	if err != nil {
 		return nil, err
 	}
 
-	tmp,err := utl.CheckHTTPResponse(resp)
+	tmp, err := utl.CheckHTTPResponse(resp)
 	if err != nil {
 		return nil, err
 	}
 
 	var users []models.User
-	tmpBytes,err := json.Marshal(tmp)
+	tmpBytes, err := json.Marshal(tmp)
 	if err != nil {
 		return nil, err
 	}
-	err= json.Unmarshal(tmpBytes,&users)
+	err = json.Unmarshal(tmpBytes, &users)
 	if err != nil {
 		return nil, err
 	}
-	return users,nil
+	return users, nil
 }
 
 func (sdk *OneloginSDK) GetUserByID(id int, queryParams mod.Queryable) (interface{}, error) {

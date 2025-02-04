@@ -14,6 +14,7 @@ import (
 
 	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
 	"github.com/onelogin/onelogin-go-sdk/pkg/services"
+	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
 	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
 )
 
@@ -24,7 +25,7 @@ var errInvalidRequestInput = errors.New("Invalid input for request creation")
 type OLHTTPService struct {
 	ErrorContext     string
 	Config           services.HTTPServiceConfig
-	ClientCredential ClientCredential
+	ClientCredential olhttp.ClientCredential
 }
 
 // New uses the cfg to generate the new auth service, and returns
@@ -33,7 +34,7 @@ func New(cfg services.HTTPServiceConfig) *OLHTTPService {
 	return &OLHTTPService{
 		Config:           cfg,
 		ErrorContext:     resourceRequestuestContext,
-		ClientCredential: ClientCredential{},
+		ClientCredential: olhttp.ClientCredential{},
 	}
 }
 
@@ -46,7 +47,7 @@ func New(cfg services.HTTPServiceConfig) *OLHTTPService {
 // run out of pages. This is not to be confused with the Cursor header which can be set by the
 // caller in the request to Read which will offset the remote query starting at that page.
 func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(olhttp.OLHTTPRequest)
 	req, reqErr := http.NewRequest(http.MethodGet, resourceRequest.URL, nil)
 	if reqErr != nil {
 		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
@@ -99,7 +100,7 @@ func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
 
 // Create creates a new resource in the remote location over HTTP
 func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(olhttp.OLHTTPRequest)
 	var (
 		req    *http.Request
 		reqErr error
@@ -131,7 +132,7 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 
 // Update updates a resource in its remote location over HTTP
 func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(olhttp.OLHTTPRequest)
 	var (
 		req    *http.Request
 		reqErr error
@@ -163,7 +164,7 @@ func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
 
 // Destroy executes a HTTP destroy and removes the resource from its location in a remote
 func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(olhttp.OLHTTPRequest)
 	var (
 		req    *http.Request
 		reqErr error
@@ -212,14 +213,14 @@ func attachQueryParameters(req *http.Request, payload interface{}) error {
 
 // attaches http request headers supplied by caller and auth headers depending
 // on the request's auth type (e.g. bearer or basic)
-func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTTPRequest) error {
+func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest olhttp.OLHTTPRequest) error {
 	// set headers
 	for key, val := range resourceRequest.Headers {
 		req.Header.Set(key, val)
 	}
 	switch strings.ToLower(resourceRequest.AuthMethod) {
 	case "bearer":
-		if (svc.ClientCredential == ClientCredential{}) {
+		if (svc.ClientCredential == olhttp.ClientCredential{}) {
 			if err := SetBearerToken(svc); err != nil {
 				return err
 			}
@@ -237,7 +238,7 @@ func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTT
 
 // executes the http request, initiates retry on expired bearer tokens and returns the
 // response's byte array resource representation
-func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPRequest) (*http.Response, []byte, error) {
+func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest olhttp.OLHTTPRequest) (*http.Response, []byte, error) {
 	if err := svc.attachHeaders(req, resourceRequest); err != nil {
 		return nil, nil, err
 	}
@@ -272,20 +273,20 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 }
 
 // requests a fresh access token
-func (svc *OLHTTPService) mintBearerToken() (ClientCredential, error) {
-	resp, err := svc.Create(OLHTTPRequest{
+func (svc *OLHTTPService) mintBearerToken() (olhttp.ClientCredential, error) {
+	resp, err := svc.Create(olhttp.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/auth/oauth2/v2/token", svc.Config.BaseURL),
 		Headers:    map[string]string{"Content-Type": "application/json"},
-		Payload:    AuthBody{GrantType: "client_credentials"},
+		Payload:    olhttp.AuthBody{GrantType: "client_credentials"},
 		AuthMethod: "basic",
 	})
 	if err != nil {
-		return ClientCredential{}, err
+		return olhttp.ClientCredential{}, err
 	}
 
-	var output ClientCredential
+	var output olhttp.ClientCredential
 	if err = json.Unmarshal(resp, &output); err != nil {
-		return ClientCredential{}, err
+		return olhttp.ClientCredential{}, err
 	}
 	return output, nil
 }

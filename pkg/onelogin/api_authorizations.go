@@ -9,19 +9,7 @@ const (
 	APIAuthPath string = "api/2/api_authorizations"
 )
 
-func (sdk *OneloginSDK) CreateAuthServer(authServer *mod.AuthServer) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := sdk.Client.Post(&p, authServer)
-	if err != nil {
-		return nil, err
-	}
-	return utl.CheckHTTPResponse(resp)
-}
-
-// was ListAuthServers
+// ListAuthServers
 func (sdk *OneloginSDK) GetAuthServers(queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(APIAuthPath)
 	if err != nil {
@@ -34,8 +22,9 @@ func (sdk *OneloginSDK) GetAuthServers(queryParams mod.Queryable) (interface{}, 
 	return utl.CheckHTTPResponse(resp)
 }
 
+// GetAuthServersByID
 func (sdk *OneloginSDK) GetAuthServerByID(id int, queryParams mod.Queryable) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath)
+	p, err := utl.BuildAPIPath(APIAuthPath, id)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +35,22 @@ func (sdk *OneloginSDK) GetAuthServerByID(id int, queryParams mod.Queryable) (in
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) UpdateAuthServer(id int, authServer mod.AuthServer) (interface{}, error) {
+// GetAuthServers
+func (sdk *OneloginSDK) CreateAuthServer(authServer *mod.AuthServer) (interface{}, error) {
 	p, err := utl.BuildAPIPath(APIAuthPath)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Post(&p, authServer)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+// UpdateAuthServerByID
+func (sdk *OneloginSDK) UpdateAuthServer(id int, authServer *mod.AuthServer) (interface{}, error) {
+	p, err := utl.BuildAPIPath(APIAuthPath, id)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +61,7 @@ func (sdk *OneloginSDK) UpdateAuthServer(id int, authServer mod.AuthServer) (int
 	return utl.CheckHTTPResponse(resp)
 }
 
+// DeleteAuthServerById
 func (sdk *OneloginSDK) DeleteAuthServer(id int) (interface{}, error) {
 	p, err := utl.BuildAPIPath(APIAuthPath, id)
 	if err != nil {
@@ -71,12 +75,37 @@ func (sdk *OneloginSDK) DeleteAuthServer(id int) (interface{}, error) {
 }
 
 // Claim related endpoints
+// GetAuthClaimsByAuthID
+func (sdk *OneloginSDK) GetAuthClaims(id int, queryParams mod.Queryable) (interface{}, error) {
+	p, err := utl.BuildAPIPath(APIAuthPath, id, "claims")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
 func (sdk *OneloginSDK) CreateAuthServerClaim(id int, claim mod.AccessTokenClaim) (interface{}, error) {
 	p, err := utl.BuildAPIPath(APIAuthPath, id, "claims")
 	if err != nil {
 		return nil, err
 	}
 	resp, err := sdk.Client.Post(&p, claim)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) UpdateClaim(id int, claimID int, claim mod.AccessTokenClaim) (interface{}, error) {
+	p, err := utl.BuildAPIPath(APIAuthPath, id, "claims", claimID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Put(&p, claim)
 	if err != nil {
 		return nil, err
 	}
@@ -95,61 +124,25 @@ func (sdk *OneloginSDK) DeleteAuthClaim(id, claimID int) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetAuthClaims(id int, queryParams mod.Queryable) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath, id, "claims")
-	if err != nil {
-		return nil, err
-	}
-	resp, err := sdk.Client.Get(&p, queryParams)
-	if err != nil {
-		return nil, err
-	}
-	return utl.CheckHTTPResponse(resp)
-}
-
-func (sdk *OneloginSDK) UpdateClaim(id, claimID int, claim mod.AccessTokenClaim) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath, id, "claims", claimID)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := sdk.Client.Put(&p, claim)
-	if err != nil {
-		return nil, err
-	}
-	return utl.CheckHTTPResponse(resp)
-}
-
 // Scopes related endpoints
-func (sdk *OneloginSDK) CreateAuthServerScope(id int, scope mod.Scope) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath, id, "scopes")
-	if err != nil {
-		return nil, err
-	}
-	resp, err := sdk.Client.Post(&p, scope)
-	if err != nil {
-		return nil, err
-	}
-	return utl.CheckHTTPResponse(resp)
-}
-
-func (sdk *OneloginSDK) DeleteAuthServerScope(id, scopeID int) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath, id, "scopes", scopeID)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := sdk.Client.Delete(&p)
-	if err != nil {
-		return nil, err
-	}
-	return utl.CheckHTTPResponse(resp)
-}
-
 func (sdk *OneloginSDK) GetAuthServerScopes(id int, queryParams mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(APIAuthPath, id, "scopes")
 	if err != nil {
 		return nil, err
 	}
 	resp, err := sdk.Client.Get(&p, queryParams)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+func (sdk *OneloginSDK) CreateAuthServerScope(id int, scope mod.Scope) (interface{}, error) {
+	p, err := utl.BuildAPIPath(APIAuthPath, id, "scopes")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Post(&p, scope)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +161,30 @@ func (sdk *OneloginSDK) UpdateAuthServerScope(id, scopeID int, scope mod.Scope) 
 	return utl.CheckHTTPResponse(resp)
 }
 
+func (sdk *OneloginSDK) DeleteAuthServerScope(id, scopeID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(APIAuthPath, id, "scopes", scopeID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Delete(&p)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
 // Client App related endpoints
+func (sdk *OneloginSDK) GetClientApps(id int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(APIAuthPath, id, "clients")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
 
 func (sdk *OneloginSDK) CreateClientApp(id int, clientApp mod.ClientApp) (interface{}, error) {
 	p, err := utl.BuildAPIPath(APIAuthPath, id, "clients")
@@ -182,12 +198,12 @@ func (sdk *OneloginSDK) CreateClientApp(id int, clientApp mod.ClientApp) (interf
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetClientApps(id int) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath, id, "clients")
+func (sdk *OneloginSDK) UpdateClientApp(id int, clientID int, clientApp mod.ClientApp) (interface{}, error) {
+	p, err := utl.BuildAPIPath(APIAuthPath, id, "clients", clientID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Get(&p, nil)
+	resp, err := sdk.Client.Put(&p, clientApp)
 	if err != nil {
 		return nil, err
 	}
@@ -200,18 +216,6 @@ func (sdk *OneloginSDK) DeleteClientApp(id, clientID int) (interface{}, error) {
 		return nil, err
 	}
 	resp, err := sdk.Client.Delete(&p)
-	if err != nil {
-		return nil, err
-	}
-	return utl.CheckHTTPResponse(resp)
-}
-
-func (sdk *OneloginSDK) UpdateClientApp(id, clientID int, clientApp mod.ClientApp) (interface{}, error) {
-	p, err := utl.BuildAPIPath(APIAuthPath, id, "clients", clientID)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := sdk.Client.Put(&p, clientApp)
 	if err != nil {
 		return nil, err
 	}

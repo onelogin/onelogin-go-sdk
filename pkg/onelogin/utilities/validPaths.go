@@ -24,6 +24,8 @@ var validPaths = []string{
 	"^/api/1/users/set_password_clear_text/[0-9]+$",
 	"^/api/1/users/set_password_using_salt/[0-9]+$",
 	"^/api/1/users/custom_attributes$",
+	"^/api/2/users/custom_attributes$",
+	"^/api/2/users/custom_attributes/[0-9]+$",
 	"^/api/1/users/[0-9]+/set_custom_attributes$",
 	"^/api/1/users/[0-9]+/auth_factor$",
 	"^/api/1/users/[0-9]+/logout$",

@@ -3,6 +3,7 @@ package onelogin
 import (
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/api"
 	olerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
+	utl "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
 
 // OneloginSDK represents the Onelogin SDK.
@@ -29,29 +30,46 @@ func (sdk *OneloginSDK) GetToken() (string, error) {
 	return accessTk, nil
 }
 
-func (sdk *OneloginSDK) GenerateInviteLink(email string) (interface{}, error) {
-	p := "api/1/invites/get_invite_link"
-	resp, err := sdk.Client.Post(&p, email)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
+// method to return the list of connectors
 func (sdk *OneloginSDK) ListConnectors() (interface{}, error) {
-	p := "api/2/connectors"
+
+	p := "/api/2/connectors"
+
 	resp, err := sdk.Client.Get(&p, nil)
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+
+	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) SendInviteLink(email string) (interface{}, error) {
-	p := "api/1/invites/send_invite_link"
-	resp, err := sdk.Client.Post(&p, email)
+// method to get the rate limit details about an access token
+func (sdk *OneloginSDK) GetRateLimit() (interface{}, error) {
+
+	p := "/auth/rate_limit"
+
+	resp, err := sdk.Client.Get(&p, nil)
 	if err != nil {
 		return nil, err
 	}
-	return resp, nil
+
+	return utl.CheckHTTPResponse(resp)
 }
+
+// func (sdk *OneloginSDK) GenerateInviteLink(email string) (interface{}, error) {
+// 	p := "api/1/invites/get_invite_link"
+// 	resp, err := sdk.Client.Post(&p, email)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp, nil
+// }
+
+// func (sdk *OneloginSDK) SendInviteLink(email string) (interface{}, error) {
+// 	p := "api/1/invites/send_invite_link"
+// 	resp, err := sdk.Client.Post(&p, email)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return resp, nil
+// }

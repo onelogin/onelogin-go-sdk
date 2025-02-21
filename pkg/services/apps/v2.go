@@ -5,10 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
+	customerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
 	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	utils "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
 
 const errAppsV2Context = "apps v2 service"
@@ -16,11 +15,11 @@ const errAppsV2Context = "apps v2 service"
 // V2Service holds the information needed to interface with a repository
 type V2Service struct {
 	Endpoint, ErrorContext string
-	Repository             services.Repository
+	Repository             utils.Repository
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) *V2Service {
+func New(repo utils.Repository, host string) *V2Service {
 	return &V2Service{
 		Endpoint:     fmt.Sprintf("%s/api/2/apps", host),
 		Repository:   repo,
@@ -31,7 +30,7 @@ func New(repo services.Repository, host string) *V2Service {
 // Query retrieves all the apps from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all apps.
 func (svc *V2Service) Query(query *mod.AppQuery) ([]mod.App, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+	resp, err := svc.Repository.Read(mod.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -58,7 +57,7 @@ func (svc *V2Service) Query(query *mod.AppQuery) ([]mod.App, error) {
 // GetOne retrieves the app by id, and if successful, it returns
 // a pointer to the app.
 func (svc *V2Service) GetOne(id int32) (*mod.App, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+	resp, err := svc.Repository.Read(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -79,7 +78,7 @@ func (svc *V2Service) GetOne(id int32) (*mod.App, error) {
 // GetUsers retrieves the list of users for a given app by id, it returns
 // an array of users for the app.
 func (svc *V2Service) GetUsers(id int32) ([]mod.UserApp, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+	resp, err := svc.Repository.Read(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -99,7 +98,7 @@ func (svc *V2Service) GetUsers(id int32) ([]mod.UserApp, error) {
 
 // Create creates a new app, and if successful, it returns a pointer to the app.
 func (svc *V2Service) Create(app *mod.App) error {
-	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
+	resp, err := svc.Repository.Create(mod.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -129,7 +128,7 @@ func (svc *V2Service) Update(app *mod.App) (*mod.App, error) {
 	for k, p := range *app.Parameters {
 		requestedParametersState[k] = p
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
+	resp, err := svc.Repository.Update(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *app.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -156,7 +155,7 @@ func (svc *V2Service) Update(app *mod.App) (*mod.App, error) {
 
 // Destroy deletes the app for the id, and if successful, it returns nil
 func (svc *V2Service) Destroy(id int32) error {
-	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
+	if _, err := svc.Repository.Destroy(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -187,7 +186,7 @@ func (svc *V2Service) pruneParameters(requestedParams map[string]mod.Parameter, 
 		// Check if this parameter should be kept
 		if !keepMap[delCandidate.ID] {
 			// If not, delete it via the API
-			_, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
+			_, err := svc.Repository.Destroy(mod.OLHTTPRequest{
 				URL:        fmt.Sprintf("%s/%d/parameters/%d", svc.Endpoint, *app.ID, delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
@@ -199,5 +198,5 @@ func (svc *V2Service) pruneParameters(requestedParams map[string]mod.Parameter, 
 			}
 		}
 	}
-	return customerrors.StackErrors(delErrors)
+	return customerror.StackErrors(delErrors)
 }

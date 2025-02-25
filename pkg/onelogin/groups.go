@@ -6,8 +6,8 @@ const (
 	GroupsPath = "api/1/groups"
 )
 
-func (sdk *OneloginSDK) GetGroupByID(groupID int) (interface{}, error) {
-	p, err := utl.BuildAPIPath(GroupsPath, groupID)
+func (sdk *OneloginSDK) GetGroups() (interface{}, error) {
+	p, err := utl.BuildAPIPath(GroupsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -18,8 +18,8 @@ func (sdk *OneloginSDK) GetGroupByID(groupID int) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetGroups() (interface{}, error) {
-	p, err := utl.BuildAPIPath(GroupsPath)
+func (sdk *OneloginSDK) GetGroupByID(groupID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(GroupsPath, groupID)
 	if err != nil {
 		return nil, err
 	}

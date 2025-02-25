@@ -12,28 +12,28 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services"
-	"github.com/onelogin/onelogin-go-sdk/pkg/utils"
+	customerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
+	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	utils "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
 
 const resourceRequestuestContext = "ol http service"
 
-var errInvalidRequestInput = errors.New("Invalid input for request creation")
+// var errInvalidRequestInput = errors.New("Invalid input for request creation")
 
 type OLHTTPService struct {
 	ErrorContext     string
-	Config           services.HTTPServiceConfig
-	ClientCredential ClientCredential
+	Config           utils.HTTPServiceConfig
+	ClientCredential mod.ClientCredential
 }
 
 // New uses the cfg to generate the new auth service, and returns
 // the created auth service for version 2.
-func New(cfg services.HTTPServiceConfig) *OLHTTPService {
+func New(cfg utils.HTTPServiceConfig) *OLHTTPService {
 	return &OLHTTPService{
 		Config:           cfg,
 		ErrorContext:     resourceRequestuestContext,
-		ClientCredential: ClientCredential{},
+		ClientCredential: mod.ClientCredential{},
 	}
 }
 
@@ -46,10 +46,10 @@ func New(cfg services.HTTPServiceConfig) *OLHTTPService {
 // run out of pages. This is not to be confused with the Cursor header which can be set by the
 // caller in the request to Read which will offset the remote query starting at that page.
 func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(mod.OLHTTPRequest)
 	req, reqErr := http.NewRequest(http.MethodGet, resourceRequest.URL, nil)
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return nil, customerror.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 
 	if resourceRequest.Payload != nil {
@@ -99,7 +99,7 @@ func (svc OLHTTPService) Read(r interface{}) ([][]byte, error) {
 
 // Create creates a new resource in the remote location over HTTP
 func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(mod.OLHTTPRequest)
 	var (
 		req    *http.Request
 		reqErr error
@@ -107,7 +107,7 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 	if resourceRequest.Payload != nil {
 		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
 		if marshErr != nil {
-			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
+			return nil, customerror.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
 		}
 		if os.Getenv("OL_LOG_LEVEL") == "debug" {
 			log.Printf("[ONELOGIN HTTP DEBUG] Making Create Request to %s with payload: %s \n", resourceRequest.URL, bodyToSend)
@@ -120,7 +120,7 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 		req, reqErr = http.NewRequest(http.MethodPost, resourceRequest.URL, bytes.NewBuffer([]byte("")))
 	}
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return nil, customerror.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 	_, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
@@ -131,7 +131,7 @@ func (svc OLHTTPService) Create(r interface{}) ([]byte, error) {
 
 // Update updates a resource in its remote location over HTTP
 func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(mod.OLHTTPRequest)
 	var (
 		req    *http.Request
 		reqErr error
@@ -139,7 +139,7 @@ func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
 	if resourceRequest.Payload != nil {
 		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
 		if marshErr != nil {
-			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
+			return nil, customerror.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
 		}
 		if os.Getenv("OL_LOG_LEVEL") == "debug" {
 			log.Printf("[ONELOGIN HTTP DEBUG] Making Update Request to %s with payload: %s \n", resourceRequest.URL, bodyToSend)
@@ -152,7 +152,7 @@ func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
 		req, reqErr = http.NewRequest(http.MethodPut, resourceRequest.URL, bytes.NewBuffer([]byte("")))
 	}
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return nil, customerror.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 	_, data, err := svc.executeHTTP(req, resourceRequest)
 	if err != nil {
@@ -163,7 +163,7 @@ func (svc OLHTTPService) Update(r interface{}) ([]byte, error) {
 
 // Destroy executes a HTTP destroy and removes the resource from its location in a remote
 func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
-	resourceRequest := r.(OLHTTPRequest)
+	resourceRequest := r.(mod.OLHTTPRequest)
 	var (
 		req    *http.Request
 		reqErr error
@@ -171,14 +171,14 @@ func (svc OLHTTPService) Destroy(r interface{}) ([]byte, error) {
 	if resourceRequest.Payload != nil {
 		bodyToSend, marshErr := json.Marshal(resourceRequest.Payload)
 		if marshErr != nil {
-			return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
+			return nil, customerror.OneloginErrorWrapper(resourceRequestuestContext, marshErr)
 		}
 		req, reqErr = http.NewRequest(http.MethodDelete, resourceRequest.URL, bytes.NewBuffer(bodyToSend))
 	} else {
 		req, reqErr = http.NewRequest(http.MethodDelete, resourceRequest.URL, nil)
 	}
 	if reqErr != nil {
-		return nil, customerrors.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
+		return nil, customerror.OneloginErrorWrapper(resourceRequestuestContext, reqErr)
 	}
 	if os.Getenv("OL_LOG_LEVEL") == "debug" {
 		log.Printf("[ONELOGIN HTTP DEBUG] Making Delete Request to %s \n", resourceRequest.URL)
@@ -212,14 +212,14 @@ func attachQueryParameters(req *http.Request, payload interface{}) error {
 
 // attaches http request headers supplied by caller and auth headers depending
 // on the request's auth type (e.g. bearer or basic)
-func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTTPRequest) error {
+func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest mod.OLHTTPRequest) error {
 	// set headers
 	for key, val := range resourceRequest.Headers {
 		req.Header.Set(key, val)
 	}
 	switch strings.ToLower(resourceRequest.AuthMethod) {
 	case "bearer":
-		if (svc.ClientCredential == ClientCredential{}) {
+		if (svc.ClientCredential == mod.ClientCredential{}) {
 			if err := SetBearerToken(svc); err != nil {
 				return err
 			}
@@ -237,7 +237,7 @@ func (svc *OLHTTPService) attachHeaders(req *http.Request, resourceRequest OLHTT
 
 // executes the http request, initiates retry on expired bearer tokens and returns the
 // response's byte array resource representation
-func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPRequest) (*http.Response, []byte, error) {
+func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest mod.OLHTTPRequest) (*http.Response, []byte, error) {
 	if err := svc.attachHeaders(req, resourceRequest); err != nil {
 		return nil, nil, err
 	}
@@ -245,11 +245,11 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 	if err != nil {
 		log.Println("Executing Request To", req.URL, "With", resourceRequest.Payload)
 		log.Println("HTTP Transport Error", err)
-		return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
+		return nil, nil, customerror.ReqErrorWrapper(resp, svc.ErrorContext, err)
 	}
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, nil, customerrors.ReqErrorWrapper(resp, svc.ErrorContext, err)
+		return nil, nil, customerror.ReqErrorWrapper(resp, svc.ErrorContext, err)
 	}
 	defer resp.Body.Close()
 
@@ -261,31 +261,31 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest OLHTTPR
 			}
 			return svc.executeHTTP(req, resourceRequest)
 		}
-		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("unauthorized"))
+		return nil, nil, customerror.OneloginErrorWrapper(svc.ErrorContext, errors.New("unauthorized"))
 	case resp.StatusCode >= 400 && resp.StatusCode <= 499:
-		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New(string(responseData)))
+		return nil, nil, customerror.OneloginErrorWrapper(svc.ErrorContext, errors.New(string(responseData)))
 	case resp.StatusCode >= 500 && resp.StatusCode <= 599:
-		return nil, nil, customerrors.OneloginErrorWrapper(svc.ErrorContext, errors.New("unable to connect"))
+		return nil, nil, customerror.OneloginErrorWrapper(svc.ErrorContext, errors.New("unable to connect"))
 	default:
 		return resp, responseData, nil
 	}
 }
 
 // requests a fresh access token
-func (svc *OLHTTPService) mintBearerToken() (ClientCredential, error) {
-	resp, err := svc.Create(OLHTTPRequest{
+func (svc *OLHTTPService) mintBearerToken() (mod.ClientCredential, error) {
+	resp, err := svc.Create(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/auth/oauth2/v2/token", svc.Config.BaseURL),
 		Headers:    map[string]string{"Content-Type": "application/json"},
-		Payload:    AuthBody{GrantType: "client_credentials"},
+		Payload:    mod.AuthBody{GrantType: "client_credentials"},
 		AuthMethod: "basic",
 	})
 	if err != nil {
-		return ClientCredential{}, err
+		return mod.ClientCredential{}, err
 	}
 
-	var output ClientCredential
+	var output mod.ClientCredential
 	if err = json.Unmarshal(resp, &output); err != nil {
-		return ClientCredential{}, err
+		return mod.ClientCredential{}, err
 	}
 	return output, nil
 }

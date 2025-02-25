@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/onelogin/onelogin-go-sdk/internal/customerrors"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services"
-	"github.com/onelogin/onelogin-go-sdk/pkg/services/olhttp"
+	customerror "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/error"
+	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
+	utils "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/utilities"
 )
 
 const errAppsV2Context = "apps v2 service"
@@ -15,11 +15,11 @@ const errAppsV2Context = "apps v2 service"
 // V2Service holds the information needed to interface with a repository
 type V2Service struct {
 	Endpoint, ErrorContext string
-	Repository             services.Repository
+	Repository             utils.Repository
 }
 
 // New creates the new svc service v2.
-func New(repo services.Repository, host string) *V2Service {
+func New(repo utils.Repository, host string) *V2Service {
 	return &V2Service{
 		Endpoint:     fmt.Sprintf("%s/api/2/apps", host),
 		Repository:   repo,
@@ -29,8 +29,8 @@ func New(repo services.Repository, host string) *V2Service {
 
 // Query retrieves all the apps from the repository that meet the query criteria passed in the
 // request payload. If an empty payload is given, it will retrieve all apps.
-func (svc *V2Service) Query(query *AppsQuery) ([]App, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+func (svc *V2Service) Query(query *mod.AppQuery) ([]mod.App, error) {
+	resp, err := svc.Repository.Read(mod.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -40,9 +40,9 @@ func (svc *V2Service) Query(query *AppsQuery) ([]App, error) {
 		return nil, err
 	}
 
-	var apps []App
+	var apps []mod.App
 	for _, bytes := range resp {
-		var unmarshalled []App
+		var unmarshalled []mod.App
 		json.Unmarshal(bytes, &unmarshalled)
 		if len(apps) == 0 {
 			apps = unmarshalled
@@ -56,8 +56,8 @@ func (svc *V2Service) Query(query *AppsQuery) ([]App, error) {
 
 // GetOne retrieves the app by id, and if successful, it returns
 // a pointer to the app.
-func (svc *V2Service) GetOne(id int32) (*App, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+func (svc *V2Service) GetOne(id int32) (*mod.App, error) {
+	resp, err := svc.Repository.Read(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -66,7 +66,7 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 		return nil, err
 	}
 
-	var app App
+	var app mod.App
 	if len(resp) < 1 {
 		return nil, errors.New("invalid length of response returned")
 	}
@@ -77,8 +77,8 @@ func (svc *V2Service) GetOne(id int32) (*App, error) {
 
 // GetUsers retrieves the list of users for a given app by id, it returns
 // an array of users for the app.
-func (svc *V2Service) GetUsers(id int32) ([]AppUser, error) {
-	resp, err := svc.Repository.Read(olhttp.OLHTTPRequest{
+func (svc *V2Service) GetUsers(id int32) ([]mod.UserApp, error) {
+	resp, err := svc.Repository.Read(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -87,7 +87,7 @@ func (svc *V2Service) GetUsers(id int32) ([]AppUser, error) {
 		return nil, err
 	}
 
-	var users []AppUser
+	var users []mod.UserApp
 	if len(resp) < 1 {
 		return nil, errors.New("invalid length of response returned")
 	}
@@ -97,8 +97,8 @@ func (svc *V2Service) GetUsers(id int32) ([]AppUser, error) {
 }
 
 // Create creates a new app, and if successful, it returns a pointer to the app.
-func (svc *V2Service) Create(app *App) error {
-	resp, err := svc.Repository.Create(olhttp.OLHTTPRequest{
+func (svc *V2Service) Create(app *mod.App) error {
+	resp, err := svc.Repository.Create(mod.OLHTTPRequest{
 		URL:        svc.Endpoint,
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -120,22 +120,22 @@ func (svc *V2Service) Create(app *App) error {
 // accurate representation of what has been persisted to the API, we call out to the GetOne
 // to simply return what is currently in the API, rather than updating in place. This is a
 // temporary holdover until parameters is dealt with in a consistent fashion to other nested resources like app rules
-func (svc *V2Service) Update(app *App) (*App, error) {
+func (svc *V2Service) Update(app *mod.App) (*mod.App, error) {
 	if app.ID == nil {
-		return nil, errors.New("No ID Given")
+		return nil, errors.New("no ID given")
 	}
-	requestedParametersState := make(map[string]AppParameters, len(app.Parameters))
-	for k, p := range app.Parameters {
+	requestedParametersState := make(map[string]mod.Parameter, len(*app.Parameters))
+	for k, p := range *app.Parameters {
 		requestedParametersState[k] = p
 	}
-	resp, err := svc.Repository.Update(olhttp.OLHTTPRequest{
+	resp, err := svc.Repository.Update(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, *app.ID),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
 		Payload:    app,
 	})
 	if err != nil {
-		return &App{}, err
+		return &mod.App{}, err
 	}
 	json.Unmarshal(resp, app)
 
@@ -155,7 +155,7 @@ func (svc *V2Service) Update(app *App) (*App, error) {
 
 // Destroy deletes the app for the id, and if successful, it returns nil
 func (svc *V2Service) Destroy(id int32) error {
-	if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
+	if _, err := svc.Repository.Destroy(mod.OLHTTPRequest{
 		URL:        fmt.Sprintf("%s/%d", svc.Endpoint, id),
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		AuthMethod: "bearer",
@@ -168,30 +168,35 @@ func (svc *V2Service) Destroy(id int32) error {
 // Given a list of requested parameters, go to the API, and pluck (delete) all the parameters that are not on the
 // request list. At this point the app holds all existing parameters in the API.
 // Rules not on the request list are assumed to be removed by the caller.
-func (svc *V2Service) pruneParameters(requestedParams map[string]AppParameters, app *App) error {
+func (svc *V2Service) pruneParameters(requestedParams map[string]mod.Parameter, app *mod.App) error {
 	var delErrors []error
-	keepMap := make(map[int32]bool, len(requestedParams))
+
+	// Create a map to keep track of the parameters that should be kept
+	keepMap := make(map[int]bool, len(requestedParams))
+
+	// Populate the keepMap with the requested parameters
 	for _, param := range requestedParams {
-		var id int32
-		if param.ID == nil {
-			// If we weren't given an id for our parameter, get it from the app object
-			id = *app.Parameters[*param.ParamKeyName].ID
-		} else {
-			id = *param.ID
+		if param.ID != 0 {
+			keepMap[param.ID] = true
 		}
-		keepMap[id] = true
 	}
-	// no need to call down app parameters. parameters returned as part of app update
-	for _, delCandidate := range app.Parameters {
-		if !keepMap[*delCandidate.ID] {
-			if _, err := svc.Repository.Destroy(olhttp.OLHTTPRequest{
-				URL:        fmt.Sprintf("%s/%d/parameters/%d", svc.Endpoint, *app.ID, *delCandidate.ID),
+
+	// Iterate through the app's parameters to find those that need to be deleted
+	for _, delCandidate := range *app.Parameters {
+		// Check if this parameter should be kept
+		if !keepMap[delCandidate.ID] {
+			// If not, delete it via the API
+			_, err := svc.Repository.Destroy(mod.OLHTTPRequest{
+				URL:        fmt.Sprintf("%s/%d/parameters/%d", svc.Endpoint, *app.ID, delCandidate.ID),
 				Headers:    map[string]string{"Content-Type": "application/json"},
 				AuthMethod: "bearer",
-			}); err != nil {
+			})
+
+			// If there's an error deleting the parameter, accumulate it
+			if err != nil {
 				delErrors = append(delErrors, err)
 			}
 		}
 	}
-	return customerrors.StackErrors(delErrors)
+	return customerror.StackErrors(delErrors)
 }

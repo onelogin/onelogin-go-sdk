@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
@@ -9,30 +10,58 @@ import (
 )
 
 func main() {
-
 	// Set environment variables for OneLogin API credentials
 	os.Setenv("ONELOGIN_CLIENT_ID", "client_id")
 	os.Setenv("ONELOGIN_CLIENT_SECRET", "client_secret")
 	os.Setenv("ONELOGIN_SUBDOMAIN", "your-api-subdomain")
 
-	// Create a user object with the specified attributes
-	UserTwo := models.User{Firstname: "Mikhail", Lastname: "Beaverton", Email: "mb@example.com"}
-
-	// Create a user query object with the specified email
-	UserQueryOne := models.UserQuery{Email: &UserTwo.Email}
-
-	// Create a new OneLogin SDK client
-	Client, err := onelogin.NewOneloginSDK()
+	// Initialize the client
+	client, err := onelogin.NewOneloginSDK()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalf("Failed to create client: %v", err)
 	}
 
-	// Create a new user with the specified attributes
-	Client.CreateUser(models.User{Firstname: "Jane", Lastname: "Pukalava", Email: "jp@example.com"})
+	// Create and get users
+	email := "jane@example.com"
+	newUser := models.User{
+		Email:     email,
+		Firstname: "Jane",
+		Lastname:  "Doe",
+	}
 
-	// Create a new user with the specified attributes
-	Client.CreateUser(UserTwo)
+	result, err := client.CreateUser(newUser)
+	if err != nil {
+		log.Fatalf("Failed to create user: %v", err)
+	}
+	createdUser := result.(models.User)
+	fmt.Printf("Created user with ID: %d\n", createdUser.ID)
 
-	// Get a list of users that match the specified query
-	Client.GetUsers(&UserQueryOne)
+	// Get users
+	userQuery := &models.UserQuery{
+		Email: &email,
+	}
+	result, err = client.GetUsers(userQuery)
+	if err != nil {
+		log.Fatalf("Failed to get users: %v", err)
+	}
+	users := result.([]models.User)
+	fmt.Printf("Found %d users\n", len(users))
+
+	// Get apps
+	appQuery := &models.AppQuery{}
+	result, err = client.GetApps(appQuery)
+	if err != nil {
+		log.Fatalf("Failed to get apps: %v", err)
+	}
+	apps := result.([]models.App)
+	fmt.Printf("Found %d apps\n", len(apps))
+
+	// Print first user details if any exist
+	if len(users) > 0 {
+		user := users[0]
+		fmt.Printf("\nFirst user details:\n")
+		fmt.Printf("ID: %d\n", user.ID)
+		fmt.Printf("Email: %s\n", user.Email)
+		fmt.Printf("Username: %s\n", user.Username)
+	}
 }

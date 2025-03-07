@@ -81,7 +81,7 @@ func (sdk *OneloginSDK) UpdateRule(ruleID string, rule mod.Rule) (interface{}, e
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) DeleteResource(ruleID string) (interface{}, error) {
+func (sdk *OneloginSDK) DeleteRule(ruleID string) (interface{}, error) {
 	p, err := utl.BuildAPIPath(RiskPath, "rules", ruleID)
 	if err != nil {
 		return nil, err

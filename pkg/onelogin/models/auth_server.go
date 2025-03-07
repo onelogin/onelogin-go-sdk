@@ -45,6 +45,11 @@ type Scope struct {
 	Description  *string `json:"description,omitempty"`
 }
 
+type ClientAppRequest struct {
+	AppID  int32   `json:"app_id,omitempty"`
+	Scopes []int32 `json:"scopes"`
+}
+
 type AccessTokenClaimsQuery struct {
 	ID int `json:"id,omitempty"`
 }

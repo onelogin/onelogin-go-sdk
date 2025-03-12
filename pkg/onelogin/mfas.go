@@ -136,7 +136,7 @@ func (sdk *OneloginSDK) VerifyAuthFactorGet(userID, verificationID int) (interfa
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Put(&p, nil)
+	resp, err := sdk.Client.Get(&p, nil)
 	if err != nil {
 		return nil, err
 	}

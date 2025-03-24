@@ -2,6 +2,11 @@
 
 This is the Onelogin SDK, a Go package that provides a convenient interface for interacting with Onelogin's API. The SDK simplifies the integration process by providing developers an easy-to-use tool for managing authentication, making API requests, and handling responses.
 
+## Support
+
+OneLogin by One Identity open source projects are supported through [OneLogin GitHub issues](https://github.com/onelogin/onelogin-go-sdk/issues). This includes all scripts, plugins, SDKs, modules, code snippets or other solutions. For assistance with any OneLogin by One Identity GitHub project, please raise a new Issue on the [OneLogin GitHub issues](https://github.com/onelogin/onelogin-go-sdk/issues) page. Requests for assistance made through official One Identity Support will be referred back to GitHub where those requests can benefit all users.
+
+
 ## Features
 
 - **Authentication**: Obtain and revoke access tokens for authenticating API requests using environment variables.

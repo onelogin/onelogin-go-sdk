@@ -9,8 +9,8 @@ const (
 	SAMLPath string = "api/2/saml_assertion"
 )
 
-func (sdk *OneloginSDK) VerifyFactorSAML(request models.VerifyMFATokenRequest) (interface{}, error) {
-	p, err := utl.BuildAPIPath(SAMLPath, "verify_factor")
+func (sdk *OneloginSDK) GenerateSAMLAssertion(request models.GenerateSAMLTokenRequest) (interface{}, error) {
+	p, err := utl.BuildAPIPath(SAMLPath)
 	if err != nil {
 		return nil, err
 	}
@@ -21,8 +21,8 @@ func (sdk *OneloginSDK) VerifyFactorSAML(request models.VerifyMFATokenRequest) (
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GenerateSAMLAssertion(request models.GenerateSAMLTokenRequest) (interface{}, error) {
-	p, err := utl.BuildAPIPath(SAMLPath)
+func (sdk *OneloginSDK) VerifyFactorSAML(request models.VerifyMFATokenRequest) (interface{}, error) {
+	p, err := utl.BuildAPIPath(SAMLPath, "verify_factor")
 	if err != nil {
 		return nil, err
 	}

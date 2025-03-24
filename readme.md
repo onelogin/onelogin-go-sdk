@@ -1,4 +1,3 @@
-
 # Onelogin Go SDK
 
 This is the Onelogin SDK, a Go package that provides a convenient interface for interacting with Onelogin's API. The SDK simplifies the integration process by providing developers an easy-to-use tool for managing authentication, making API requests, and handling responses.
@@ -109,7 +108,23 @@ func main() {
  }
  fmt.Println("App List:", appList)
 }
-```
+
+## Releasing
+
+When releasing a new version of the SDK:
+
+1. Update the version number in `pkg/onelogin/version.go` following semantic versioning:
+   - MAJOR version for incompatible API changes
+   - MINOR version for backwards-compatible functionality additions
+   - PATCH version for backwards-compatible bug fixes
+
+2. Commit the version change:
+   ```shell
+   git add pkg/onelogin/version.go
+   git commit -m "Bump version to x.y.z"
+   git tag vx.y.z
+   git push origin main --tags
+   ```
 
 ## Documentation
 

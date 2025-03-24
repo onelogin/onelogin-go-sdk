@@ -25,13 +25,23 @@ type EnrollFactorRequest struct {
 	CustomMessage string `json:"custom_message,omitempty"`
 }
 type ActivateFactorRequest struct {
-	DeviceID      string `json:"device_id"`
-	ExpiresIn     string `json:"expires_in,omitempty"`
+	DeviceID      int    `json:"device_id"`
+	ExpiresIn     int    `json:"expires_in,omitempty"`
 	RedirectTo    string `json:"redirect_to,omitempty"`
 	CustomMessage string `json:"custom_message,omitempty"`
+	OTP           string `json:"otp,omitempty"`
 }
 
 type GenerateMFATokenRequest struct {
-	ExpiresIn string `json:"expires_in,omitempty"`
-	Reusable  bool   `json:"reusable,omitempty"`
+	ExpiresIn int  `json:"expires_in,omitempty"`
+	Reusable  bool `json:"reusable,omitempty"`
+}
+
+type VerifyEnrollmentFactorRequest struct {
+	OTP int `json:"otp"`
+}
+
+type VerificationFactorRequest struct {
+	OTP      string `json:"otp"`
+	DeviceID int    `json:"device_id"`
 }

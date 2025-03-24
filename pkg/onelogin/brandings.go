@@ -21,7 +21,7 @@ func (sdk *OneloginSDK) ListAccountBrands(query mod.Queryable) (interface{}, err
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetBrand(brandID int, query mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetBrandByID(brandID int, query mod.Queryable) (interface{}, error) {
 	p, err := utl.BuildAPIPath(BrandingPath, brandID)
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (sdk *OneloginSDK) ListBrandTemplates(brandID int, query mod.Queryable) (in
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) CreateBrandTemplate(brandID int, template mod.BrandTemplate) (interface{}, error) {
+func (sdk *OneloginSDK) CreateBrandTemplate(brandID int, template *mod.BrandTemplate) (interface{}, error) {
 	p, err := utl.BuildAPIPath(BrandingPath, brandID, "templates")
 	if err != nil {
 		return nil, err
@@ -141,12 +141,12 @@ func (sdk *OneloginSDK) GetBrandTemplates(brandID int, templateID int, query mod
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) UpdateBrandTemplate(brandID int, templateID int, requestBody interface{}) (interface{}, error) {
+func (sdk *OneloginSDK) UpdateBrandTemplate(brandID int, templateID int, template *mod.BrandTemplate) (interface{}, error) {
 	p, err := utl.BuildAPIPath(BrandingPath, brandID, "templates", templateID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Put(&p, requestBody)
+	resp, err := sdk.Client.Put(&p, template)
 	if err != nil {
 		return nil, err
 	}

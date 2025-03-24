@@ -28,23 +28,47 @@ type BrandTemplate struct {
 	Template string `json:"template"` // Template content (Email/SMS content)
 }
 
+// type BrandTemplate1 struct {
+// 	Type     string          `json:"type,omitempty"`
+// 	Locale   string          `json:"locale,omitempty"`
+// 	Template json.RawMessage `json:"template,omitempty"` // Use RawMessage to avoid extra escaping
+// }
+
 type TemplateContent struct {
 	Subject string `json:"subject"`
 	HTML    string `json:"html"`
 	Plain   string `json:"plain"`
 }
 
-// Custom MarshalJSON to handle the template field
-func (bt *BrandTemplate) MarshalJSON() ([]byte, error) {
-	type Alias BrandTemplate
-	return json.Marshal(&struct {
-		*Alias
-		Template string `json:"template"`
-	}{
-		Alias:    (*Alias)(bt),
-		Template: bt.Template,
-	})
+func (t *BrandTemplate) MarshalJSON() ([]byte, error) {
+	// Define type to break recursive calls to MarshalJSON.
+	// The type X has all of fields for BrandTemplate, but
+	// non of the methods.
+	type X BrandTemplate
+
+	// Marshal a type that shadows BrandTemplate.Template
+	// with a raw JSON field of the same name.
+	return json.Marshal(
+		struct {
+			*X
+			Template json.RawMessage `json:"template"`
+		}{
+			(*X)(t),
+			json.RawMessage(t.Template),
+		})
 }
+
+// Custom MarshalJSON to handle the template field
+// func (bt *BrandTemplate) MarshalJSON() ([]byte, error) {
+// 	type Alias BrandTemplate
+// 	return json.Marshal(&struct {
+// 		*Alias
+// 		Template string `json:"template"`
+// 	}{
+// 		Alias:    (*Alias)(bt),
+// 		Template: bt.Template,
+// 	})
+// }
 
 // // Helper function to generate JSON string from TemplateContent
 // func GenerateTemplateJSON(subject, html, plain string) (string) {

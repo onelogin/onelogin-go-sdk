@@ -21,16 +21,22 @@ OneLogin by One Identity open source projects are supported through [OneLogin Gi
 - [API Authorization](https://developers.onelogin.com/api-docs/2/api-authorization/overview)
 - [Apps](https://developers.onelogin.com/api-docs/2/apps)
 - [App Rules](https://developers.onelogin.com/api-docs/2/app-rules)
+- [Branding](https://developers.onelogin.com/api-docs/2/branding)
+- [Connectors](https://developers.onelogin.com/api-docs/2/connectors/list-connectors)
+- [Events](https://developers.onelogin.com/api-docs/2/events)
 - [Groups](https://developers.onelogin.com/api-docs/2/groups)
+- [Invite Links](https://developers.onelogin.com/api-docs/2/invite-links)
 - [Privileges](https://developers.onelogin.com/api-docs/1/privileges)
 - [Roles](https://developers.onelogin.com/api-docs/2/roles)
 - [SAML Assertions](https://developers.onelogin.com/api-docs/2/saml-assertions)
 - [Smart Hooks](https://developers.onelogin.com/api-docs/2/smart-hooks)
 - [Users](https://developers.onelogin.com/api-docs/2/users)
 - [User Mappings](https://developers.onelogin.com/api-docs/2/user-mappings)
+- [Vigilance AI](https://developers.onelogin.com/api-docs/2/vigilance/train)
 
 ## Partially Support APIs
 
+- [Login Pages](https://developers.onelogin.com/api-docs/2/login-page)
 - [MFA](https://developers.onelogin.com/api-docs/2/multi-factor-authentication)
 
 ## Installation
@@ -38,7 +44,7 @@ OneLogin by One Identity open source projects are supported through [OneLogin Gi
 To use the Onelogin SDK in your Go project, you need to have Go installed and set up. Then, you can install the SDK using the `go get` command:
 
 ```shell
-go get github.com/onelogin/onelogin-go-sdk
+go get github.com/onelogin/onelogin-go-sdk/v4
 ```
 
 ## Requirements
@@ -80,34 +86,64 @@ Here's an example demonstrating how to use the Onelogin SDK:
 package main
 
 import (
- "fmt"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
 
- "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
- "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 func main() {
- ol, err := onelogin.NewOneloginSDK()
- if err != nil {
-  fmt.Println("Unable to initialize client:", err)
-  return
- }
- userQuery := models.UserQuery{}
- userList, err := ol.GetUsers(&userQuery)
- if err != nil {
-  fmt.Println("Failed to get user:", err)
-  return
- }
- fmt.Println(userList)
 
- appQuery := models.AppQuery{}
- appList, err := ol.GetApps(&appQuery)
- if err != nil {
-  fmt.Println("Failed to get app list:", err)
-  return
- }
- fmt.Println("App List:", appList)
+	// As mentioned earlier, ensure that the environment variables (ONELOGIN_CLIENT_ID, ONELOGIN_CLIENT_SECRET, ONELOGIN_SUBDOMAIN)
+    // are correctly loaded prior to initialization, as they are necessary for creating a new instance of the OneLogin SDK client.
+
+
+	// Create a new OneLogin SDK client
+	client, err := onelogin.NewOneloginSDK()
+	if err != nil {
+		log.Fatalf("Error creating OneLogin SDK client: %v", err)
+	}
+
+	userQuery := models.UserQuery{}
+	userList, err := client.GetUsers(&userQuery)
+	if err != nil {
+		fmt.Println("Failed to get user:", err)
+		return
+	}
+
+	// Marshal the result into JSON for printing
+	userJSON, err := json.MarshalIndent(userList, "", "  ")
+	if err != nil {
+		log.Fatalf("Error marshaling the result to JSON: %v", err)
+		return
+	}
+
+	// Print the User details in JSON format
+	fmt.Println("User Details:")
+	fmt.Println(string(userJSON))
+
+	appQuery := models.AppQuery{}
+	appList, err := client.GetApps(&appQuery)
+	if err != nil {
+		fmt.Println("Failed to get app list:", err)
+		return
+	}
+
+	// Marshal the result into JSON for printing
+	appJSON, err := json.MarshalIndent(appList, "", "  ")
+	if err != nil {
+		log.Fatalf("Error marshaling the result to JSON: %v", err)
+		return
+	}
+
+	// Print the App details in JSON format
+	fmt.Println("App Details:")
+	fmt.Println(string(appJSON))
 }
+```
 
 ## Releasing
 

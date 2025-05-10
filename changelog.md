@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.3.0]
+
+### Added
+- Helper methods for creating and updating custom attributes with proper payload structure:
+  - Added `CreateCustomAttribute(name, shortname string)` method
+  - Added `UpdateCustomAttribute(id int, name, shortname string)` method
+  - These methods properly wrap parameters in the required "user_field" object
+- Added example code for custom attributes with create, read, update, delete examples
+
+### Fixed
+- Fixed custom attribute creation/update by properly wrapping parameters in the "user_field" object
+- Fixed handling of HTTP 204 No Content responses for operations like delete that return no content on success
+
 ## [4.2.0]
 
 ### Fixed

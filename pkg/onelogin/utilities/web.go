@@ -14,6 +14,11 @@ import (
 // receive http response, check error code status, if good return json of resp.Body
 // else return error
 func CheckHTTPResponse(resp *http.Response) (interface{}, error) {
+	// Handle 204 No Content responses - this is a success but with no content
+	if resp.StatusCode == http.StatusNoContent {
+		return map[string]interface{}{"status": "success"}, nil
+	}
+
 	// Check if the request was successful
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return nil, fmt.Errorf("request failed with status: %d", resp.StatusCode)

@@ -218,12 +218,68 @@ func (sdk *OneloginSDK) CreateCustomAttributes(requestBody interface{}) (interfa
 	return utl.CheckHTTPResponse(resp)
 }
 
+// CreateCustomAttribute creates a new custom attribute with the specified name and shortname.
+// This helper method properly wraps the name and shortname in the required "user_field" object
+// as expected by the OneLogin API.
+func (sdk *OneloginSDK) CreateCustomAttribute(name, shortname string) (interface{}, error) {
+	return sdk.CreateCustomAttributeWithContext(context.Background(), name, shortname)
+}
+
+// CreateCustomAttributeWithContext creates a new custom attribute with the provided context
+func (sdk *OneloginSDK) CreateCustomAttributeWithContext(ctx context.Context, name, shortname string) (interface{}, error) {
+	// Use map[string]string for the inner map to ensure consistent types
+	payload := map[string]interface{}{
+		"user_field": map[string]string{
+			"name":      name,
+			"shortname": shortname,
+		},
+	}
+
+	p, err := utl.BuildAPIPath(UserPathV2, "custom_attributes")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.PostWithContext(ctx, &p, payload)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
 func (sdk *OneloginSDK) UpdateCustomAttributes(id int, requestBody interface{}) (interface{}, error) {
 	p, err := utl.BuildAPIPath(UserPathV2, "custom_attributes", id)
 	if err != nil {
 		return nil, err
 	}
 	resp, err := sdk.Client.Put(&p, requestBody)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
+}
+
+// UpdateCustomAttribute updates an existing custom attribute with the specified name and shortname.
+// This helper method properly wraps the name and shortname in the required "user_field" object
+// as expected by the OneLogin API.
+func (sdk *OneloginSDK) UpdateCustomAttribute(id int, name, shortname string) (interface{}, error) {
+	return sdk.UpdateCustomAttributeWithContext(context.Background(), id, name, shortname)
+}
+
+// UpdateCustomAttributeWithContext updates an existing custom attribute with the provided context
+func (sdk *OneloginSDK) UpdateCustomAttributeWithContext(ctx context.Context, id int, name, shortname string) (interface{}, error) {
+	// Use map[string]string for the inner map to ensure consistent types
+	payload := map[string]interface{}{
+		"user_field": map[string]string{
+			"name":      name,
+			"shortname": shortname,
+		},
+	}
+
+	p, err := utl.BuildAPIPath(UserPathV2, "custom_attributes", id)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.PutWithContext(ctx, &p, payload)
 	if err != nil {
 		return nil, err
 	}

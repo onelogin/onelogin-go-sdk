@@ -40,6 +40,10 @@ type Authenticator interface {
 // NewClient creates a new instance of the API client.
 func NewClient() (*Client, error) {
 	subdomain := os.Getenv("ONELOGIN_SUBDOMAIN")
+	if subdomain == "" {
+		return nil, olerror.NewSDKError("ONELOGIN_SUBDOMAIN environment variable is required")
+	}
+
 	old := fmt.Sprintf("https://%s.onelogin.com", subdomain)
 	authenticator := authentication.NewAuthenticator(subdomain)
 	timeoutStr := os.Getenv("ONELOGIN_TIMEOUT")

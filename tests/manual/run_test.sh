@@ -13,6 +13,7 @@ fi
 
 # Run the test
 echo "Running test_user_types.go..."
-cd ../../cmd/user_types_test && go run .
+SCRIPT_DIR=$(dirname "$0")
+cd "$SCRIPT_DIR/../../cmd/user_types_test" && go run .
 
 echo "Test completed."

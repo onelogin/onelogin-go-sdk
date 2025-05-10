@@ -142,7 +142,7 @@ func testPagination(sdk *onelogin.OneloginSDK) {
 		}
 		
 		fmt.Println("  Getting next page using cursor...")
-		nextResp, err := sdk.GetUsersWithPagination(nextQuery)
+		_, err := sdk.GetUsersWithPagination(nextQuery)
 		if err != nil {
 			fmt.Printf("  ⚠️ Error getting next page: %v\n", err)
 		} else {
@@ -176,8 +176,7 @@ func testGroupIDFiltering(sdk *onelogin.OneloginSDK) {
 	fmt.Println("  Trying to get groups to find a valid Group ID...")
 	
 	// Try to get all groups to find a valid group ID for filtering
-	// Note: This assumes a "ListGroups" method; adjust if the method name is different
-	groups, err := sdk.ListGroups()
+	groups, err := sdk.GetGroups()
 	if err != nil {
 		fmt.Printf("  ⚠️ Couldn't retrieve groups: %v\n", err)
 		fmt.Println("  Skipping GroupID filtering test")

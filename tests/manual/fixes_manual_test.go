@@ -74,7 +74,7 @@ func testContextPropagation(sdk *onelogin.OneloginSDK) {
 	fmt.Println("  Getting users with context...")
 	
 	// Use the context-aware method
-	result, err := sdk.GetUsersWithContext(ctx, query)
+	_, err := sdk.GetUsersWithContext(ctx, query)
 	if err != nil {
 		fmt.Printf("  ❌ Error: %v\n", err)
 		return

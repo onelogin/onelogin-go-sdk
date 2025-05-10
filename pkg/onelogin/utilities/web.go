@@ -102,18 +102,44 @@ func AddQueryToPath(path string, query interface{}) (string, error) {
 func queryToValues(query interface{}) (url.Values, error) {
 	values := url.Values{}
 
-	// Convert query parameters to URL-encoded string
+	// Convert query parameters to URL-encoded string using reflection
 	if query != nil {
+		// First, get the json field names from struct tags
 		queryBytes, err := json.Marshal(query)
 		if err != nil {
 			return nil, err
 		}
-		var data map[string]string
+
+		// Unmarshal to map[string]interface{} to handle all types of values
+		var data map[string]interface{}
 		if err := json.Unmarshal(queryBytes, &data); err != nil {
 			return nil, err
 		}
+
+		// Add each field to query parameters
 		for key, value := range data {
-			values.Set(key, value)
+			if value != nil {
+				// Handle different value types
+				switch v := value.(type) {
+				case string:
+					values.Set(key, v)
+				case float64:
+					values.Set(key, fmt.Sprintf("%v", v))
+				case []interface{}:
+					// For arrays, convert to comma-separated string
+					if len(v) > 0 {
+						// Convert array to comma-separated string
+						strItems := make([]string, len(v))
+						for i, item := range v {
+							strItems[i] = fmt.Sprintf("%v", item)
+						}
+						values.Set(key, strings.Join(strItems, ","))
+					}
+				default:
+					// Convert other types to string
+					values.Set(key, fmt.Sprintf("%v", v))
+				}
+			}
 		}
 	}
 

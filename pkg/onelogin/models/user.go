@@ -21,6 +21,22 @@ const (
 	StatusSecurityQuestionsRequired // The user has not yet set their security questions.
 )
 
+// PaginationInfo represents pagination metadata from API responses
+type PaginationInfo struct {
+	Cursor       string `json:"cursor,omitempty"`
+	AfterCursor  string `json:"after_cursor,omitempty"`
+	BeforeCursor string `json:"before_cursor,omitempty"`
+	TotalPages   int    `json:"total_pages,omitempty"`
+	CurrentPage  int    `json:"current_page,omitempty"`
+	TotalCount   int    `json:"total_count,omitempty"`
+}
+
+// PagedResponse represents a paginated response with both data and pagination information
+type PagedResponse struct {
+	Data       interface{}   `json:"data"`
+	Pagination PaginationInfo `json:"pagination"`
+}
+
 // UserQuery represents available query parameters
 type UserQuery struct {
 	Limit          string     `json:"limit,omitempty"`
@@ -44,6 +60,7 @@ type UserQuery struct {
 	Fields         *string    `json:"fields,omitempty"`
 	RoleIDs        *[]int32   `json:"role_ids,omitempty"`
 	MemberOf       *[]string  `json:"member_of,omitempty"`
+	GroupID        *string    `json:"group_id,omitempty"`
 }
 
 // User represents a OneLogin User
@@ -114,6 +131,7 @@ func (q *UserQuery) GetKeyValidators() map[string]func(interface{}) bool {
 		"appID":          validateString,
 		"userIDs":        validateString,
 		"fields":         validateString,
+		"groupID":        validateString,
 	}
 }
 

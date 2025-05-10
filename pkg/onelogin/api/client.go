@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -68,7 +69,11 @@ func NewClient() (*Client, error) {
 
 // newRequest creates a new HTTP request with the specified method, path, query parameters, and request body.
 func (c *Client) newRequest(method string, path *string, queryParams mod.Queryable, body io.Reader) (*http.Request, error) {
+	return c.newRequestWithContext(context.Background(), method, path, queryParams, body)
+}
 
+// newRequestWithContext creates a new HTTP request with context and the specified method, path, query parameters, and request body.
+func (c *Client) newRequestWithContext(ctx context.Context, method string, path *string, queryParams mod.Queryable, body io.Reader) (*http.Request, error) {
 	p, err := utl.AddQueryToPath(*path, queryParams)
 	if err != nil {
 		return nil, err
@@ -80,8 +85,8 @@ func (c *Client) newRequest(method string, path *string, queryParams mod.Queryab
 		return nil, err
 	}
 
-	// Create a new HTTP request
-	req, err := http.NewRequest(method, u.String(), body)
+	// Create a new HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +109,12 @@ func (c *Client) newRequest(method string, path *string, queryParams mod.Queryab
 
 // Get sends a GET request to the specified path with the given query parameters.
 func (c *Client) Get(path *string, queryParams mod.Queryable) (*http.Response, error) {
-	req, err := c.newRequest(http.MethodGet, path, queryParams, http.NoBody)
+	return c.GetWithContext(context.Background(), path, queryParams)
+}
+
+// GetWithContext sends a GET request with the given context, path, and query parameters.
+func (c *Client) GetWithContext(ctx context.Context, path *string, queryParams mod.Queryable) (*http.Response, error) {
+	req, err := c.newRequestWithContext(ctx, http.MethodGet, path, queryParams, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +124,12 @@ func (c *Client) Get(path *string, queryParams mod.Queryable) (*http.Response, e
 
 // Delete sends a DELETE request to the specified path with the given query parameters.
 func (c *Client) Delete(path *string) (*http.Response, error) {
-	req, err := c.newRequest(http.MethodDelete, path, nil, http.NoBody)
+	return c.DeleteWithContext(context.Background(), path)
+}
+
+// DeleteWithContext sends a DELETE request with the given context and path.
+func (c *Client) DeleteWithContext(ctx context.Context, path *string) (*http.Response, error) {
+	req, err := c.newRequestWithContext(ctx, http.MethodDelete, path, nil, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -122,14 +137,19 @@ func (c *Client) Delete(path *string) (*http.Response, error) {
 	return c.sendRequest(req)
 }
 
-// Delete sends a DELETE request to the specified path with the given query parameters and request body.
+// DeleteWithBody sends a DELETE request to the specified path with the given request body.
 func (c *Client) DeleteWithBody(path *string, body interface{}) (*http.Response, error) {
+	return c.DeleteWithBodyAndContext(context.Background(), path, body)
+}
+
+// DeleteWithBodyAndContext sends a DELETE request with the given context, path, and request body.
+func (c *Client) DeleteWithBodyAndContext(ctx context.Context, path *string, body interface{}) (*http.Response, error) {
 	// Convert request body to JSON
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
-	req, err := c.newRequest(http.MethodDelete, path, nil, bytes.NewReader(jsonBody))
+	req, err := c.newRequestWithContext(ctx, http.MethodDelete, path, nil, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -137,15 +157,20 @@ func (c *Client) DeleteWithBody(path *string, body interface{}) (*http.Response,
 	return c.sendRequest(req)
 }
 
-// Post sends a POST request to the specified path with the given query parameters and request body.
+// Post sends a POST request to the specified path with the given request body.
 func (c *Client) Post(path *string, body interface{}) (*http.Response, error) {
+	return c.PostWithContext(context.Background(), path, body)
+}
+
+// PostWithContext sends a POST request with the given context, path, and request body.
+func (c *Client) PostWithContext(ctx context.Context, path *string, body interface{}) (*http.Response, error) {
 	// Convert request body to JSON
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := c.newRequest(http.MethodPost, path, nil, bytes.NewReader(jsonBody))
+	req, err := c.newRequestWithContext(ctx, http.MethodPost, path, nil, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -153,15 +178,20 @@ func (c *Client) Post(path *string, body interface{}) (*http.Response, error) {
 	return c.sendRequest(req)
 }
 
-// Put sends a PUT request to the specified path with the given query parameters and request body.
+// Put sends a PUT request to the specified path with the given request body.
 func (c *Client) Put(path *string, body interface{}) (*http.Response, error) {
+	return c.PutWithContext(context.Background(), path, body)
+}
+
+// PutWithContext sends a PUT request with the given context, path, and request body.
+func (c *Client) PutWithContext(ctx context.Context, path *string, body interface{}) (*http.Response, error) {
 	// Convert request body to JSON
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := c.newRequest(http.MethodPut, path, nil, bytes.NewReader(jsonBody))
+	req, err := c.newRequestWithContext(ctx, http.MethodPut, path, nil, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, err
 	}

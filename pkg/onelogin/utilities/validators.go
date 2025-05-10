@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // ValidateQueryParams validates the query parameters based on the provided validators.
@@ -50,4 +51,29 @@ func IsPathValid(path string) bool {
 		}
 	}
 	return false
+}
+
+// Validation functions for different types
+func validateString(val interface{}) bool {
+	switch val.(type) {
+	case string, *string:
+		return true
+	default:
+		return false
+	}
+}
+
+func validateInt(val interface{}) bool {
+	_, ok := val.(*int32)
+	return ok
+}
+
+func validateTime(val interface{}) bool {
+	_, ok := val.(*time.Time)
+	return ok
+}
+
+func validateArray(val interface{}) bool {
+	v := reflect.ValueOf(val)
+	return v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Slice
 }

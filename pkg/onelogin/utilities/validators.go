@@ -55,8 +55,12 @@ func IsPathValid(path string) bool {
 
 // Validation functions for different types
 func validateString(val interface{}) bool {
-	_, ok := val.(*string)
-	return ok
+	switch val.(type) {
+	case string, *string:
+		return true
+	default:
+		return false
+	}
 }
 
 func validateInt(val interface{}) bool {

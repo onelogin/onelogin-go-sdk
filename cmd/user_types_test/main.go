@@ -36,14 +36,14 @@ func main() {
 	// Test 1: Create a user with the fixed properties
 	fmt.Println("Test 1: Create a user with the fixed properties")
 	user := models.User{
-		Firstname:     "Test",
-		Lastname:      "User",
-		Email:         "testuser@example.com",
-		Username:      "testuser@example.com",
-		MemberOf:      []string{"Group1", "Group2"},
-		ManagerADID:   12345,
-		ExternalID:    "ext-id-123",
-		RoleIDs:       []int32{1, 2, 3},
+		Firstname:   "Test",
+		Lastname:    "User",
+		Email:       "testuser@example.com",
+		Username:    "testuser@example.com",
+		MemberOf:    []string{"Group1", "Group2"},
+		ManagerADID: 12345,
+		ExternalID:  "ext-id-123",
+		RoleIDs:     []int32{1, 2, 3},
 		CustomAttributes: map[string]interface{}{
 			"department": "Engineering",
 			"location":   "Remote",
@@ -58,7 +58,7 @@ func main() {
 		// Continue with other tests even if this fails
 	} else {
 		fmt.Printf("User created successfully: %+v\n", userResp)
-		
+
 		// Get the user ID from the response
 		// Note: This is a simplified approach, in a real test you'd parse the response properly
 		// userID := ... get from response

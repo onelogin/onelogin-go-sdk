@@ -40,14 +40,14 @@ func main() {
 
 	fmt.Println("Success! Connected to OneLogin API.")
 	fmt.Printf("Connectors data type: %T\n", connectors)
-	
+
 	// Test the token generation
 	token, err := sdk.GetToken()
 	if err != nil {
 		fmt.Printf("Error getting token: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	fmt.Println("Successfully retrieved token!")
 	fmt.Printf("Token length: %d\n", len(token))
 }

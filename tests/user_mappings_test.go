@@ -2,7 +2,7 @@ package tests
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -60,7 +60,7 @@ func TestUserMappings(t *testing.T) {
 			]`
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewBufferString(mockResponse)),
+				Body:       io.NopCloser(bytes.NewBufferString(mockResponse)),
 			}, nil
 		}
 
@@ -115,7 +115,7 @@ func TestUserMappings(t *testing.T) {
 			}`
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewBufferString(mockResponse)),
+				Body:       io.NopCloser(bytes.NewBufferString(mockResponse)),
 			}, nil
 		}
 
@@ -171,7 +171,7 @@ func TestUserMappings(t *testing.T) {
 			}`
 			return &http.Response{
 				StatusCode: 201,
-				Body:       ioutil.NopCloser(bytes.NewBufferString(mockResponse)),
+				Body:       io.NopCloser(bytes.NewBufferString(mockResponse)),
 			}, nil
 		}
 
@@ -244,7 +244,7 @@ func TestUserMappings(t *testing.T) {
 				mockResponse := `{"id": 789}`
 				return &http.Response{
 					StatusCode: 200,
-					Body:       ioutil.NopCloser(bytes.NewBufferString(mockResponse)),
+					Body:       io.NopCloser(bytes.NewBufferString(mockResponse)),
 				}, nil
 			} else {
 				// Second call - GET request to fetch the full object
@@ -280,7 +280,7 @@ func TestUserMappings(t *testing.T) {
 				}`
 				return &http.Response{
 					StatusCode: 200,
-					Body:       ioutil.NopCloser(bytes.NewBufferString(mockResponse)),
+					Body:       io.NopCloser(bytes.NewBufferString(mockResponse)),
 				}, nil
 			}
 		}
@@ -348,7 +348,7 @@ func TestUserMappings(t *testing.T) {
 			// Return a mock response
 			return &http.Response{
 				StatusCode: 204,
-				Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+				Body:       io.NopCloser(bytes.NewBufferString("")),
 			}, nil
 		}
 

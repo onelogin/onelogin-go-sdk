@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -247,7 +247,7 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest mod.OLH
 		log.Println("HTTP Transport Error", err)
 		return nil, nil, customerror.ReqErrorWrapper(resp, svc.ErrorContext, err)
 	}
-	responseData, err := ioutil.ReadAll(resp.Body)
+	responseData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, customerror.ReqErrorWrapper(resp, svc.ErrorContext, err)
 	}

@@ -2,7 +2,7 @@ package tests
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -55,7 +55,7 @@ func TestClientGet(t *testing.T) {
 	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
 		response := &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(`{"key":"value"}`)),
+			Body:       io.NopCloser(bytes.NewBufferString(`{"key":"value"}`)),
 		}
 		return response, nil
 	}
@@ -66,7 +66,7 @@ func TestClientGet(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	if string(body) != `{"key":"value"}` {
 		t.Fatalf("Expected `{\"key\":\"value\"}`, got %s", string(body))
 	}
@@ -78,7 +78,7 @@ func TestClientPost(t *testing.T) {
 	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
 		response := &http.Response{
 			StatusCode: 201,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(`{"result":"created"}`)),
+			Body:       io.NopCloser(bytes.NewBufferString(`{"result":"created"}`)),
 		}
 		return response, nil
 	}
@@ -89,7 +89,7 @@ func TestClientPost(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	if string(body) != `{"result":"created"}` {
 		t.Fatalf("Expected `{\"result\":\"created\"}`, got %s", string(body))
 	}
@@ -103,7 +103,7 @@ func TestClientDelete(t *testing.T) {
 	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
 		response := &http.Response{
 			StatusCode: 204,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(``)),
+			Body:       io.NopCloser(bytes.NewBufferString(``)),
 		}
 		return response, nil
 	}
@@ -114,7 +114,7 @@ func TestClientDelete(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	if string(body) != `` {
 		t.Fatalf("Expected ``, got %s", string(body))
 	}
@@ -126,7 +126,7 @@ func TestClientDeleteWithBody(t *testing.T) {
 	client.HttpClient.(*MockHttpClient).DoFunc = func(*http.Request) (*http.Response, error) {
 		response := &http.Response{
 			StatusCode: 204,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(``)),
+			Body:       io.NopCloser(bytes.NewBufferString(``)),
 		}
 		return response, nil
 	}
@@ -137,7 +137,7 @@ func TestClientDeleteWithBody(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	if string(body) != `` {
 		t.Fatalf("Expected ``, got %s", string(body))
 	}

@@ -3,7 +3,7 @@ package onelogin
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
@@ -81,7 +81,7 @@ func (sdk *OneloginSDK) UpdateUserMapping(mappingID int32, mapping mod.UserMappi
 		var responseObj struct {
 			ID int32 `json:"id"`
 		}
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
 
 		// Check if the response is just an ID
@@ -94,7 +94,7 @@ func (sdk *OneloginSDK) UpdateUserMapping(mappingID int32, mapping mod.UserMappi
 		// Otherwise, create a new response with the original body for the usual unmarshaling
 		resp = &http.Response{
 			StatusCode: resp.StatusCode,
-			Body:       ioutil.NopCloser(bytes.NewBuffer(body)),
+			Body:       io.NopCloser(bytes.NewBuffer(body)),
 		}
 	}
 

@@ -274,7 +274,8 @@ func (sdk *OneloginSDK) DryrunMapping(mappingID int, userIds []int) (interface{}
 		userIDs32[i] = int32(id)
 	}
 	
-	// Safe to convert since we've already checked the range
+	// Safe to convert since we've already checked the range above
+	// #nosec G115 - conversion is safe because we checked the range
 	mappingID32 := int32(mappingID)
 	return sdk.DryRunUserMapping(mappingID32, userIDs32)
 }

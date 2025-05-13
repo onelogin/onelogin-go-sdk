@@ -3,6 +3,7 @@ package onelogin
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -230,6 +231,10 @@ func (sdk *OneloginSDK) ListMappings() (interface{}, error) {
 }
 
 func (sdk *OneloginSDK) GetMapping(mappingID int) (interface{}, error) {
+	// Check for potential integer overflow when converting to int32
+	if mappingID > 2147483647 || mappingID < -2147483648 {
+		return nil, fmt.Errorf("mapping ID %d is outside the range of int32", mappingID)
+	}
 	return sdk.GetUserMapping(int32(mappingID))
 }
 
@@ -238,18 +243,34 @@ func (sdk *OneloginSDK) CreateMapping(mapping mod.UserMapping) (interface{}, err
 }
 
 func (sdk *OneloginSDK) UpdateMapping(mappingID int, mapping mod.UserMapping) (interface{}, error) {
+	// Check for potential integer overflow when converting to int32
+	if mappingID > 2147483647 || mappingID < -2147483648 {
+		return nil, fmt.Errorf("mapping ID %d is outside the range of int32", mappingID)
+	}
 	return sdk.UpdateUserMapping(int32(mappingID), mapping)
 }
 
 func (sdk *OneloginSDK) DeleteMapping(mappingID int) (interface{}, error) {
+	// Check for potential integer overflow when converting to int32
+	if mappingID > 2147483647 || mappingID < -2147483648 {
+		return nil, fmt.Errorf("mapping ID %d is outside the range of int32", mappingID)
+	}
 	err := sdk.DeleteUserMapping(int32(mappingID))
 	return nil, err
 }
 
 func (sdk *OneloginSDK) DryrunMapping(mappingID int, userIds []int) (interface{}, error) {
-	// Convert int slice to int32 slice
+	// Check for potential integer overflow when converting to int32
+	if mappingID > 2147483647 || mappingID < -2147483648 {
+		return nil, fmt.Errorf("mapping ID %d is outside the range of int32", mappingID)
+	}
+	
+	// Convert int slice to int32 slice with overflow checking
 	userIDs32 := make([]int32, len(userIds))
 	for i, id := range userIds {
+		if id > 2147483647 || id < -2147483648 {
+			return nil, fmt.Errorf("user ID %d is outside the range of int32", id)
+		}
 		userIDs32[i] = int32(id)
 	}
 	return sdk.DryRunUserMapping(int32(mappingID), userIDs32)
@@ -276,9 +297,12 @@ func (sdk *OneloginSDK) ListActionValues(actionValue string) (interface{}, error
 }
 
 func (sdk *OneloginSDK) BulkSortMappings(mappingIDs []int) (interface{}, error) {
-	// Convert int slice to int32 slice
+	// Convert int slice to int32 slice with overflow checking
 	mappingIDs32 := make([]int32, len(mappingIDs))
 	for i, id := range mappingIDs {
+		if id > 2147483647 || id < -2147483648 {
+			return nil, fmt.Errorf("mapping ID %d is outside the range of int32", id)
+		}
 		mappingIDs32[i] = int32(id)
 	}
 	err := sdk.BulkSortUserMappings(mappingIDs32)

@@ -1,3 +1,5 @@
 ./vendor
 coverage.out
 bin
+
+**/.claude/settings.local.json

@@ -1,5 +1,20 @@
 # Changelog
 
+## [4.4.0]
+
+### Added
+- Complete implementation of User Mappings API endpoints:
+  - Added strongly typed methods for all User Mappings operations
+  - Added proper model structures for User Mappings
+  - Added query parameters support for filtering User Mappings
+  - Added examples for User Mappings API usage
+- Improved handling of API responses that return minimal data (ID only)
+- Added comprehensive test suite for User Mappings functionality
+
+### Fixed
+- Fixed HTTP response handling for endpoints that return only an ID
+- Improved error reporting for API responses
+
 ## [4.3.0]
 
 ### Added

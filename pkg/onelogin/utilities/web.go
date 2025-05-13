@@ -62,6 +62,39 @@ func CheckHTTPResponse(resp *http.Response) (interface{}, error) {
 	return data, nil
 }
 
+// CheckHTTPResponseAndUnmarshal checks the HTTP response and unmarshals the response body into the target struct
+func CheckHTTPResponseAndUnmarshal(resp *http.Response, target interface{}) error {
+	// Handle 204 No Content responses - this is a success but with no content
+	if resp.StatusCode == http.StatusNoContent {
+		return nil
+	}
+
+	// Check if the request was successful
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("request failed with status: %d", resp.StatusCode)
+	}
+
+	// Read the response body
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Close the response body
+	err = resp.Body.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close response body: %w", err)
+	}
+
+	// Unmarshal the response body into the target struct
+	err = json.Unmarshal(body, target)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	return nil
+}
+
 func BuildAPIPath(parts ...interface{}) (string, error) {
 	var path string
 	for _, part := range parts {
@@ -69,6 +102,10 @@ func BuildAPIPath(parts ...interface{}) (string, error) {
 		case string:
 			path += "/" + p
 		case int:
+			path += fmt.Sprintf("/%d", p)
+		case int32:
+			path += fmt.Sprintf("/%d", p)
+		case int64:
 			path += fmt.Sprintf("/%d", p)
 		default:
 			// Handle other types if needed

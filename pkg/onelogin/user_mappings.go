@@ -81,8 +81,11 @@ func (sdk *OneloginSDK) UpdateUserMapping(mappingID int32, mapping mod.UserMappi
 		var responseObj struct {
 			ID int32 `json:"id"`
 		}
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
 
 		// Check if the response is just an ID
 		err = json.Unmarshal(body, &responseObj)

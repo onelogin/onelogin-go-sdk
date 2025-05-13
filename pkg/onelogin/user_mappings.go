@@ -273,7 +273,10 @@ func (sdk *OneloginSDK) DryrunMapping(mappingID int, userIds []int) (interface{}
 		}
 		userIDs32[i] = int32(id)
 	}
-	return sdk.DryRunUserMapping(int32(mappingID), userIDs32)
+	
+	// Safe to convert since we've already checked the range
+	mappingID32 := int32(mappingID)
+	return sdk.DryRunUserMapping(mappingID32, userIDs32)
 }
 
 func (sdk *OneloginSDK) ListConditions() (interface{}, error) {

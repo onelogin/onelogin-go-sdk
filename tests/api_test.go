@@ -2,12 +2,14 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/api"
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/authentication"
+	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
 type MockHttpClient struct {
@@ -140,5 +142,62 @@ func TestClientDeleteWithBody(t *testing.T) {
 	body, _ := io.ReadAll(resp.Body)
 	if string(body) != `` {
 		t.Fatalf("Expected ``, got %s", string(body))
+	}
+}
+
+func TestRoleEmptyArraysSerialization(t *testing.T) {
+	// Create role with empty arrays
+	role := &models.Role{
+		Name:   new(string),
+		Users:  []int32{}, // Empty array
+		Admins: []int32{}, // Empty array
+		Apps:   []int32{}, // Empty array
+	}
+	*role.Name = "Test Role"
+
+	// Serialize to JSON
+	jsonData, err := json.Marshal(role)
+	if err != nil {
+		t.Fatalf("Failed to marshal role: %v", err)
+	}
+
+	// Verify that empty arrays are included in JSON
+	jsonStr := string(jsonData)
+	t.Logf("Serialized JSON: %s", jsonStr)
+
+	// Check for empty arrays in the JSON
+	if !bytes.Contains(jsonData, []byte(`"users":[]`)) {
+		t.Error("JSON should contain empty users array")
+	}
+	if !bytes.Contains(jsonData, []byte(`"admins":[]`)) {
+		t.Error("JSON should contain empty admins array")
+	}
+	if !bytes.Contains(jsonData, []byte(`"apps":[]`)) {
+		t.Error("JSON should contain empty apps array")
+	}
+
+	// Also check with nil slices
+	roleWithNil := &models.Role{
+		Name: role.Name,
+		// All arrays are nil by default
+	}
+
+	jsonData, err = json.Marshal(roleWithNil)
+	if err != nil {
+		t.Fatalf("Failed to marshal role with nil arrays: %v", err)
+	}
+
+	jsonStr = string(jsonData)
+	t.Logf("Serialized JSON with nil arrays: %s", jsonStr)
+
+	// Check for empty arrays in the JSON
+	if !bytes.Contains(jsonData, []byte(`"users":[]`)) {
+		t.Error("JSON should contain empty users array for nil slice")
+	}
+	if !bytes.Contains(jsonData, []byte(`"admins":[]`)) {
+		t.Error("JSON should contain empty admins array for nil slice")
+	}
+	if !bytes.Contains(jsonData, []byte(`"apps":[]`)) {
+		t.Error("JSON should contain empty apps array for nil slice")
 	}
 }

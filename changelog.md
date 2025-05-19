@@ -1,5 +1,11 @@
 # Changelog
 
+## [4.5.1]
+
+### Fixed
+- Fixed issue with empty arrays in Role updates by ensuring empty arrays are properly serialized in JSON
+- Added documentation example for removing all users from a role
+
 ## [4.5.0]
 
 ### Improved

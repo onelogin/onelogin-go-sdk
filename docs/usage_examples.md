@@ -74,6 +74,15 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Printf("Updated role: %+v\n", updatedRole)
+	
+	// Remove all users from a role by passing an empty array
+	roleWithNoUsers, err := client.UpdateRole(roleID, &models.Role{
+		Users: []int32{}, // Empty array will remove all users
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Updated role with no users: %+v\n", roleWithNoUsers)
 }
 ```
 

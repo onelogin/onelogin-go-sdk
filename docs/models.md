@@ -94,13 +94,15 @@ type Privilege struct {
 
 ## [Role](../pkg/onelogin/models/role.go)
 
-The `Role` model represents a role within the OneLogin platform. It contains information such as the role's name, description, and any associated privileges.
+The `Role` model represents a role within the OneLogin platform. It contains information such as the role's name and associated users, admins, and apps.
 
 ```go
 type Role struct {
-    ID   int64  `json:"id"`
-    Name string `json:"name"`
-    // ...
+	ID     *int32  `json:"id,omitempty"`
+	Name   *string `json:"name,omitempty"`
+	Admins []int32 `json:"admins,omitempty"`
+	Apps   []int32 `json:"apps,omitempty"`
+	Users  []int32 `json:"users,omitempty"`
 }
 ```
 

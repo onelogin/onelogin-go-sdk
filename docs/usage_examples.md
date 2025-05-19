@@ -52,13 +52,28 @@ func main() {
 		fmt.Println(err)
 	}
 
-	role, err := client.CreateRole(models.Role{
+	// Create a role
+	role, err := client.CreateRole(&models.Role{
 		Name: &name,
 	})
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf("%+v\n", role)
+	fmt.Printf("Created role: %+v\n", role)
+	
+	// Extract role ID for updates
+	roleResp, _ := role.(map[string]interface{})
+	roleID := int(roleResp["id"].(float64))
+	
+	// Update a role - the name field is optional for updates
+	updatedRole, err := client.UpdateRole(roleID, &models.Role{
+		// Add users to the role
+		Users: []int32{123456789},
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Updated role: %+v\n", updatedRole)
 }
 ```
 

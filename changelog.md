@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.5.0]
+
+### Improved
+- Added context support for roles API methods:
+  - `CreateRoleWithContext`
+  - `GetRolesWithContext`
+  - `GetRoleByIDWithContext`
+  - `UpdateRoleWithContext`
+  - `DeleteRoleWithContext`
+- Improved `UpdateRole` function to use pointer parameter for consistency with other API methods
+- Removed unused queryParams parameter from DeleteRole function
+- Updated Role model documentation to match the actual structure
+
 ## [4.4.0]
 
 ### Added

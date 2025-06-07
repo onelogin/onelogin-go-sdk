@@ -3,3 +3,11 @@ coverage.out
 bin
 
 **/.claude/settings.local.json
+
+# Environment variables
+.env
+
+# Binary files
+onelogin-go-sdk
+test_self_registration$
+test_mapping

@@ -29,7 +29,10 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 				t.Errorf("Expected no query parameters, got: %s", req.URL.RawQuery)
 			}
 
-			usersJSON, _ := json.Marshal(expectedUsers)
+			usersJSON, err := json.Marshal(expectedUsers)
+			if err != nil {
+				t.Fatalf("Failed to marshal expected users: %v", err)
+			}
 			resp := &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewReader(usersJSON)),
@@ -70,7 +73,10 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 				t.Errorf("Expected page=2, got: %s", query.Get("page"))
 			}
 
-			usersJSON, _ := json.Marshal(expectedUsers)
+			usersJSON, err := json.Marshal(expectedUsers)
+			if err != nil {
+				t.Fatalf("Failed to marshal expected users: %v", err)
+			}
 			resp := &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewReader(usersJSON)),
@@ -104,7 +110,10 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 		}
 
 		client.HttpClient.(*MockHttpClient).DoFunc = func(req *http.Request) (*http.Response, error) {
-			usersJSON, _ := json.Marshal(expectedUsers)
+			usersJSON, err := json.Marshal(expectedUsers)
+			if err != nil {
+				t.Fatalf("Failed to marshal expected users: %v", err)
+			}
 			resp := &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewReader(usersJSON)),
@@ -135,7 +144,10 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 		}
 
 		client.HttpClient.(*MockHttpClient).DoFunc = func(req *http.Request) (*http.Response, error) {
-			usersJSON, _ := json.Marshal(expectedUsers)
+			usersJSON, err := json.Marshal(expectedUsers)
+			if err != nil {
+				t.Fatalf("Failed to marshal expected users: %v", err)
+			}
 			resp := &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewReader(usersJSON)),
@@ -196,7 +208,10 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 				t.Errorf("Expected cursor=abc123, got: %s", query.Get("cursor"))
 			}
 
-			usersJSON, _ := json.Marshal(expectedUsers)
+			usersJSON, err := json.Marshal(expectedUsers)
+			if err != nil {
+				t.Fatalf("Failed to marshal expected users: %v", err)
+			}
 			resp := &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewReader(usersJSON)),

@@ -112,7 +112,9 @@ func (svc *V2Service) GetUsersWithQuery(id int32, query mod.Queryable) ([]mod.Us
 	var users []mod.UserApp
 	for _, bytes := range resp {
 		var unmarshalled []mod.UserApp
-		json.Unmarshal(bytes, &unmarshalled)
+		if err := json.Unmarshal(bytes, &unmarshalled); err != nil {
+			return nil, err
+		}
 		if len(users) == 0 {
 			users = unmarshalled
 		} else {
@@ -120,7 +122,7 @@ func (svc *V2Service) GetUsersWithQuery(id int32, query mod.Queryable) ([]mod.Us
 		}
 	}
 
-	return users, err
+	return users, nil
 }
 
 // Create creates a new app, and if successful, it returns a pointer to the app.

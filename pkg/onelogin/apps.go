@@ -88,13 +88,26 @@ func (sdk *OneloginSDK) DeleteApp(id int) (interface{}, error) {
 	return utl.CheckHTTPResponse(resp)
 }
 
-func (sdk *OneloginSDK) GetAppUsers(appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
-	return sdk.GetAppUsersWithContext(context.Background(), appID, queryParams)
+func (sdk *OneloginSDK) GetAppUsers(appID int) (interface{}, error) {
+	p, err := utl.BuildAPIPath(AppPath, appID, "users")
+	if err != nil {
+		return nil, err
+	}
+	resp, err := sdk.Client.Get(&p, nil)
+	if err != nil {
+		return nil, err
+	}
+	return utl.CheckHTTPResponse(resp)
 }
 
-// GetAppUsersWithContext retrieves users for an app with optional query parameters using the provided context
+// GetAppUsersWithPagination retrieves users for an app with optional pagination parameters
+func (sdk *OneloginSDK) GetAppUsersWithPagination(appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
+	return sdk.GetAppUsersWithPaginationAndContext(context.Background(), appID, queryParams)
+}
+
+// GetAppUsersWithPaginationAndContext retrieves users for an app with optional query parameters using the provided context
 // Returns pagination metadata along with the user data
-func (sdk *OneloginSDK) GetAppUsersWithContext(ctx context.Context, appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
+func (sdk *OneloginSDK) GetAppUsersWithPaginationAndContext(ctx context.Context, appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
 	p, err := utl.BuildAPIPath(AppPath, appID, "users")
 	if err != nil {
 		return nil, fmt.Errorf("failed to build API path: %w", err)

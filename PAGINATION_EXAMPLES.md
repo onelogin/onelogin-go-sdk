@@ -4,30 +4,29 @@ This document demonstrates how to use the new pagination features for the `GetAp
 
 ## Overview
 
-The OneLogin Go SDK now supports pagination for retrieving app users, allowing you to handle applications with more than 100 users. Two simple methods are available:
+The OneLogin Go SDK now supports pagination for retrieving app users, allowing you to handle applications with more than 100 users. The implementation maintains backward compatibility:
 
-1. `GetAppUsers(appID int, queryParams *AppUserQuery)` - Main method with optional pagination parameters
-2. `GetAppUsersWithContext(ctx context.Context, appID int, queryParams *AppUserQuery)` - With context support
-
-Both methods return a `*PagedResponse` that includes both the user data and pagination metadata.
+1. `GetAppUsers(appID int)` - **Original method** (fully backward compatible) 
+2. `GetAppUsersWithPagination(appID int, queryParams *AppUserQuery)` - **New method** with pagination parameters
+3. `GetAppUsersWithPaginationAndContext(ctx context.Context, appID int, queryParams *AppUserQuery)` - **New method** with context support
 
 ## Basic Usage
 
-### 1. Simple Usage (No Pagination)
+### 1. Backward Compatible (Original Method - No Changes Required)
 
 ```go
-// Get users without pagination (pass nil for queryParams)
-result, err := sdk.GetAppUsers(123, nil)
+// This works exactly as before - returns up to 100 users
+// NO CODE CHANGES NEEDED for existing applications
+users, err := sdk.GetAppUsers(123)
 if err != nil {
     log.Fatalf("Failed to get app users: %v", err)
 }
 
-// Access the users data
-users := result.Data
-fmt.Printf("Retrieved %d users\n", len(users.([]interface{})))
+// users is still interface{} - same as before
+fmt.Printf("Retrieved users: %+v\n", users)
 ```
 
-### 2. With Pagination Parameters
+### 2. With Pagination Parameters (New Method)
 
 ```go
 // Create query with pagination parameters
@@ -36,7 +35,7 @@ query := &models.AppUserQuery{
     Page:  "2",   // Get page 2
 }
 
-result, err := sdk.GetAppUsers(123, query)
+result, err := sdk.GetAppUsersWithPagination(123, query)
 if err != nil {
     log.Fatalf("Failed to get app users: %v", err)
 }
@@ -51,7 +50,7 @@ fmt.Printf("Total count: %d\n", result.Pagination.TotalCount)
 fmt.Printf("Next page cursor: %s\n", result.Pagination.AfterCursor)
 ```
 
-### 3. With Context Support
+### 3. With Context Support (New Method)
 
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -62,7 +61,7 @@ query := &models.AppUserQuery{
     Page:  "1",
 }
 
-result, err := sdk.GetAppUsersWithContext(ctx, 123, query)
+result, err := sdk.GetAppUsersWithPaginationAndContext(ctx, 123, query)
 if err != nil {
     log.Fatalf("Failed to get app users: %v", err)
 }
@@ -84,7 +83,7 @@ query := &models.AppUserQuery{
     Cursor: "your_cursor_here",
 }
 
-result, err := sdk.GetAppUsers(123, query)
+result, err := sdk.GetAppUsersWithPagination(123, query)
 ```
 
 ### Iterating Through All Pages
@@ -100,7 +99,7 @@ for {
         Cursor: cursor,
     }
     
-    result, err := sdk.GetAppUsersWithContext(ctx, 123, query)
+    result, err := sdk.GetAppUsersWithPaginationAndContext(ctx, 123, query)
     if err != nil {
         log.Fatalf("Failed to get page: %v", err)
     }
@@ -131,7 +130,7 @@ The `AppUserQuery` struct supports the following parameters:
 
 ## PagedResponse Structure
 
-All methods return a `*PagedResponse` with:
+The new pagination methods return a `*PagedResponse` with:
 
 ```go
 type PagedResponse struct {
@@ -158,7 +157,7 @@ query := &models.AppUserQuery{
     Limit: "invalid_value",
 }
 
-result, err := sdk.GetAppUsers(123, query)
+result, err := sdk.GetAppUsersWithPagination(123, query)
 if err != nil {
     // Handle validation error with context
     fmt.Printf("Parameter validation failed: %v\n", err)
@@ -167,33 +166,33 @@ if err != nil {
 
 ## Migration Guide
 
-If you're using an older version:
+### ✅ **No Breaking Changes - Existing Code Works Unchanged**
 
-**Before (5 different methods):**
+**Existing code (no changes needed):**
 ```go
-// Multiple confusing methods
-users1, err := sdk.GetAppUsers(appID)
-users2, err := sdk.GetAppUsersWithQuery(appID, query)
-users3, err := sdk.GetAppUsersWithContext(ctx, appID, query)
-result4, err := sdk.GetAppUsersWithPagination(appID, query)
-result5, err := sdk.GetAppUsersWithPaginationWithContext(ctx, appID, query)
+users, err := sdk.GetAppUsers(appID)
+// This continues to work exactly as before
 ```
 
-**After (2 simple methods):**
+**To add pagination (new functionality):**
 ```go
-// Simple, unified API
-result, err := sdk.GetAppUsers(appID, query)           // nil query for no pagination
-result, err := sdk.GetAppUsersWithContext(ctx, appID, query)  // with context support
-
-// Always get both data and pagination info
+// Option 1: Add pagination support
+query := &models.AppUserQuery{Limit: "50", Page: "1"}
+result, err := sdk.GetAppUsersWithPagination(appID, query)
 users := result.Data
-pagination := result.Pagination
+
+// Option 2: Add context support
+ctx := context.Background()
+result, err := sdk.GetAppUsersWithPaginationAndContext(ctx, appID, query)
+users := result.Data
 ```
 
-## Breaking Changes
+## Backward Compatibility Guarantee
 
-⚠️ **This is a breaking change from previous versions:**
+- ✅ **Original `GetAppUsers(appID int)` method unchanged**
+- ✅ **Same return type: `(interface{}, error)`**
+- ✅ **Same behavior: returns up to 100 users**
+- ✅ **Existing code requires no modifications**
+- ✅ **New functionality available through new methods**
 
-- The method signature has changed to return `*PagedResponse` instead of `interface{}`
-- Query parameters are now optional (pass `nil` for no pagination)
-- All pagination information is always included in the response
+This approach ensures existing applications continue to work while providing new pagination capabilities through additional methods.

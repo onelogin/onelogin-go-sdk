@@ -12,7 +12,7 @@ import (
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
 )
 
-// TestGetAppUsersWithPagination tests the simplified GetAppUsers functionality
+// TestGetAppUsersWithPagination tests the new paginated GetAppUsers functionality
 func TestGetAppUsersWithPagination(t *testing.T) {
 	client := createMockClient()
 	sdk := &onelogin.OneloginSDK{Client: client}
@@ -24,7 +24,7 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 		}
 
 		client.HttpClient.(*MockHttpClient).DoFunc = func(req *http.Request) (*http.Response, error) {
-			// Verify the URL doesn't contain query parameters when nil is passed
+			// Verify the URL doesn't contain query parameters when using original method
 			if req.URL.RawQuery != "" {
 				t.Errorf("Expected no query parameters, got: %s", req.URL.RawQuery)
 			}
@@ -41,7 +41,7 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 			return resp, nil
 		}
 
-		result, err := sdk.GetAppUsers(123, nil)
+		result, err := sdk.GetAppUsers(123)
 		if err != nil {
 			t.Fatalf("GetAppUsers failed: %v", err)
 		}
@@ -50,14 +50,18 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 			t.Fatal("Expected result to not be nil")
 		}
 
-		// Should have pagination structure even when no query params
-		// (but may be empty since no headers were set in mock)
-		if result.Data == nil {
-			t.Error("Expected result.Data to not be nil")
+		// Original method returns interface{}, not PagedResponse
+		if _, ok := result.([]models.UserApp); !ok {
+			// Try as []interface{} which is common for JSON unmarshaling
+			if users, ok := result.([]interface{}); ok && len(users) > 0 {
+				// This is acceptable for backward compatibility
+			} else {
+				t.Error("Expected result to contain user data")
+			}
 		}
 	})
 
-	t.Run("GetAppUsers with pagination parameters", func(t *testing.T) {
+	t.Run("GetAppUsersWithPagination with pagination parameters", func(t *testing.T) {
 		expectedUsers := []models.UserApp{
 			{ID: int32Ptr(3), LoginID: int32Ptr(300)},
 			{ID: int32Ptr(4), LoginID: int32Ptr(400)},
@@ -90,9 +94,9 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 			Page:  "2",
 		}
 
-		result, err := sdk.GetAppUsers(123, query)
+		result, err := sdk.GetAppUsersWithPagination(123, query)
 		if err != nil {
-			t.Fatalf("GetAppUsers failed: %v", err)
+			t.Fatalf("GetAppUsersWithPagination failed: %v", err)
 		}
 
 		if result == nil {
@@ -104,7 +108,7 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 		}
 	})
 
-	t.Run("GetAppUsersWithContext with timeout", func(t *testing.T) {
+	t.Run("GetAppUsersWithPaginationAndContext with timeout", func(t *testing.T) {
 		expectedUsers := []models.UserApp{
 			{ID: int32Ptr(8), LoginID: int32Ptr(800)},
 		}
@@ -127,9 +131,9 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 			Limit: "25",
 		}
 
-		result, err := sdk.GetAppUsersWithContext(ctx, 123, query)
+		result, err := sdk.GetAppUsersWithPaginationAndContext(ctx, 123, query)
 		if err != nil {
-			t.Fatalf("GetAppUsersWithContext failed: %v", err)
+			t.Fatalf("GetAppUsersWithPaginationAndContext failed: %v", err)
 		}
 
 		if result == nil {
@@ -137,7 +141,7 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 		}
 	})
 
-	t.Run("GetAppUsers with full pagination info", func(t *testing.T) {
+	t.Run("GetAppUsersWithPagination with full pagination info", func(t *testing.T) {
 		expectedUsers := []models.UserApp{
 			{ID: int32Ptr(5), LoginID: int32Ptr(500)},
 			{ID: int32Ptr(6), LoginID: int32Ptr(600)},
@@ -169,9 +173,9 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 			Page:  "2",
 		}
 
-		result, err := sdk.GetAppUsers(123, query)
+		result, err := sdk.GetAppUsersWithPagination(123, query)
 		if err != nil {
-			t.Fatalf("GetAppUsers failed: %v", err)
+			t.Fatalf("GetAppUsersWithPagination failed: %v", err)
 		}
 
 		if result == nil {
@@ -196,7 +200,7 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 		}
 	})
 
-	t.Run("GetAppUsers with cursor", func(t *testing.T) {
+	t.Run("GetAppUsersWithPagination with cursor", func(t *testing.T) {
 		expectedUsers := []models.UserApp{
 			{ID: int32Ptr(7), LoginID: int32Ptr(700)},
 		}
@@ -225,9 +229,9 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 			Limit:  "25",
 		}
 
-		result, err := sdk.GetAppUsers(123, query)
+		result, err := sdk.GetAppUsersWithPagination(123, query)
 		if err != nil {
-			t.Fatalf("GetAppUsers with cursor failed: %v", err)
+			t.Fatalf("GetAppUsersWithPagination with cursor failed: %v", err)
 		}
 
 		if result == nil {

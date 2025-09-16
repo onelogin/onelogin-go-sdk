@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -81,6 +82,36 @@ func TestGetAppUsersWithPagination(t *testing.T) {
 		result, err := sdk.GetAppUsersWithQuery(123, query)
 		if err != nil {
 			t.Fatalf("GetAppUsersWithQuery failed: %v", err)
+		}
+
+		if result == nil {
+			t.Fatal("Expected result to not be nil")
+		}
+	})
+
+	t.Run("GetAppUsersWithContext with timeout", func(t *testing.T) {
+		expectedUsers := []models.UserApp{
+			{ID: int32Ptr(8), LoginID: int32Ptr(800)},
+		}
+
+		client.HttpClient.(*MockHttpClient).DoFunc = func(req *http.Request) (*http.Response, error) {
+			usersJSON, _ := json.Marshal(expectedUsers)
+			resp := &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader(usersJSON)),
+				Header:     make(http.Header),
+			}
+			return resp, nil
+		}
+
+		ctx := context.Background()
+		query := &models.AppUserQuery{
+			Limit: "25",
+		}
+
+		result, err := sdk.GetAppUsersWithContext(ctx, 123, query)
+		if err != nil {
+			t.Fatalf("GetAppUsersWithContext failed: %v", err)
 		}
 
 		if result == nil {

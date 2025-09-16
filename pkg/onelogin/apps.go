@@ -1,7 +1,8 @@
 package onelogin
 
 import (
-	"errors"
+	"context"
+	"fmt"
 	"strconv"
 	
 	mod "github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/models"
@@ -88,47 +89,66 @@ func (sdk *OneloginSDK) DeleteApp(id int) (interface{}, error) {
 }
 
 func (sdk *OneloginSDK) GetAppUsers(appID int) (interface{}, error) {
-	return sdk.GetAppUsersWithQuery(appID, nil)
+	return sdk.GetAppUsersWithContext(context.Background(), appID, nil)
 }
 
 // GetAppUsersWithQuery retrieves users for an app with optional query parameters for pagination
-func (sdk *OneloginSDK) GetAppUsersWithQuery(appID int, queryParams mod.Queryable) (interface{}, error) {
+func (sdk *OneloginSDK) GetAppUsersWithQuery(appID int, queryParams *mod.AppUserQuery) (interface{}, error) {
+	return sdk.GetAppUsersWithContext(context.Background(), appID, queryParams)
+}
+
+// GetAppUsersWithContext retrieves users for an app with optional query parameters using the provided context
+func (sdk *OneloginSDK) GetAppUsersWithContext(ctx context.Context, appID int, queryParams *mod.AppUserQuery) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath, appID, "users")
 	if err != nil {
 		return nil, err
 	}
-	resp, err := sdk.Client.Get(&p, queryParams)
+	
+	// Validate query parameters if provided
+	if queryParams != nil {
+		validators := queryParams.GetKeyValidators()
+		if !utl.ValidateQueryParams(queryParams, validators) {
+			return nil, fmt.Errorf("invalid query parameters: validation failed")
+		}
+	}
+	
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get app users: %w", err)
 	}
 	return utl.CheckHTTPResponse(resp)
 }
 
 // GetAppUsersWithPagination retrieves users for an app with pagination information
-func (sdk *OneloginSDK) GetAppUsersWithPagination(appID int, queryParams mod.Queryable) (*mod.PagedResponse, error) {
+func (sdk *OneloginSDK) GetAppUsersWithPagination(appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
+	return sdk.GetAppUsersWithPaginationWithContext(context.Background(), appID, queryParams)
+}
+
+// GetAppUsersWithPaginationWithContext retrieves users for an app with pagination information using the provided context
+func (sdk *OneloginSDK) GetAppUsersWithPaginationWithContext(ctx context.Context, appID int, queryParams *mod.AppUserQuery) (*mod.PagedResponse, error) {
 	p, err := utl.BuildAPIPath(AppPath, appID, "users")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to build API path: %w", err)
 	}
 
 	// Validate query parameters if provided
 	if queryParams != nil {
 		validators := queryParams.GetKeyValidators()
 		if !utl.ValidateQueryParams(queryParams, validators) {
-			return nil, errors.New("invalid query parameters")
+			return nil, fmt.Errorf("invalid query parameters: validation failed")
 		}
 	}
 
-	// Make the API request
-	resp, err := sdk.Client.Get(&p, queryParams)
+	// Make the API request with context
+	resp, err := sdk.Client.GetWithContext(ctx, &p, queryParams)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get app users: %w", err)
 	}
 
 	// Extract data from response
 	data, err := utl.CheckHTTPResponse(resp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to process response: %w", err)
 	}
 
 	// Extract pagination information from headers

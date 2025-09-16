@@ -78,7 +78,22 @@ func (svc *V2Service) GetOne(id int32) (*mod.App, error) {
 // GetUsers retrieves the list of users for a given app by id, it returns
 // an array of users for the app.
 func (svc *V2Service) GetUsers(id int32) ([]mod.UserApp, error) {
-	return svc.GetUsersWithQuery(id, nil)
+	resp, err := svc.Repository.Read(mod.OLHTTPRequest{
+		URL:        fmt.Sprintf("%s/%d/users", svc.Endpoint, id),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		AuthMethod: "bearer",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var users []mod.UserApp
+	if len(resp) < 1 {
+		return nil, errors.New("invalid length of response returned")
+	}
+	err = json.Unmarshal(resp[0], &users)
+
+	return users, err
 }
 
 // GetUsersWithQuery retrieves the list of users for a given app by id with optional query parameters, 
@@ -105,7 +120,7 @@ func (svc *V2Service) GetUsersWithQuery(id int32, query mod.Queryable) ([]mod.Us
 		}
 	}
 
-	return users, nil
+	return users, err
 }
 
 // Create creates a new app, and if successful, it returns a pointer to the app.

@@ -243,7 +243,7 @@ func (svc *OLHTTPService) executeHTTP(req *http.Request, resourceRequest mod.OLH
 	}
 	resp, err := svc.Config.Client.Do(req)
 	if err != nil {
-		log.Println("Executing Request To", req.URL, "With", resourceRequest.Payload)
+		log.Println("Executing Request To", req.URL, "With", resourceRequest.Payload) // #nosec G706 -- error context logging, not user-facing
 		log.Println("HTTP Transport Error", err)
 		return nil, nil, customerror.ReqErrorWrapper(resp, svc.ErrorContext, err)
 	}

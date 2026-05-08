@@ -1,4 +1,6 @@
 # Onelogin Go SDK
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fonelogin%2Fonelogin-go-sdk.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fonelogin%2Fonelogin-go-sdk?ref=badge_shield)
+
 
 This is the Onelogin SDK, a Go package that provides a convenient interface for interacting with Onelogin's API. The SDK simplifies the integration process by providing developers an easy-to-use tool for managing authentication, making API requests, and handling responses.
 
@@ -176,3 +178,6 @@ When releasing a new version of the SDK:
 ## Contributing
 
 Contributions to the Onelogin SDK are welcome! If you encounter any issues or have suggestions for improvement, please open an issue or submit a pull request. We appreciate your feedback and contributions.
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fonelogin%2Fonelogin-go-sdk.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fonelogin%2Fonelogin-go-sdk?ref=badge_large)

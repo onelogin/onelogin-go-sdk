@@ -17,5 +17,7 @@ jobs:
       run: go build ./...
     - name: Vet
       run: go vet ./...
+    - name: Test
+      run: make test
     - name: Secure
       run: make secure

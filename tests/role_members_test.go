@@ -169,8 +169,12 @@ func TestRoleMemberGettersWalkAllPages(t *testing.T) {
 		{`[{"id":1},{"id":2}]`, "cursor-2"},
 		{`[{"id":3}]`, ""},
 	}
+	// Record each request's query string so the walk is verified end to end:
+	// the cursor must actually reach the wire, not just the caller's struct.
+	var sentQueries []string
 	callCount := 0
 	client.HttpClient.(*MockHttpClient).DoFunc = func(req *http.Request) (*http.Response, error) {
+		sentQueries = append(sentQueries, req.URL.RawQuery)
 		page := pages[callCount]
 		callCount++
 		return respondWith(page.body, page.afterCursor), nil
@@ -204,9 +208,18 @@ func TestRoleMemberGettersWalkAllPages(t *testing.T) {
 	}
 
 	if callCount != 2 {
-		t.Errorf("expected 2 requests, got %d", callCount)
+		t.Fatalf("expected 2 requests, got %d", callCount)
 	}
 	if len(ids) != 3 || ids[0] != 1 || ids[2] != 3 {
 		t.Errorf("expected ids [1 2 3] across both pages, got %v", ids)
+	}
+
+	// Page 1 requests a limit; page 2 must carry the cursor instead — with limit
+	// and page cleared, since the V2 API rejects cursor alongside either.
+	if sentQueries[0] != "limit=100" {
+		t.Errorf("first request: expected limit=100, got %q", sentQueries[0])
+	}
+	if sentQueries[1] != "cursor=cursor-2" {
+		t.Errorf("second request: expected cursor=cursor-2 with limit/page cleared, got %q", sentQueries[1])
 	}
 }

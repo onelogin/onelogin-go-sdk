@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"testing"
@@ -356,6 +357,142 @@ func TestUserMappings(t *testing.T) {
 		err := sdk.DeleteUserMapping(123)
 		if err != nil {
 			t.Fatalf("Expected no error, got %v", err)
+		}
+	})
+}
+// captureUserMappingUpdateBody drives UpdateUserMapping through the mock transport
+// and returns the decoded JSON body that was actually sent on the PUT request.
+func captureUserMappingUpdateBody(t *testing.T, mapping models.UserMapping) map[string]interface{} {
+	t.Helper()
+
+	client, mockHttpClient := setupMockClient()
+	sdk := &onelogin.OneloginSDK{Client: client}
+
+	var sentBody map[string]interface{}
+	sawPut := false
+
+	mockHttpClient.DoFunc = func(req *http.Request) (*http.Response, error) {
+		if req.Method == http.MethodPut {
+			sawPut = true
+			raw, err := io.ReadAll(req.Body)
+			if err != nil {
+				t.Fatalf("Expected to read the PUT body, got %v", err)
+			}
+			if err := json.Unmarshal(raw, &sentBody); err != nil {
+				t.Fatalf("Expected the PUT body to be valid JSON, got %v (%s)", err, raw)
+			}
+		}
+
+		// The update flow re-fetches the mapping when the API answers with just an
+		// ID, so this response body is returned for both the PUT and the
+		// follow-up GET. Only the PUT carries a request body.
+		mockResponse := `{"id": 789, "name": "Test Mapping", "match": "all", "enabled": true}`
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewBufferString(mockResponse)),
+		}, nil
+	}
+
+	if _, err := sdk.UpdateUserMapping(789, mapping); err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if !sawPut {
+		t.Fatal("Expected UpdateUserMapping to send a PUT request")
+	}
+
+	return sentBody
+}
+
+// TestUserMappingUpdatePayload covers the wire format of the mappings update
+// endpoint: the ID belongs in the URL only, and a mapping being disabled must
+// send an explicit null position. Both were causing HTTP 422 responses.
+func TestUserMappingUpdatePayload(t *testing.T) {
+	name := "Test Mapping"
+	match := "all"
+	position := int32(9)
+	enabled := true
+	disabled := false
+	id := int32(789)
+
+	t.Run("omits the id from the body", func(t *testing.T) {
+		body := captureUserMappingUpdateBody(t, models.UserMapping{
+			ID:      &id,
+			Name:    &name,
+			Match:   &match,
+			Enabled: &enabled,
+		})
+
+		if _, present := body["id"]; present {
+			t.Fatalf("Expected no id in the update body, got %v", body["id"])
+		}
+	})
+
+	t.Run("sends a null position when disabling", func(t *testing.T) {
+		body := captureUserMappingUpdateBody(t, models.UserMapping{
+			ID:       &id,
+			Name:     &name,
+			Match:    &match,
+			Enabled:  &disabled,
+			Position: &position,
+		})
+
+		value, present := body["position"]
+		if !present {
+			t.Fatal("Expected an explicit position key when disabling, got none")
+		}
+		if value != nil {
+			t.Fatalf("Expected position to be null when disabling, got %v", value)
+		}
+	})
+
+	t.Run("keeps an explicit position when enabled", func(t *testing.T) {
+		body := captureUserMappingUpdateBody(t, models.UserMapping{
+			Name:     &name,
+			Match:    &match,
+			Enabled:  &enabled,
+			Position: &position,
+		})
+
+		if body["position"] != float64(position) {
+			t.Fatalf("Expected position to be %d, got %v", position, body["position"])
+		}
+	})
+
+	t.Run("omits the position when it is unset and enabled", func(t *testing.T) {
+		body := captureUserMappingUpdateBody(t, models.UserMapping{
+			Name:    &name,
+			Match:   &match,
+			Enabled: &enabled,
+		})
+
+		if value, present := body["position"]; present {
+			t.Fatalf("Expected no position in the update body, got %v", value)
+		}
+	})
+
+	t.Run("does not send unset fields as null", func(t *testing.T) {
+		body := captureUserMappingUpdateBody(t, models.UserMapping{
+			Enabled: &enabled,
+		})
+
+		for _, field := range []string{"name", "match"} {
+			if value, present := body[field]; present {
+				t.Fatalf("Expected %q to be omitted when unset, got %v", field, value)
+			}
+		}
+	})
+
+	t.Run("always sends conditions and actions", func(t *testing.T) {
+		body := captureUserMappingUpdateBody(t, models.UserMapping{
+			Name:    &name,
+			Match:   &match,
+			Enabled: &enabled,
+		})
+
+		for _, field := range []string{"conditions", "actions"} {
+			if _, present := body[field]; !present {
+				t.Fatalf("Expected %q to always be present in the update body", field)
+			}
 		}
 	})
 }

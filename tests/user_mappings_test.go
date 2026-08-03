@@ -384,7 +384,8 @@ func captureUserMappingUpdateBody(t *testing.T, mapping models.UserMapping) map[
 		}
 
 		// The update flow re-fetches the mapping when the API answers with just an
-		// ID, so the same payload serves both the PUT and the follow-up GET.
+		// ID, so this response body is returned for both the PUT and the
+		// follow-up GET. Only the PUT carries a request body.
 		mockResponse := `{"id": 789, "name": "Test Mapping", "match": "all", "enabled": true}`
 		return &http.Response{
 			StatusCode: 200,

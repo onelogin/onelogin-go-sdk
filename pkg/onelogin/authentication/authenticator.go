@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -44,13 +45,25 @@ func BaseURL(subdomain string) string {
 		return fmt.Sprintf("https://%s.onelogin.com", subdomain)
 	}
 
-	apiURL = strings.TrimRight(apiURL, "/")
 	// A bare host is the likely way to get this wrong, and http.NewRequest
 	// rejects a URL with no scheme rather than assuming one.
 	if !strings.Contains(apiURL, "://") {
 		apiURL = "https://" + apiURL
 	}
-	return apiURL
+
+	// Reduced to scheme and authority. Every path this SDK builds is absolute
+	// -- /auth/oauth2/v2/token, /api/2/... -- and is appended to whatever this
+	// returns, so a value carrying a path would produce
+	// https://host/auth/auth/oauth2/v2/token rather than replacing anything.
+	// Such a value cannot work, so trimming it is the difference between one
+	// wrong URL and every wrong URL.
+	if parsed, err := url.Parse(apiURL); err == nil && parsed.Host != "" {
+		return parsed.Scheme + "://" + parsed.Host
+	}
+
+	// Unparseable: hand it back tidied rather than silently substituting a
+	// different host, which is the failure this function exists to prevent.
+	return strings.TrimRight(apiURL, "/")
 }
 
 func (a *Authenticator) GenerateToken() error {

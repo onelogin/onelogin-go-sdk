@@ -2,6 +2,7 @@ package tests
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/onelogin/onelogin-go-sdk/v4/pkg/onelogin/authentication"
@@ -78,6 +79,53 @@ func TestBaseURL(t *testing.T) {
 
 		if got, want := authentication.BaseURL("chicken"), "https://chicken.onelogin.com"; got != want {
 			t.Fatalf("expected %q, got %q", want, got)
+		}
+	})
+
+	// Callers append absolute paths to whatever this returns, so anything past
+	// the authority is added to rather than replaced.
+	t.Run("drops a path", func(t *testing.T) {
+		os.Setenv("ONELOGIN_API_URL", "https://chicken.onelogin-dev.com/auth")
+
+		got := authentication.BaseURL("chicken")
+		if want := "https://chicken.onelogin-dev.com"; got != want {
+			t.Fatalf("expected %q, got %q", want, got)
+		}
+		// The failure this prevents.
+		if bad := got + "/auth/oauth2/v2/token"; strings.Contains(bad, "/auth/auth/") {
+			t.Fatalf("token URL would double the path segment: %s", bad)
+		}
+	})
+
+	t.Run("drops a query and fragment", func(t *testing.T) {
+		os.Setenv("ONELOGIN_API_URL", "https://chicken.onelogin-dev.com/x?a=1#frag")
+
+		if got, want := authentication.BaseURL("chicken"), "https://chicken.onelogin-dev.com"; got != want {
+			t.Fatalf("expected %q, got %q", want, got)
+		}
+	})
+
+	t.Run("keeps an explicit port", func(t *testing.T) {
+		os.Setenv("ONELOGIN_API_URL", "http://localhost:8080/api")
+
+		if got, want := authentication.BaseURL("chicken"), "http://localhost:8080"; got != want {
+			t.Fatalf("expected the port to survive, got %q", got)
+		}
+	})
+
+	t.Run("the resulting token URL is well formed", func(t *testing.T) {
+		for _, configured := range []string{
+			"https://chicken.onelogin-dev.com",
+			"https://chicken.onelogin-dev.com/",
+			"chicken.onelogin-dev.com",
+			"https://chicken.onelogin-dev.com/auth",
+		} {
+			os.Setenv("ONELOGIN_API_URL", configured)
+
+			got := authentication.BaseURL("chicken") + authentication.TkPath
+			if want := "https://chicken.onelogin-dev.com/auth/oauth2/v2/token"; got != want {
+				t.Fatalf("configured %q: expected %q, got %q", configured, want, got)
+			}
 		}
 	})
 }

@@ -45,7 +45,7 @@ func NewClient() (*Client, error) {
 		return nil, olerror.NewSDKError("ONELOGIN_SUBDOMAIN environment variable is required")
 	}
 
-	old := fmt.Sprintf("https://%s.onelogin.com", subdomain)
+	old := authentication.BaseURL(subdomain)
 	authenticator := authentication.NewAuthenticator(subdomain)
 	timeoutStr := os.Getenv("ONELOGIN_TIMEOUT")
 	timeout, err := strconv.Atoi(timeoutStr)

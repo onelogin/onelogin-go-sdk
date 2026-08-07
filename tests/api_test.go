@@ -145,59 +145,56 @@ func TestClientDeleteWithBody(t *testing.T) {
 	}
 }
 
-func TestRoleEmptyArraysSerialization(t *testing.T) {
-	// Create role with empty arrays
-	role := &models.Role{
-		Name:   new(string),
-		Users:  []int32{}, // Empty array
-		Admins: []int32{}, // Empty array
-		Apps:   []int32{}, // Empty array
-	}
-	*role.Name = "Test Role"
+func TestRoleMembershipSerialization(t *testing.T) {
+	name := "Test Role"
 
-	// Serialize to JSON
-	jsonData, err := json.Marshal(role)
-	if err != nil {
-		t.Fatalf("Failed to marshal role: %v", err)
-	}
-
-	// Verify that empty arrays are included in JSON
-	jsonStr := string(jsonData)
-	t.Logf("Serialized JSON: %s", jsonStr)
-
-	// Check for empty arrays in the JSON
-	if !bytes.Contains(jsonData, []byte(`"users":[]`)) {
-		t.Error("JSON should contain empty users array")
-	}
-	if !bytes.Contains(jsonData, []byte(`"admins":[]`)) {
-		t.Error("JSON should contain empty admins array")
-	}
-	if !bytes.Contains(jsonData, []byte(`"apps":[]`)) {
-		t.Error("JSON should contain empty apps array")
-	}
-
-	// Also check with nil slices
-	roleWithNil := &models.Role{
-		Name: role.Name,
-		// All arrays are nil by default
-	}
-
-	jsonData, err = json.Marshal(roleWithNil)
-	if err != nil {
-		t.Fatalf("Failed to marshal role with nil arrays: %v", err)
+	tests := map[string]struct {
+		role     models.Role
+		expected string
+	}{
+		// The bug behind issue #114: a caller renaming a role sent empty
+		// membership arrays it never set, and the API removed every app, user
+		// and admin on that role.
+		"omits memberships the caller never set": {
+			role:     models.Role{Name: &name},
+			expected: `{"name":"Test Role"}`,
+		},
+		"sends an explicitly empty array, which removes all memberships": {
+			role: models.Role{
+				Name:   &name,
+				Users:  []int32{},
+				Admins: []int32{},
+				Apps:   []int32{},
+			},
+			expected: `{"admins":[],"apps":[],"name":"Test Role","users":[]}`,
+		},
+		"sends populated arrays, which replace the memberships": {
+			role: models.Role{
+				Name:  &name,
+				Users: []int32{1, 2},
+				Apps:  []int32{3},
+			},
+			expected: `{"apps":[3],"name":"Test Role","users":[1,2]}`,
+		},
+		"carries one membership change without disturbing the others": {
+			role:     models.Role{Apps: []int32{7}},
+			expected: `{"apps":[7]}`,
+		},
 	}
 
-	jsonStr = string(jsonData)
-	t.Logf("Serialized JSON with nil arrays: %s", jsonStr)
-
-	// Check for empty arrays in the JSON
-	if !bytes.Contains(jsonData, []byte(`"users":[]`)) {
-		t.Error("JSON should contain empty users array for nil slice")
-	}
-	if !bytes.Contains(jsonData, []byte(`"admins":[]`)) {
-		t.Error("JSON should contain empty admins array for nil slice")
-	}
-	if !bytes.Contains(jsonData, []byte(`"apps":[]`)) {
-		t.Error("JSON should contain empty apps array for nil slice")
+	for testName, test := range tests {
+		t.Run(testName, func(t *testing.T) {
+			// Marshalled as both a value and a pointer: the receiver is a value
+			// so that json.Marshal cannot treat the two differently.
+			for _, subject := range []interface{}{test.role, &test.role} {
+				jsonData, err := json.Marshal(subject)
+				if err != nil {
+					t.Fatalf("Failed to marshal role: %v", err)
+				}
+				if string(jsonData) != test.expected {
+					t.Errorf("marshalling %T\n got: %s\nwant: %s", subject, jsonData, test.expected)
+				}
+			}
+		})
 	}
 }

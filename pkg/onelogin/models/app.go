@@ -49,9 +49,16 @@ type Certificate struct {
 	Value string `json:"value"`
 }
 
+// ConfigurationOpenId holds the OIDC settings on an app's Configuration tab.
+//
+// PostLogoutRedirectURI holds one or more URIs, encoded as a single newline- or
+// comma-separated string to match what the API stores for the connector's
+// post_logout_redirect_uri parameter. It is the one field tagged omitempty: the
+// API treats a present key as an assignment, so sending "" on an update would
+// clear any URIs already configured on the app.
 type ConfigurationOpenId struct {
 	RedirectURI                   string `json:"redirect_uri"`
-	PostLogoutRedirectURI         string `json:"post_logout_redirect_uri"`
+	PostLogoutRedirectURI         string `json:"post_logout_redirect_uri,omitempty"`
 	LoginURL                      string `json:"login_url"`
 	OidcApplicationType           int    `json:"oidc_application_type"`
 	TokenEndpointAuthMethod       int    `json:"token_endpoint_auth_method"`

@@ -83,6 +83,19 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Printf("Updated role with no users: %+v\n", roleWithNoUsers)
+
+	// Fields you leave nil are omitted from the request, so this renames the
+	// role without touching its apps, users or admins. The distinction matters:
+	// the API replaces memberships wholesale for any array it receives, so an
+	// empty array is a request to remove them all, as above.
+	newName := "Renamed role"
+	renamedRole, err := client.UpdateRole(roleID, &models.Role{
+		Name: &newName,
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("Renamed role, memberships untouched: %+v\n", renamedRole)
 }
 ```
 

@@ -51,6 +51,7 @@ type Certificate struct {
 
 type ConfigurationOpenId struct {
 	RedirectURI                   string `json:"redirect_uri"`
+	PostLogoutRedirectURI         string `json:"post_logout_redirect_uri"`
 	LoginURL                      string `json:"login_url"`
 	OidcApplicationType           int    `json:"oidc_application_type"`
 	TokenEndpointAuthMethod       int    `json:"token_endpoint_auth_method"`

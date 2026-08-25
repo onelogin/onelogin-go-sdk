@@ -16,13 +16,18 @@ import (
 // receive http response, check error code status, if good return json of resp.Body
 // else return error
 func CheckHTTPResponse(resp *http.Response) (any, error) {
-	// Handle 204 No Content responses - this is a success but with no content
+	// Handle 204 No Content responses - this is a success but with no content.
+	// Closed explicitly: both of these returns leave before the close below,
+	// and a body that is never closed keeps its connection out of the pool.
+	// Every DELETE answers 204, so this path is well travelled.
 	if resp.StatusCode == http.StatusNoContent {
+		resp.Body.Close()
 		return map[string]any{"status": "success"}, nil
 	}
 
 	// Check if the request was successful
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusAccepted {
+		resp.Body.Close()
 		return nil, fmt.Errorf("request failed with status: %d", resp.StatusCode)
 	}
 
@@ -83,14 +88,17 @@ func unmarshalBody(body []byte) (any, error) {
 // body in any other shape falls back to the status alone, so this is never
 // worse than CheckHTTPResponse.
 func CheckHTTPResponseWithErrorBody(resp *http.Response) (any, error) {
+	// Deferred rather than closed inline: an early return that skips the close
+	// holds the connection out of the pool for good. The read error is also
+	// reported on its own, so a close failure cannot be described as a failure
+	// to read.
+	defer resp.Body.Close()
+
 	if resp.StatusCode == http.StatusNoContent {
 		return map[string]any{"status": "success"}, nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	if closeErr := resp.Body.Close(); err == nil {
-		err = closeErr
-	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}

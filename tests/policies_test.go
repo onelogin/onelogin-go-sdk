@@ -107,9 +107,73 @@ func TestCheckHTTPResponseWithErrorBody(t *testing.T) {
 	})
 
 	t.Run("accepts a 2xx the older check rejected", func(t *testing.T) {
-		// CheckHTTPResponse allows only 200, 201 and 202.
-		if _, err := utl.CheckHTTPResponseWithErrorBody(response(200, `{"ok":true}`)); err != nil {
+		// CheckHTTPResponse allows only 200, 201 and 202, so the status here
+		// has to be outside that set for this to test anything.
+		if _, err := utl.CheckHTTPResponseWithErrorBody(response(203, `{"ok":true}`)); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	})
+
+	// A body that is never closed keeps its connection out of the pool, and
+	// the paths that skip it are the easy ones to miss: the early return for
+	// 204 and the early return for an error status.
+	t.Run("closes the body on every path", func(t *testing.T) {
+		for _, tt := range []struct {
+			name   string
+			status int
+			body   string
+		}{
+			{"no content", 204, ""},
+			{"success", 200, `{"id":955633}`},
+			{"api error", 422, `{"message":"nope","statusCode":422}`},
+			{"unreadable error", 502, "<html>bad gateway</html>"},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				body := &trackingBody{Reader: strings.NewReader(tt.body)}
+				_, _ = utl.CheckHTTPResponseWithErrorBody(&http.Response{
+					StatusCode: tt.status,
+					Body:       body,
+				})
+				if !body.closed {
+					t.Fatalf("status %d: response body was left open", tt.status)
+				}
+			})
+		}
+	})
+}
+
+// trackingBody records whether it was closed.
+type trackingBody struct {
+	io.Reader
+	closed bool
+}
+
+func (b *trackingBody) Close() error {
+	b.closed = true
+	return nil
+}
+
+// The same leak existed in CheckHTTPResponse, on both of its early returns.
+// Every DELETE in this SDK answers 204, so that path is well travelled.
+func TestCheckHTTPResponseClosesBody(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		status int
+		body   string
+	}{
+		{"no content", 204, ""},
+		{"error status", 422, `{"message":"nope"}`},
+		{"success", 200, `{"id":955633}`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			body := &trackingBody{Reader: strings.NewReader(tt.body)}
+			_, _ = utl.CheckHTTPResponse(&http.Response{
+				StatusCode: tt.status,
+				Body:       body,
+			})
+			if !body.closed {
+				t.Fatalf("status %d: response body was left open", tt.status)
+			}
+		})
+	}
 }

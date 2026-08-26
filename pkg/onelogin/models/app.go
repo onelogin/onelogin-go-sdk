@@ -22,8 +22,13 @@ type App struct {
 	// A nil pointer covers the first and a non-nil pointer the second. Nothing
 	// covers the third: omitempty drops only the nil pointer, so a pointer can
 	// never produce a null. Setting one to 0 is not the way round it -- the app
-	// endpoint answers 0 with 422 "The associated Policy with ID 0 could not be
-	// found", the same thing it says about an ID that does not exist.
+	// endpoint answers 0 with 422, naming the record it went looking for:
+	//
+	//	policy_id  "The associated Policy with ID 0 could not be found"
+	//	brand_id   "The associated AccountBrand with ID 0 could not be found"
+	//
+	// which is the same thing it says about an ID that does not exist. Both
+	// were confirmed against the API, along with null clearing each field.
 	//
 	// ClearPolicyID and ClearBrandID below are what send the null.
 	PolicyID           *int                  `json:"policy_id,omitempty"`

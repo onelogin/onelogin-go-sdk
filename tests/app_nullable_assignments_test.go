@@ -25,8 +25,10 @@ func intPtr(v int) *int { return &v }
 // than two: leave the assignment alone, change it, or take it off.
 //
 // A *int tagged omitempty reaches only the first two. The third needs a JSON
-// null -- 0 does not do it, the endpoint answers 0 with 422 "The associated
-// Policy with ID 0 could not be found" -- and no pointer can produce one.
+// null, and no pointer can produce one. 0 does not do it either: the endpoint
+// answers it with 422, "The associated Policy with ID 0 could not be found"
+// for policy_id and "The associated AccountBrand with ID 0 could not be found"
+// for brand_id. Both were confirmed against the API.
 func TestAppAssignmentsAreThreeState(t *testing.T) {
 	for _, field := range []struct {
 		key    string

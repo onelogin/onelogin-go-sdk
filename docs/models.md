@@ -30,8 +30,10 @@ meanings on the wire rather than two:
 
 A nil pointer gives the first and a non-nil pointer the second. The third needs a JSON
 `null`, which no pointer can produce -- `omitempty` drops only the nil. Sending `0` is not
-a way round it: the endpoint answers `0` with `422 The associated Policy with ID 0 could
-not be found`, the same thing it says about an ID that does not exist.
+a way round it: the endpoint answers `0` with a 422 naming the record it went looking for
+(`The associated Policy with ID 0 could not be found`, or `The associated AccountBrand
+with ID 0 could not be found`), which is the same thing it says about an ID that does not
+exist.
 
 Set `ClearPolicyID` or `ClearBrandID` to send the null:
 

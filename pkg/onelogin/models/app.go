@@ -71,7 +71,7 @@ type App struct {
 // json.RawMessage and so are not re-encoded, and object key order carries no
 // meaning in JSON, so only the byte layout differs.
 func (a App) MarshalJSON() ([]byte, error) {
-	// A distinct type with the same fields and none of the methods. Marshalling
+	// A distinct type with the same fields and none of the methods. Marshaling
 	// App directly here would call this method again.
 	type plain App
 
@@ -85,10 +85,10 @@ func (a App) MarshalJSON() ([]byte, error) {
 	}
 
 	if a.ClearPolicyID && a.PolicyID != nil {
-		return nil, fmt.Errorf("models: App has both PolicyID %d and ClearPolicyID set; a policy cannot be assigned and unassigned in one request", *a.PolicyID)
+		return nil, fmt.Errorf("policy_id cannot be assigned (%d) and cleared in the same request: PolicyID and ClearPolicyID are both set", *a.PolicyID)
 	}
 	if a.ClearBrandID && a.BrandID != nil {
-		return nil, fmt.Errorf("models: App has both BrandID %d and ClearBrandID set; a brand cannot be assigned and unassigned in one request", *a.BrandID)
+		return nil, fmt.Errorf("brand_id cannot be assigned (%d) and cleared in the same request: BrandID and ClearBrandID are both set", *a.BrandID)
 	}
 
 	var fields map[string]json.RawMessage

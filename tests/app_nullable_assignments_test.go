@@ -80,8 +80,15 @@ func TestAppAssignmentsAreThreeState(t *testing.T) {
 				field.assign(&app, 955633)
 				field.clear(&app)
 
-				if _, err := json.Marshal(app); err == nil {
+				_, err := json.Marshal(app)
+				if err == nil {
 					t.Fatalf("expected assigning and clearing %s together to be an error", field.key)
+				}
+				// Naming the field matters: an app can carry both
+				// assignments, so "one of them conflicts" would leave the
+				// caller to work out which.
+				if !strings.Contains(err.Error(), field.key) {
+					t.Fatalf("expected the error to name %s, got %v", field.key, err)
 				}
 			})
 		})

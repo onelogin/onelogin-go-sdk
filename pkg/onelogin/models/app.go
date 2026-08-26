@@ -1,11 +1,31 @@
 package models
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type App struct {
-	ID                 *int32                `json:"id,omitempty"`
-	ConnectorID        *int32                `json:"connector_id"`
-	Name               *string               `json:"name"`
-	Description        *string               `json:"description,omitempty"`
-	Notes              *string               `json:"notes,omitempty"`
+	ID          *int32  `json:"id,omitempty"`
+	ConnectorID *int32  `json:"connector_id"`
+	Name        *string `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Notes       *string `json:"notes,omitempty"`
+	// PolicyID is the app policy enforced when users sign in to this app, and
+	// BrandID the brand its login page uses. Both name a record the app is
+	// assigned to, and both are three-state on the wire:
+	//
+	//	omitted   leave the current assignment alone
+	//	a number  assign that policy or brand
+	//	null      unassign, falling back to the account default
+	//
+	// A nil pointer covers the first and a non-nil pointer the second. Nothing
+	// covers the third: omitempty drops only the nil pointer, so a pointer can
+	// never produce a null. Setting one to 0 is not the way round it -- the app
+	// endpoint answers 0 with 422 "The associated Policy with ID 0 could not be
+	// found", the same thing it says about an ID that does not exist.
+	//
+	// ClearPolicyID and ClearBrandID below are what send the null.
 	PolicyID           *int                  `json:"policy_id,omitempty"`
 	BrandID            *int                  `json:"brand_id,omitempty"`
 	IconURL            *string               `json:"icon_url,omitempty"`
@@ -21,6 +41,65 @@ type App struct {
 	Configuration      interface{}           `json:"configuration,omitempty"`
 	Parameters         *map[string]Parameter `json:"parameters,omitempty"`
 	EnforcementPoint   *EnforcementPoint     `json:"enforcement_point,omitempty"`
+
+	// ClearPolicyID and ClearBrandID send the corresponding field as JSON
+	// null, which is how the app endpoint is asked to unassign a policy or a
+	// brand. They are not fields of the API resource, hence `json:"-"`; they
+	// are instructions to MarshalJSON.
+	//
+	// Setting one alongside a non-nil pointer for the same field is a
+	// contradiction -- assign this, and also unassign it -- and MarshalJSON
+	// reports it rather than picking a winner, because either choice would
+	// silently do half of what the caller asked.
+	ClearPolicyID bool `json:"-"`
+	ClearBrandID  bool `json:"-"`
+}
+
+// MarshalJSON encodes the app, turning ClearPolicyID and ClearBrandID into the
+// nulls that unassign a policy or a brand.
+//
+// With neither flag set it returns exactly what the struct tags alone would
+// produce, so callers that predate the flags are unaffected.
+//
+// When a flag is set the encoding is rebuilt from a map, which orders keys
+// alphabetically rather than by field. The values are carried across as
+// json.RawMessage and so are not re-encoded, and object key order carries no
+// meaning in JSON, so only the byte layout differs.
+func (a App) MarshalJSON() ([]byte, error) {
+	// A distinct type with the same fields and none of the methods. Marshalling
+	// App directly here would call this method again.
+	type plain App
+
+	raw, err := json.Marshal(plain(a))
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.ClearPolicyID && !a.ClearBrandID {
+		return raw, nil
+	}
+
+	if a.ClearPolicyID && a.PolicyID != nil {
+		return nil, fmt.Errorf("models: App has both PolicyID %d and ClearPolicyID set; a policy cannot be assigned and unassigned in one request", *a.PolicyID)
+	}
+	if a.ClearBrandID && a.BrandID != nil {
+		return nil, fmt.Errorf("models: App has both BrandID %d and ClearBrandID set; a brand cannot be assigned and unassigned in one request", *a.BrandID)
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return nil, err
+	}
+
+	null := json.RawMessage("null")
+	if a.ClearPolicyID {
+		fields["policy_id"] = null
+	}
+	if a.ClearBrandID {
+		fields["brand_id"] = null
+	}
+
+	return json.Marshal(fields)
 }
 
 type Provisioning struct {

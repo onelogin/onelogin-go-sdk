@@ -17,6 +17,38 @@ type App struct {
 }
 ```
 
+### Assigning and unassigning a policy or a brand
+
+`PolicyID` and `BrandID` name a record the app is assigned to, so they have three
+meanings on the wire rather than two:
+
+| Request | Meaning |
+| --- | --- |
+| key omitted | leave the current assignment alone |
+| a number | assign that policy or brand |
+| `null` | unassign, falling back to the account default |
+
+A nil pointer gives the first and a non-nil pointer the second. The third needs a JSON
+`null`, which no pointer can produce -- `omitempty` drops only the nil. Sending `0` is not
+a way round it: the endpoint answers `0` with `422 The associated Policy with ID 0 could
+not be found`, the same thing it says about an ID that does not exist.
+
+Set `ClearPolicyID` or `ClearBrandID` to send the null:
+
+```go
+// Assign.
+app := models.App{PolicyID: &policyID}
+
+// Unassign.
+app := models.App{ClearPolicyID: true}
+
+// Leave whatever the app already has alone.
+app := models.App{}
+```
+
+Setting the flag alongside a pointer for the same field is a contradiction, and
+`json.Marshal` reports it rather than picking a winner.
+
 ## [AppRule](../pkg/onelogin/models/app_rule.go)
 
 The `AppRule` model represents a rule associated with an application. It defines conditions and actions that determine how the application behaves in specific scenarios. The model includes properties such as rule name, match attribute, value, and actions to be performed.

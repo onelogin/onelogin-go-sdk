@@ -95,6 +95,22 @@ func TestAppAssignmentsAreThreeState(t *testing.T) {
 	}
 }
 
+// TestAppAlwaysSendsConnectorIDAndName pins the two fields that are not
+// governed by omitempty.
+//
+// Every other field on App is dropped when nil, which is what lets a request
+// mention only what it means to change. connector_id and name carry no
+// omitempty, so a nil one is sent as an explicit null instead -- including on a
+// request whose only purpose is to clear a policy. Callers have to set them.
+//
+// docs/models.md states this, and the assertion is here so that adding
+// omitempty to either field fails rather than quietly making the docs wrong.
+func TestAppAlwaysSendsConnectorIDAndName(t *testing.T) {
+	if got := marshalApp(t, models.App{}); got != `{"connector_id":null,"name":null}` {
+		t.Fatalf("unexpected encoding of an empty App: %s", got)
+	}
+}
+
 // TestAppClearsBothAssignmentsTogether covers the two flags not treading on
 // each other, since they share one pass over the encoded object.
 func TestAppClearsBothAssignmentsTogether(t *testing.T) {

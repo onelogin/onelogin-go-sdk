@@ -27,9 +27,14 @@ type App struct {
 }
 ```
 
-Almost every field is a pointer, so that a request can leave out what it is not trying
-to change: the app endpoint takes a `PUT` but merges it, and `omitempty` drops a nil
-pointer. That is what the next section builds on.
+Most fields are pointers tagged `omitempty`, so that a request can leave out what it is
+not trying to change: the app endpoint takes a `PUT` but merges it, and `omitempty` drops
+a nil pointer. That is what the next section builds on.
+
+`connector_id` and `name` are the exceptions. They carry no `omitempty`, so a nil one is
+sent as `null` rather than omitted -- `json.Marshal(models.App{})` produces
+`{"connector_id":null,"name":null}`. Set both on any request that updates an app, even
+one whose purpose is to change something else.
 
 ### Assigning and unassigning a policy or a brand
 
@@ -53,14 +58,17 @@ Set `ClearPolicyID` or `ClearBrandID` to send the null:
 
 ```go
 // Assign.
-app := models.App{PolicyID: &policyID}
+app := models.App{Name: &name, ConnectorID: &connectorID, PolicyID: &policyID}
 
 // Unassign.
-app := models.App{ClearPolicyID: true}
+app := models.App{Name: &name, ConnectorID: &connectorID, ClearPolicyID: true}
 
 // Leave whatever the app already has alone.
-app := models.App{}
+app := models.App{Name: &name, ConnectorID: &connectorID}
 ```
+
+Name and ConnectorID appear in all three for the reason given above: they are sent as
+`null` when nil, so they are not fields a partial update can leave out.
 
 Setting the flag alongside a pointer for the same field is a contradiction, and
 `json.Marshal` reports it rather than picking a winner.

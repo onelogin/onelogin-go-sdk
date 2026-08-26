@@ -10,12 +10,68 @@ The `App` model represents an application within the OneLogin platform. It conta
 
 ```go
 type App struct {
-    ID          int64  `json:"id,omitempty"`
-    Name        string `json:"name"`
-    Description string `json:"description,omitempty"`
+    ID          *int32  `json:"id,omitempty"`
+    ConnectorID *int32  `json:"connector_id"`
+    Name        *string `json:"name"`
+    Description *string `json:"description,omitempty"`
+    Notes       *string `json:"notes,omitempty"`
+
+    // Three-state on the wire; see below.
+    PolicyID *int `json:"policy_id,omitempty"`
+    BrandID  *int `json:"brand_id,omitempty"`
     // ...
+
+    // Instructions to MarshalJSON rather than fields of the API resource.
+    ClearPolicyID bool `json:"-"`
+    ClearBrandID  bool `json:"-"`
 }
 ```
+
+Most fields are pointers tagged `omitempty`, so that a request can leave out what it is
+not trying to change: the app endpoint takes a `PUT` but merges it, and `omitempty` drops
+a nil pointer. That is what the next section builds on.
+
+`connector_id` and `name` are the exceptions. They carry no `omitempty`, so a nil one is
+sent as `null` rather than omitted -- `json.Marshal(models.App{})` produces
+`{"connector_id":null,"name":null}`. Set both on any request that updates an app, even
+one whose purpose is to change something else.
+
+### Assigning and unassigning a policy or a brand
+
+`PolicyID` and `BrandID` name a record the app is assigned to, so they have three
+meanings on the wire rather than two:
+
+| Request | Meaning |
+| --- | --- |
+| key omitted | leave the current assignment alone |
+| a number | assign that policy or brand |
+| `null` | unassign, falling back to the account default |
+
+A nil pointer gives the first and a non-nil pointer the second. The third needs a JSON
+`null`, which no pointer can produce -- `omitempty` drops only the nil. Sending `0` is not
+a way round it: the endpoint answers `0` with a 422 naming the record it went looking for
+(`The associated Policy with ID 0 could not be found`, or `The associated AccountBrand
+with ID 0 could not be found`), which is the same thing it says about an ID that does not
+exist.
+
+Set `ClearPolicyID` or `ClearBrandID` to send the null:
+
+```go
+// Assign.
+app := models.App{Name: &name, ConnectorID: &connectorID, PolicyID: &policyID}
+
+// Unassign.
+app := models.App{Name: &name, ConnectorID: &connectorID, ClearPolicyID: true}
+
+// Leave whatever the app already has alone.
+app := models.App{Name: &name, ConnectorID: &connectorID}
+```
+
+Name and ConnectorID appear in all three for the reason given above: they are sent as
+`null` when nil, so they are not fields a partial update can leave out.
+
+Setting the flag alongside a pointer for the same field is a contradiction, and
+`json.Marshal` reports it rather than picking a winner.
 
 ## [AppRule](../pkg/onelogin/models/app_rule.go)
 

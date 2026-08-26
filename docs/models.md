@@ -10,12 +10,26 @@ The `App` model represents an application within the OneLogin platform. It conta
 
 ```go
 type App struct {
-    ID          int64  `json:"id,omitempty"`
-    Name        string `json:"name"`
-    Description string `json:"description,omitempty"`
+    ID          *int32  `json:"id,omitempty"`
+    ConnectorID *int32  `json:"connector_id"`
+    Name        *string `json:"name"`
+    Description *string `json:"description,omitempty"`
+    Notes       *string `json:"notes,omitempty"`
+
+    // Three-state on the wire; see below.
+    PolicyID *int `json:"policy_id,omitempty"`
+    BrandID  *int `json:"brand_id,omitempty"`
     // ...
+
+    // Instructions to MarshalJSON rather than fields of the API resource.
+    ClearPolicyID bool `json:"-"`
+    ClearBrandID  bool `json:"-"`
 }
 ```
+
+Almost every field is a pointer, so that a request can leave out what it is not trying
+to change: the app endpoint takes a `PUT` but merges it, and `omitempty` drops a nil
+pointer. That is what the next section builds on.
 
 ### Assigning and unassigning a policy or a brand
 

@@ -12,7 +12,7 @@ The `App` model represents an application within the OneLogin platform. It conta
 type App struct {
     ID          *int32  `json:"id,omitempty"`
     ConnectorID *int32  `json:"connector_id"`
-    Name        *string `json:"name"`
+    Name        *string `json:"name,omitempty"`
     Description *string `json:"description,omitempty"`
     Notes       *string `json:"notes,omitempty"`
 
@@ -31,10 +31,24 @@ Most fields are pointers tagged `omitempty`, so that a request can leave out wha
 not trying to change: the app endpoint takes a `PUT` but merges it, and `omitempty` drops
 a nil pointer. That is what the next section builds on.
 
-`connector_id` and `name` are the exceptions. They carry no `omitempty`, so a nil one is
-sent as `null` rather than omitted -- `json.Marshal(models.App{})` produces
-`{"connector_id":null,"name":null}`. Set both on any request that updates an app, even
-one whose purpose is to change something else.
+`connector_id` is the exception. It carries no `omitempty`, so a nil one is sent as
+`null` rather than omitted -- `json.Marshal(models.App{})` produces
+`{"connector_id":null}`. The endpoint answers that with a 200, so a partial update need
+not set it, but setting it does no harm.
+
+`name` used to be an exception too, and was the one that broke requests. A partial update
+that did not set it sent `"name": null`, which the endpoint rejects with a 422,
+`Validation failed: Name can't be blank` -- so a request that only meant to change
+something else was refused outright. Attaching a role was the case that surfaced it
+([#123](https://github.com/onelogin/onelogin-go-sdk/issues/123)):
+`models.App{RoleIDs: &roleIDs}` encoded as
+`{"connector_id":null,"name":null,"role_ids":[...]}` and was rejected. `name` now carries
+`omitempty`, so the same struct encodes as `{"connector_id":null,"role_ids":[...]}` and is
+accepted.
+
+`omitempty` drops only the nil pointer, so an explicitly empty name -- a pointer to `""`
+-- is still sent, and still rejected. That is the right answer to a caller that really
+did ask for a blank name.
 
 ### Assigning and unassigning a policy or a brand
 
@@ -58,17 +72,17 @@ Set `ClearPolicyID` or `ClearBrandID` to send the null:
 
 ```go
 // Assign.
-app := models.App{Name: &name, ConnectorID: &connectorID, PolicyID: &policyID}
+app := models.App{PolicyID: &policyID}
 
 // Unassign.
-app := models.App{Name: &name, ConnectorID: &connectorID, ClearPolicyID: true}
+app := models.App{ClearPolicyID: true}
 
 // Leave whatever the app already has alone.
-app := models.App{Name: &name, ConnectorID: &connectorID}
+app := models.App{}
 ```
 
-Name and ConnectorID appear in all three for the reason given above: they are sent as
-`null` when nil, so they are not fields a partial update can leave out.
+None of the three has to name the app: an unset `Name` is left out of the request rather
+than sent as a null, so a request can mention only the assignment it is changing.
 
 Setting the flag alongside a pointer for the same field is a contradiction, and
 `json.Marshal` reports it rather than picking a winner.

@@ -6,9 +6,23 @@ import (
 )
 
 type App struct {
-	ID          *int32  `json:"id,omitempty"`
-	ConnectorID *int32  `json:"connector_id"`
-	Name        *string `json:"name"`
+	ID *int32 `json:"id,omitempty"`
+
+	// ConnectorID is the one field on App sent as null when nil rather than
+	// omitted. The endpoint tolerates that: a partial update carrying
+	// "connector_id": null is answered 200, where the same request carrying
+	// "name": null is answered 422. Both were confirmed against the API.
+	ConnectorID *int32 `json:"connector_id"`
+
+	// Name carries omitempty so that a partial update which does not set it
+	// omits the key rather than sending "name": null, which the endpoint
+	// rejects with 422 "Validation failed: Name can't be blank" -- taking down
+	// requests that were only trying to change something else, such as
+	// attaching a role. Note that omitempty drops only the nil pointer: a
+	// pointer to "" still sends an empty name, and is still rejected, which is
+	// the right answer to a caller that really did ask for a blank name.
+	Name *string `json:"name,omitempty"`
+
 	Description *string `json:"description,omitempty"`
 	Notes       *string `json:"notes,omitempty"`
 	// PolicyID is the app policy enforced when users sign in to this app, and

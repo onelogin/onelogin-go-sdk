@@ -120,7 +120,7 @@ func TestAppAlwaysSendsConnectorID(t *testing.T) {
 // update with 422 "Validation failed: Name can't be blank" -- so a resource
 // that never mentioned the name could not be created, updated or deleted.
 func TestAppOmitsNameWhenUnset(t *testing.T) {
-	t.Run("a role attachment sends only the roles", func(t *testing.T) {
+	t.Run("a role attachment does not mention the name", func(t *testing.T) {
 		roleIDs := []int{955633}
 
 		// Exact rather than a Contains, so that any future field arriving

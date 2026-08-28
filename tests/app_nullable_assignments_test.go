@@ -95,20 +95,63 @@ func TestAppAssignmentsAreThreeState(t *testing.T) {
 	}
 }
 
-// TestAppAlwaysSendsConnectorIDAndName pins the two fields that are not
-// governed by omitempty.
+// TestAppAlwaysSendsConnectorID pins the one field still not governed by
+// omitempty.
 //
 // Every other field on App is dropped when nil, which is what lets a request
-// mention only what it means to change. connector_id and name carry no
-// omitempty, so a nil one is sent as an explicit null instead -- including on a
-// request whose only purpose is to clear a policy. Callers have to set them.
+// mention only what it means to change. connector_id carries no omitempty, so
+// a nil one is sent as an explicit null instead. The endpoint answers that
+// with a 200, so it is left as it is; name, which was answered with a 422, is
+// covered by TestAppOmitsNameWhenUnset below.
 //
 // docs/models.md states this, and the assertion is here so that adding
-// omitempty to either field fails rather than quietly making the docs wrong.
-func TestAppAlwaysSendsConnectorIDAndName(t *testing.T) {
-	if got := marshalApp(t, models.App{}); got != `{"connector_id":null,"name":null}` {
+// omitempty to connector_id fails rather than quietly making the docs wrong.
+func TestAppAlwaysSendsConnectorID(t *testing.T) {
+	if got := marshalApp(t, models.App{}); got != `{"connector_id":null}` {
 		t.Fatalf("unexpected encoding of an empty App: %s", got)
 	}
+}
+
+// TestAppOmitsNameWhenUnset covers the regression behind issue #123.
+//
+// terraform-provider-onelogin's onelogin_app_role_attachments builds a bare
+// models.App{RoleIDs: &ids} to attach or detach a role. Without omitempty on
+// Name that request carried "name": null, and the endpoint rejected the whole
+// update with 422 "Validation failed: Name can't be blank" -- so a resource
+// that never mentioned the name could not be created, updated or deleted.
+func TestAppOmitsNameWhenUnset(t *testing.T) {
+	t.Run("a role attachment sends only the roles", func(t *testing.T) {
+		roleIDs := []int{955633}
+
+		// Exact rather than a Contains, so that any future field arriving
+		// without omitempty is caught here too: the whole point of the issue
+		// is a key nobody asked to send.
+		got := marshalApp(t, models.App{RoleIDs: &roleIDs})
+
+		if want := `{"connector_id":null,"role_ids":[955633]}`; got != want {
+			t.Fatalf("unexpected encoding of a role attachment:\n got %s\nwant %s", got, want)
+		}
+	})
+
+	t.Run("sends the name when it is set", func(t *testing.T) {
+		name := "my OIDC APP"
+
+		if got := marshalApp(t, models.App{Name: &name}); !strings.Contains(got, `"name":"my OIDC APP"`) {
+			t.Fatalf("expected the name to be sent, got %s", got)
+		}
+	})
+
+	// omitempty drops the nil pointer, not a pointer to "". A caller that
+	// explicitly asks for a blank name should still reach the endpoint and be
+	// told no, rather than have the field quietly dropped and the request
+	// succeed as a no-op.
+	t.Run("still sends an explicitly empty name", func(t *testing.T) {
+		blank := ""
+
+		if got := marshalApp(t, models.App{Name: &blank}); !strings.Contains(got, `"name":""`) {
+			t.Fatalf("expected an explicitly empty name to be sent, got %s", got)
+		}
+	})
 }
 
 // TestAppClearsBothAssignmentsTogether covers the two flags not treading on

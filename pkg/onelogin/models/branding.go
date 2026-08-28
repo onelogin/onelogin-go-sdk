@@ -3,7 +3,18 @@ package models
 import "encoding/json"
 
 type Brand struct {
-	Name                            *string `json:"name"`
+	// Name carries omitempty so that a partial update which does not set it
+	// omits the key rather than sending "name": null, which the endpoint
+	// rejects with 422 "Value must be a string." -- taking down requests that
+	// were only trying to change something else, such as a colour. Omitting
+	// the key entirely is answered 200; both were confirmed against the API.
+	//
+	// A create still needs a name: without one the endpoint answers
+	// 422 {"name":"Value is required."}. omitempty drops only the nil pointer,
+	// so a pointer to "" still sends an empty name and is still rejected.
+	//
+	// This is the same defect that App.Name carried until v4.17.0 (#124).
+	Name                            *string `json:"name,omitempty"`
 	Master                          *bool   `json:"master,omitempty"`
 	Enabled                         *bool   `json:"enabled,omitempty"`                              // Indicates if the brand is enabled or not (default=false)
 	CustomSupportEnabled            *bool   `json:"custom_support_enabled,omitempty"`               // Indicates if custom support is enabled

@@ -27,6 +27,9 @@ type Brand struct {
 	LoginInstructionTitle           *string `json:"login_instruction_title,omitempty"`              // Link text for login instruction screen
 	LoginInstruction                *string `json:"login_instruction,omitempty"`                    // Text for login instruction screen (Markdown)
 	HideOneLoginFooter              *bool   `json:"hide_onelogin_footer,omitempty"`                 // Indicates if the OneLogin footer will appear at the bottom of the login page
+	ShowHelpOnMFA                   *bool   `json:"show_help_on_mfa,omitempty"`                     // Show branded Login help link on MFA verification, enrollment and Protect enrollment notice screens (default false)
+	ShowSupportOnMFA                *bool   `json:"show_support_on_mfa,omitempty"`                  // Show branded Support link on MFA verification, enrollment and Protect enrollment notice screens; requires custom_support_enabled=true (default false)
+	ShowAdditionalLinksOnMFA        *bool   `json:"show_additional_links_on_mfa,omitempty"`         // Show branded Additional links on MFA verification, enrollment and Protect enrollment notice screens (default false)
 	MFAEnrollmentMessage            *string `json:"mfa_enrollment_message,omitempty"`               // Custom text for MFA Registration initial screen
 	Background                      *string `json:"background,omitempty"`                           // Base64 encoded image data for background (JPG/PNG, <5MB)
 	Logo                            *string `json:"logo,omitempty"`                                 // Base64 encoded image data for logo (PNG, <1MB)

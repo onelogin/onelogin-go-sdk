@@ -1,3 +1,3 @@
 package onelogin
 
-const Version = "4.18.0"
+const Version = "4.19.0"

@@ -13,6 +13,12 @@ const (
 	AppPath string = "api/2/apps"
 )
 
+// CreateApp and UpdateApp report errors through CheckHTTPResponseWithErrorBody
+// rather than CheckHTTPResponse. An app's configuration and parameters are
+// keyed by whatever its connector defines, so a rejected write is most often a
+// name the connector does not have, and only the body says which:
+// "Unknown parameter on configuration section: <name>". "request failed with
+// status: 400" on its own gives the caller nothing to fix.
 func (sdk *OneloginSDK) CreateApp(app mod.App) (interface{}, error) {
 	p, err := utl.BuildAPIPath(AppPath)
 	if err != nil {
@@ -22,7 +28,7 @@ func (sdk *OneloginSDK) CreateApp(app mod.App) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return utl.CheckHTTPResponse(resp)
+	return utl.CheckHTTPResponseWithErrorBody(resp)
 }
 
 // List Apps
@@ -60,7 +66,7 @@ func (sdk *OneloginSDK) UpdateApp(id int, app mod.App) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return utl.CheckHTTPResponse(resp)
+	return utl.CheckHTTPResponseWithErrorBody(resp)
 }
 
 // Delete an App Parameter
